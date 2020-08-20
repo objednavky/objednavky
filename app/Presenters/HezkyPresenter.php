@@ -139,6 +139,7 @@ class HezkyPresenter extends Nette\Application\UI\Presenter
         $grid->addColumnNumber('mySumS', 'Náklady šablony Kč')->setAlign('right');
         $grid->addColumnNumber('mySumD', 'Jiné účelové dotace Kč')->setAlign('right');
         $grid->addColumnNumber('rozdil', 'Zbývá Kč')->setAlign('right');
+        
         $grid->setColumnsSummary(['mySumV', 'mySumN', 'mySumS','mySumD', 'rozdil']);
         // $grid->setColumnsSummary(['mySumV', 'mySumV'])
         //         ->setRenderer(function($sum, string $column): string {
