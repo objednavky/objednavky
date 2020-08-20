@@ -1,0 +1,119 @@
+
+
+
+
+{block content}
+<br>
+<div class="container-fluid">
+  {block title}<h1>{$jeden->rozpocet}</h1>{/block}
+
+
+
+
+
+  {if ($percent < 100) }
+    <div class="progress" style="height: 10px;">
+      <div class="progress-bar" style="width: {$percent}%;" role="progressbar" aria-valuenow="{$vlastni}" aria-valuemin="0" aria-valuemax="{$castka}"></div>
+    </div>
+
+  {else }
+    <div class="progress" style="height: 10px;">
+     <div class="progress-bar bg-danger"  style="width: {$percent}%;" role="progressbar" aria-valuenow="{$vlastni}" aria-valuemin="0" aria-valuemax="{$castka}"></div>
+    </div>
+
+
+  {/if }
+
+  <br>
+  <h6>{$jeden->obsah}</h6>
+  <br>
+  <br>
+ 
+  <h6>Přehled</h6>
+  <table class="table table-bordered" style="width:70%" >
+    <thead>
+     
+      <tr>
+        <th  class="p-3 mb-2 bg-light text-dark">Hospodář: {$hospodar} <br>  Zástupce: {$hospodar2}</th>
+        <th class="p-3 mb-2 bg-light text-dark" >Rozpočet na celý rok - vlastní  Kč</th>
+        <th class="p-3 mb-2 bg-light text-dark">Šablony na celý rok  Kč</th>
+        <th class="p-3 mb-2 bg-light text-dark">Schválené objednávky (zatím nezaúčtované) Kč</th>
+        <th class="p-3 mb-2 bg-light text-dark">Objednávky čekající na schválení Kč</th>
+        <th class="p-3 mb-2 bg-light text-dark">Jiné účelové dotace - nejsou součástí rozpočtu Kč</th>
+      </tr>
+      <tr>
+        <th class="p-3 mb-2 bg-light text-dark">Plánované</th>
+        <td>{1234.20 |number:2:',':$castka} </td>
+        <td>{$sablonyplan} </td>
+        <td> </td>
+        <td> </td>
+        <td>neplánují se</td>
+        </tr>
+
+        <tr>
+          <th  class="p-3 mb-2 bg-light text-dark">Již utracené</th>
+        <td>{$vlastni} </td>
+        <td>{$sablony} </td>
+        <td> 2500 </td>
+        <td>3000 </td>
+        <td>{$dotace} </td>
+
+         
+        </tr>
+        <tr>
+          <th class="p-3 mb-2 bg-light text-dark" >V rozpočtu zbývá (včetně objednávek)</th>
+            {if ($castka- $vlastni-4500 > 0) }
+          <td>{$castka - $vlastni-4500} </td>
+          {else}
+          <td class="table-danger"> {$castka - $vlastni-4500} </td>
+          {/if}
+
+
+
+          {if ($sablonyplan - $sablony-1000 > 0) }
+          <td>{$sablonyplan - $sablony-1000} </td>
+          {else}
+          <td class="table-danger"> {$sablonyplan - $sablony-1000} </td>
+          {/if}
+         
+          <td> </td>
+          <td> </td>
+          <td></td>
+  
+          </tr>
+    </tbody>
+  </table>
+
+  
+  <br>
+  <br>
+  <h6>Jednotlivé zaúčtované doklady</h6>
+
+</div>  
+
+{control simpleGrid} 
+
+<div class="container-fluid"></div>
+  <br>
+
+  <br>
+  <br>
+
+<h6>Schválené a ověřené objednávky - dosud nezaúčtované</h6>
+{control simpleGrid2} 
+<br>
+<br>
+<br>
+<h6>Objednávky čekající na schválení nebo ověření</h6>
+{control simpleGrid3} 
+
+<br>
+<br>
+<br>
+<a class="btn btn-primary" n:href="Homepage:default" role="button">← zpět na hlavní stránku</a>
+  <br>
+    <br>
+
+</div>
+
+{/block}

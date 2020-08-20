@@ -1,0 +1,20 @@
+{
+  "name": "ublaboo-datagrid",
+  "version": "6.2.24",
+  "description": "Assets for php composer package ublaboo/datagrid",
+  "keywords": [
+    "ublaboo",
+    "contributte",
+    "datagrid"
+  ],
+  "author": "Pavel Janda <me@paveljanda.com>",
+  "license": "MIT",
+  "main": "assets/datagrid.js",
+  "files": [
+    "assets/*"
+  ],
+  "scripts": {
+    "release-dry": "npm publish --dry-run",
+    "release": "npm publish"
+  }
+}

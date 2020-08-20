@@ -1,0 +1,20 @@
+# Editor
+/.idea
+
+# Sources
+/src
+/.docs
+
+# CI
+/.travis.yml
+/.scrutinizer.yml
+
+# PHP
+/composer.json
+/composer.lock
+/vendor
+/phpstan.*
+
+# Tests
+/tests
+/coverage.xml
