@@ -1,0 +1,45 @@
+{block content}
+
+
+<div class="container-fluid">
+
+<br >
+
+<h2 class="display-4">Hezký rozpočet - rozložení  </h2>
+
+
+
+<br >
+<br>	 
+<div>
+<div class="progress" style="height: 10px;">
+  <div class="progress-bar" style="width: {$percent}%;" role="progressbar" aria-valuenow="{$naklady}" aria-valuemin="0" aria-valuemax="{$plan}"></div>
+</div>
+<br>
+
+<br>
+
+
+ 
+
+
+{*
+  {snippet detailRozpocet}
+  {if $detailItem != null}
+    <div>
+        <h1>{$detailItem}</h1>
+    </div>
+  {/if}
+  {/snippet}*}
+
+          {control simpleGrid} 
+			 
+	 <br>
+<a class="btn btn-primary" n:href="Hezky:show" role="button">← zpět na Hezký rozpočet</a>
+  <br>
+    <br>	  
+     
+
+  </div>
+
+{/block}

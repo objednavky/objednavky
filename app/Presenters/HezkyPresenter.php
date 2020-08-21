@@ -150,14 +150,7 @@ class HezkyPresenter extends Nette\Application\UI\Presenter
         $grid->addColumnNumber('rozdil', 'Zbývá z rozpočtu')->setAlign('right');
         $grid->setColumnsSummary(['castka','sablony','mySumV', 'mySumN', 'mySumS','mySumD', 'rozdil','objednanoVS','objednanoD']);
         $grid->setPagination(false);
-        // $grid->setColumnsSummary(['mySumV', 'mySumV'])
-        //         ->setRenderer(function($sum, string $column): string {
-        //             if ($column === 'price') {
-        //                 return $sum . ' $';
-        //             }
-
-        //             return $sum . ' items';
-        //         });
+       
    
 
 

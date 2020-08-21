@@ -32,12 +32,23 @@ class DetailPresenter extends Nette\Application\UI\Presenter
         $this->template->rozpocty = $this->database->table('rozpocet');
         $source = $this->mapRozpocet(1);
 
-        $this->template->mySum = $this->sumColumn($source, 'mySum');
-        $this->template->castka = $this->sumColumn($source, 'castka');
-        $this->template->mySum2 = $this->sumColumn($source, 'mySum2');
-        $this->template->percent = round(($this->template->mySum /  $this->template->castka) * 100, 0);
+        $this->template->mySumV = $this->sumColumn($source, 'mySumV');
+        $this->template->mySumN = $this->sumColumn($source, 'mySumN');
+        $this->template->mySumD = $this->sumColumn($source, 'mySumD');
+        $this->template->mySumS = $this->sumColumn($source, 'mySumS');
+       
 
-        $this->template->zbyva = $this->template->castka - $this->template->mySum;
+        $this->template->naklady = $this->sumColumn($source, 'mySumV') + $this->sumColumn($source, 'mySumN') + $this->sumColumn($source, 'mySumS');
+        $this->template->plan = $this->sumColumn($source, 'castka') + $this->sumColumn($source, 'sablony');
+        $this->template->castka = $this->sumColumn($source, 'castka');
+        $this->template->sablony = $this->sumColumn($source, 'sablony');
+
+
+       
+        $this->template->percent = $this->template->naklady == 0 ? 0 : round(($this->template->plan /  $this->template->naklady) * 100, 0);
+
+        $this->template->zbyva = $this->template->plan - $this->template->naklady;
+
     }
 
     public function getSetup($id)
@@ -53,6 +64,8 @@ class DetailPresenter extends Nette\Application\UI\Presenter
             $setup = $this->getSetup(1);
             $zasejedenID = $this->getParameter('detailId');
             $rozpocets =$this->database->table('rozpocet')->where('rok',$setup->rok)->where('verze',$setup->verze)->where('hezky',$zasejedenID);
+
+
           
             // jen vybrané rozpočty podle hezky
 
@@ -67,41 +80,52 @@ class DetailPresenter extends Nette\Application\UI\Presenter
                 $item->jmeno = $rozpocet->ref('hospodar')->jmeno;
                 $item->jmeno2 = $rozpocet->ref('hospodar2')->jmeno;
                 $item->castka = $rozpocet->castka;
+                $item->sablony = $rozpocet->sablony;
+                // $item->castka = $this->database->table('rozpocet')->where('hezky', $zasejedenID)->where('rok', $setup->rok)->where('verze',$setup->verze);
+                // $item->sablony = $this->database->table('rozpocet')->where('hezky', $zasejedenID)->where('rok', $setup->rok)->where('verze',$setup->verze)
+                //                 ->sum('sablony');
+              
 
                 $relevantni = $this->database->table('zakazky')->select('zakazka')->where('vlastni', 1)->where('normativ', 0);
-                $item->mySumV = $this->database->table('denik')->where('rozpocet', $rozpocet->id)->where('petky', $argument)->where('zakazky',$relevantni)
+                $item->mySumV = $this->database->table('denik')->where('rozpocet', $item->id)->where('petky', $argument)->where('zakazky',$relevantni)
                                     ->sum('castka');
                 $item->mySumV = \round($item->mySumV, 0);
 
                 // vlastni 
 
-                $relevantni = $this->database->table('zakazky')->select('zakazka')->where('normativ', 1);
-                $item->mySumN = $this->database->table('denik')->where('rozpocet', $rozpocet->id)->where('petky', $argument)->where('zakazky',$relevantni)
+                $relevantniN = $this->database->table('zakazky')->select('zakazka')->where('normativ', 1);
+                $item->mySumN = $this->database->table('denik')->where('rozpocet', $item->id)->where('petky', $argument)->where('zakazky',$relevantniN)
                                     ->sum('castka');
-                $item->mySumN = \round($item->mySumV, 0);
+                $item->mySumN = \round($item->mySumN, 0);
 
 
-                $relevantni = $this->database->table('zakazky')->select('zakazka')->where('sablony', 1);
-                $item->mySumS = $this->database->table('denik')->where('rozpocet', $rozpocet->id)->where('petky', $argument)->where('zakazky',$relevantni)
+                $relevantniS = $this->database->table('zakazky')->select('zakazka')->where('sablony', 1);
+                $item->mySumS = $this->database->table('denik')->where('rozpocet', $item->id)->where('petky', $argument)->where('zakazky',$relevantniS)
                                     ->sum('castka');
-                $item->mySumS = \round($item->mySumV, 0);            
+                $item->mySumS = \round($item->mySumS, 0);            
                
 
 
                 $relevantni = $this->database->table('zakazky')->select('zakazka')->where('dotace', 1);
-                $item->mySumD = $this->database->table('denik')->where('rozpocet', $rozpocet->id)->where('petky', $argument)
+                $item->mySumD = $this->database->table('denik')->where('rozpocet', $item->id)->where('petky', $argument)
                             ->where('zakazky',$relevantni)->sum('castka');
                                
                 $item->mySumD = \round($item->mySumD, 0);
 
                 
                 $relevantni_cin = $this->database->table('cinnost')->where('id_rozpocet', $rozpocet->id);
-                $item->objednanoR = $this->database->table('objednavky')->where('cinnost', $relevantni_cin)
-                                        ->where('vlastni = ? OR sablony = ?', 1,1)->sum('castka');
+                $item->objednanoVS = $this->database->table('objednavky')->where('cinnost', $relevantni_cin)
+                                    ->where('zakazka.vlastni = ? OR zakazka.sablony = ?', 1,1)->sum('castka');
+                $item->objednanoD = $this->database->table('objednavky')->where('cinnost', $relevantni_cin)
+                                     ->where('zakazka.dotace = 1')->sum('castka');
 
-                                        
+                $item->objednano = $item->objednanoD + $item->objednanoVS;
 
-                $item->rozdil = $item->castka -  $item->mySumV  - $item->mySumN - $item->mySumS - $item->objednano;
+
+               
+               
+
+                $item->rozdil = $item->castka -  $item->mySumV  - $item->mySumN - $item->mySumS - $item->objednanoVS;
                 $fetchedRozpocets[] = $item;
             }
 
@@ -127,23 +151,23 @@ class DetailPresenter extends Nette\Application\UI\Presenter
         
         $grid->setDataSource($source);
       
-        $grid->addColumnLink('rozpocet', 'Rozpočet', 'Jeden:show', 'rozpocet', ['jedenId' => 'id']);
-  
-        $grid->addColumnText('jmeno', 'Hospodář');
-        $grid->addColumnText('jmeno2', 'Zástupce');
-        $grid->addColumnText('castka', 'Částka Kč')->setAlign('right');
-        $grid->addColumnText('mySum', 'Vlastní Kč')->setAlign('right');
-        $grid->addColumnText('mySum2', 'Šablony Kč')->setAlign('right');
-        $grid->addColumnText('rozdil', 'Zbývá Kč')->setAlign('right');
+        $grid->addColumnLink('rozpocet', 'Rozpočet', 'Man:show', 'rozpocet', ['manId' => 'id']);
+        // $grid->addColumnText('rozpocet', 'Rozpočet')->setAlign('left');
+        $grid->addColumnNumber('castka', 'Plán vlastní Kč')->setAlign('right');
+        $grid->addColumnNumber('sablony', 'Plán šablony Kč')->setAlign('right');
+        $grid->addColumnNumber('mySumV', 'Náklady vlastní Kč')->setAlign('right');
+        $grid->addColumnNumber('mySumN', 'Náklady normativ Kč')->setAlign('right');
+        $grid->addColumnNumber('mySumS', 'Náklady šablony')->setAlign('right');
+        $grid->addColumnNumber('mySumD', 'Jiné účelové dotace')->setAlign('right');
+        $grid->addColumnNumber('objednanoVS', 'Objednávky z rozpočtu')->setAlign('right');
+        $grid->addColumnNumber('objednanoD', 'Objednávky dotace')->setAlign('right');
+        $grid->addColumnNumber('rozdil', 'Zbývá z rozpočtu')->setAlign('right');
+        $grid->setColumnsSummary(['castka','sablony','mySumV', 'mySumN', 'mySumS','mySumD', 'rozdil','objednanoVS','objednanoD']);
+        $grid->setPagination(false);
 
-   
 
-
-        // $grid->addExportCsvFiltered('Export do csv s filtrem', 'tabulka.csv', 'windows-1250')
-        // ->setTitle('Export do csv s filtrem');
         $grid->addExportCsv('Export do csv', 'tabulka.csv', 'windows-1250')
         ->setTitle('Export do csv');
-
 
 
 
