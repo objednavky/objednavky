@@ -110,7 +110,7 @@ class HezkyPresenter extends Nette\Application\UI\Presenter
             
             $item->objednano = $item->objednanoD + $item->objednanoVS;
             $item->rozdil = ($item->castka) +($item->sablony) - ( $item->mySumV)- ($item->mySumS) -  ($item->mySumN) - $item->objednanoVS;
-           
+            $item->soucetV =  ( $item->mySumV)+ ($item->mySumS) +  ($item->mySumN) ;
 
             $fetchedRozpocets[] = $item;
         }
@@ -147,8 +147,9 @@ class HezkyPresenter extends Nette\Application\UI\Presenter
         $grid->addColumnNumber('mySumD', 'Jiné účelové dotace')->setAlign('right');
         $grid->addColumnNumber('objednanoVS', 'Objednávky z rozpočtu')->setAlign('right');
         $grid->addColumnNumber('objednanoD', 'Objednávky dotace')->setAlign('right');
+        $grid->addColumnNumber('soucetV', 'Součet vlastní+normativ+šablony')->setAlign('right');
         $grid->addColumnNumber('rozdil', 'Zbývá z rozpočtu')->setAlign('right');
-        $grid->setColumnsSummary(['castka','sablony','mySumV', 'mySumN', 'mySumS','mySumD', 'rozdil','objednanoVS','objednanoD']);
+        $grid->setColumnsSummary(['castka','sablony','mySumV', 'mySumN', 'mySumS','mySumD', 'rozdil','objednanoVS','objednanoD','soucetV']);
         $grid->setPagination(false);
        
    
