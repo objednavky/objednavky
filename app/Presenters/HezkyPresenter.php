@@ -41,6 +41,8 @@ class HezkyPresenter extends Nette\Application\UI\Presenter
         $this->template->percent = $this->template->naklady == 0 ? 0 : round(($this->template->plan /  $this->template->naklady) * 100, 0);
 
         $this->template->zbyva = $this->template->plan - $this->template->naklady;
+
+        
         bdump($source);
     } 
 
@@ -80,7 +82,7 @@ class HezkyPresenter extends Nette\Application\UI\Presenter
             $item->mySumV = $this->database->table('denik')->where('hezky', $hezky->id)->where('petky', $argument)->where('zakazky',$relevantni_zak)
                                 ->sum('castka');      // vlastní vcetne normativu
 
-            $item->mySumV -= $item->mySumV;    // vlastní bez normativu
+            $item->mySumV -= $item->mySumN;    // vlastní bez normativu
             $item->mySumV = \round($item->mySumV, 0);     
 
 
@@ -98,12 +100,17 @@ class HezkyPresenter extends Nette\Application\UI\Presenter
 
 
 
-            $item->rozdil = ($item->castka) +($item->sablony) - ( $item->mySumV)- ($item->mySumS) -  ($item->mySumN);
-            // doplnit objednávky!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            
 
-
-
-
+            $relevantni_cin = $this->database->table('cinnost')->where('id_hezky', $hezky->id)->where('rok', $rok);
+            $item->objednanoVS = $this->database->table('objednavky')->where('cinnost', $relevantni_cin)
+                                                ->where('zakazka.vlastni = ? OR zakazka.sablony = ?', 1,1)->sum('castka');
+            $item->objednanoD = $this->database->table('objednavky')->where('cinnost', $relevantni_cin)
+                                                ->where('zakazka.dotace = 1')->sum('castka');
+            
+            $item->objednano = $item->objednanoD + $item->objednanoVS;
+            $item->rozdil = ($item->castka) +($item->sablony) - ( $item->mySumV)- ($item->mySumS) -  ($item->mySumN) - $item->objednanoVS;
+           
 
             $fetchedRozpocets[] = $item;
         }
@@ -130,16 +137,19 @@ class HezkyPresenter extends Nette\Application\UI\Presenter
         
         $grid->setDataSource($source);
       
-        // $grid->addColumnLink('hezz', 'Rozpočet', 'Detail:show', 'hezz', ['detailId' => 'id']);
-        $grid->addColumnText('hezz', 'Rozpočet')->setAlign('left');
+        $grid->addColumnLink('hezz', 'Rozpočet', 'Detail:show', 'hezz', ['detailId' => 'id']);
+        // $grid->addColumnText('hezz', 'Rozpočet')->setAlign('left');
         $grid->addColumnNumber('castka', 'Plán vlastní Kč')->setAlign('right');
         $grid->addColumnNumber('sablony', 'Plán šablony Kč')->setAlign('right');
         $grid->addColumnNumber('mySumV', 'Náklady vlastní Kč')->setAlign('right');
         $grid->addColumnNumber('mySumN', 'Náklady normativ Kč')->setAlign('right');
-        $grid->addColumnNumber('mySumS', 'Náklady šablony Kč')->setAlign('right');
-        $grid->addColumnNumber('mySumD', 'Jiné účelové dotace Kč')->setAlign('right');
-        $grid->addColumnNumber('rozdil', 'Zbývá Kč')->setAlign('right');
-        $grid->setColumnsSummary(['mySumV', 'mySumN', 'mySumS','mySumD', 'rozdil']);
+        $grid->addColumnNumber('mySumS', 'Náklady šablony')->setAlign('right');
+        $grid->addColumnNumber('mySumD', 'Jiné účelové dotace')->setAlign('right');
+        $grid->addColumnNumber('objednanoVS', 'Objednávky z rozpočtu')->setAlign('right');
+        $grid->addColumnNumber('objednanoD', 'Objednávky dotace')->setAlign('right');
+        $grid->addColumnNumber('rozdil', 'Zbývá z rozpočtu')->setAlign('right');
+        $grid->setColumnsSummary(['castka','sablony','mySumV', 'mySumN', 'mySumS','mySumD', 'rozdil','objednanoVS','objednanoD']);
+        $grid->setPagination(false);
         // $grid->setColumnsSummary(['mySumV', 'mySumV'])
         //         ->setRenderer(function($sum, string $column): string {
         //             if ($column === 'price') {

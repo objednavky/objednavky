@@ -36,6 +36,7 @@ class JedenPresenter extends Nette\Application\UI\Presenter
 
 
     $this->template->jeden = $jeden;
+  
 
     $this->template->hospodar = $jeden->ref('hospodar')->jmeno;
     $this->template->hospodar2 = $jeden->ref('hospodar2')->jmeno;
@@ -51,7 +52,7 @@ class JedenPresenter extends Nette\Application\UI\Presenter
 
 
     $nacti = $this->database->table('rozpocet')->where('id',$jedenId)->fetch();;
-    $this->template->castka = $nacti->castka;      //ziskam castku vlastni;
+    $this->template->castka = $jeden->castka;      //ziskam castku vlastni;
     $this->template->sablonyplan = $nacti->sablony;    //ziskam castku sablony;
    
 
@@ -67,13 +68,13 @@ class JedenPresenter extends Nette\Application\UI\Presenter
 
 
 
-    //$relevantni =   $this->database->table('cinnost')->select('id')->where('id_rozpocet',  $zasejedenID );
-        
-           
-            
-    //$source = $this->database->table('objednavky')->where('cinnost', $relevantni);      
-
-   // $this->template->objednano = $this->sumColumn($source, 'castka');
+    $relevantni =$this->database->table('cinnost')->select('id')->where('id_rozpocet',$jedenId);
+    $source = $this->database->table('objednavky')->where('cinnost', $relevantni)->where('zakazka.vlastni',1);
+    $source2 = $this->database->table('objednavky')->where('cinnost', $relevantni)->where('zakazka.dotace',1); 
+    $this->template->objednanoV = $this->sumColumn($source, 'castka');
+    $this->template->objednanoD =  $this->sumColumn($source2, 'castka'); 
+  
+    
 
     } 
     

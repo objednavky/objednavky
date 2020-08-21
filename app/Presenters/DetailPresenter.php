@@ -21,9 +21,9 @@ class DetailPresenter extends Nette\Application\UI\Presenter
 		$this->database = $databaseparam;
 	}
 
-    public function renderShow(int $jedenId): void
+    public function renderShow(int $detailId): void
 	{
-        $jeden = $this->database->table('rozpocet')->get($jedenId);
+        $jeden = $this->database->table('rozpocet')->get($detailId);
         
         if (!$jeden) {
             $this->error('Stránka nebyla nalezena');
@@ -45,38 +45,17 @@ class DetailPresenter extends Nette\Application\UI\Presenter
          return $this->database->table('setup')->where('id',$id)->fetch();
     }
 
-    private function JakyRok()
-    {
-
-        $vysledek = $this->database->table('setup')->where('id',1);
-
-        foreach ($vysledek as $radka) {
-            $vyslednyrok = $radka->rok;      //ziskam rok;
-        }
-
-        
-    return $vyslednyrok;
-
-    }
-
-        private function JakaVerze(){
-
-            $vysledek = $this->database->table('setup')->where('id',1);
-
-            foreach ($vysledek as $radka) {
-                $vyslednaverze = $radka->verze;      //ziskam verzi;
-            }
-
-         
-        return $vyslednaverze;
-    }
+   
     
 
         private function mapRozpocet($argument)
         {
             $setup = $this->getSetup(1);
-            $rozpocets =$this->database->table('rozpocet')->where('rok',$setup->rok)->where('verze',$setup->verze);
+            $zasejedenID = $this->getParameter('detailId');
+            $rozpocets =$this->database->table('rozpocet')->where('rok',$setup->rok)->where('verze',$setup->verze)->where('hezky',$zasejedenID);
           
+            // jen vybrané rozpočty podle hezky
+
             bdump($rozpocets);
 
            
@@ -89,26 +68,40 @@ class DetailPresenter extends Nette\Application\UI\Presenter
                 $item->jmeno2 = $rozpocet->ref('hospodar2')->jmeno;
                 $item->castka = $rozpocet->castka;
 
-                $relevantni = $this->database->table('zakazky')->select('zakazka')->where('vlastni', 1);
-                $item->mySum = $this->database->table('denik')->where('rozpocet', $rozpocet->id)->where('petky', $argument)->where('zakazky',$relevantni)
+                $relevantni = $this->database->table('zakazky')->select('zakazka')->where('vlastni', 1)->where('normativ', 0);
+                $item->mySumV = $this->database->table('denik')->where('rozpocet', $rozpocet->id)->where('petky', $argument)->where('zakazky',$relevantni)
                                     ->sum('castka');
+                $item->mySumV = \round($item->mySumV, 0);
 
-                // $item->mySum = $this->database->table('denik')->where('rozpocet', $rozpocet->id)->where('petky', $argument)
-                //                     ->sum('castka');
+                // vlastni 
+
+                $relevantni = $this->database->table('zakazky')->select('zakazka')->where('normativ', 1);
+                $item->mySumN = $this->database->table('denik')->where('rozpocet', $rozpocet->id)->where('petky', $argument)->where('zakazky',$relevantni)
+                                    ->sum('castka');
+                $item->mySumN = \round($item->mySumV, 0);
+
+
+                $relevantni = $this->database->table('zakazky')->select('zakazka')->where('sablony', 1);
+                $item->mySumS = $this->database->table('denik')->where('rozpocet', $rozpocet->id)->where('petky', $argument)->where('zakazky',$relevantni)
+                                    ->sum('castka');
+                $item->mySumS = \round($item->mySumV, 0);            
+               
+
+
+                $relevantni = $this->database->table('zakazky')->select('zakazka')->where('dotace', 1);
+                $item->mySumD = $this->database->table('denik')->where('rozpocet', $rozpocet->id)->where('petky', $argument)
+                            ->where('zakazky',$relevantni)->sum('castka');
                                
-                $item->mySum = \round($item->mySum, 0);
+                $item->mySumD = \round($item->mySumD, 0);
 
+                
+                $relevantni_cin = $this->database->table('cinnost')->where('id_rozpocet', $rozpocet->id);
+                $item->objednanoR = $this->database->table('objednavky')->where('cinnost', $relevantni_cin)
+                                        ->where('vlastni = ? OR sablony = ?', 1,1)->sum('castka');
 
-                $relevantni2 = $this->database->table('zakazky')->select('zakazka')->where('dotace', 1);
-                $item->mySum2 = $this->database->table('denik')->where('rozpocet', $rozpocet->id)->where('petky', $argument)
-                            ->where('zakazky',$relevantni2)->sum('castka');
+                                        
 
-                // $item->mySum = $this->database->table('denik')->where('rozpocet', $rozpocet->id)->where('petky', $argument)
-                //                     ->sum('castka');
-                               
-                $item->mySum2 = \round($item->mySum2, 0);
-
-                $item->rozdil = $item->castka - ( $item->mySum );
+                $item->rozdil = $item->castka -  $item->mySumV  - $item->mySumN - $item->mySumS - $item->objednano;
                 $fetchedRozpocets[] = $item;
             }
 

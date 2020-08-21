@@ -43,8 +43,8 @@
       </tr>
       <tr>
         <th class="p-3 mb-2 bg-light text-dark">Plánované</th>
-        <td>{1234.20 |number:2:',':$castka} </td>
-        <td>{$sablonyplan} </td>
+        <td>{$castka|number:0:',':' '} </td>
+        <td>{$sablonyplan|number:0:',':' '} </td>
         <td> </td>
         <td> </td>
         <td>neplánují se</td>
@@ -52,28 +52,28 @@
 
         <tr>
           <th  class="p-3 mb-2 bg-light text-dark">Již utracené</th>
-        <td>{$vlastni} </td>
-        <td>{$sablony} </td>
-        <td> 2500 </td>
-        <td>3000 </td>
-        <td>{$dotace} </td>
+        <td>{$vlastni|number:0:',':' '} </td>
+        <td>{$sablony|number:0:',':' '} </td>
+        <td>{$objednanoV|number:0:',':' '}  </td>
+        <td>{$objednanoD|number:0:',':' '} </td>
+        <td>{$dotace|number:0:',':' '} </td>
 
          
         </tr>
         <tr>
           <th class="p-3 mb-2 bg-light text-dark" >V rozpočtu zbývá (včetně objednávek)</th>
-            {if ($castka- $vlastni-4500 > 0) }
-          <td>{$castka - $vlastni-4500} </td>
+            {if (($castka- $vlastni-$objednanoV) > 0) }
+          <td>{($castka - $vlastni-$objednanoV)|number:0:',':' '} </td>
           {else}
-          <td class="table-danger"> {$castka - $vlastni-4500} </td>
+          <td class="table-danger"> {($castka - $vlastni)-$objednanoV|number:0:',':' '} </td>
           {/if}
 
 
 
-          {if ($sablonyplan - $sablony-1000 > 0) }
-          <td>{$sablonyplan - $sablony-1000} </td>
+          {if ($sablonyplan - $sablony-$objednanoD > 0) }
+          <td>{$sablonyplan - $sablony-$objednanoD} </td>
           {else}
-          <td class="table-danger"> {$sablonyplan - $sablony-1000} </td>
+          <td class="table-danger"> {$sablonyplan - $sablony-$objednanoD} </td>
           {/if}
          
           <td> </td>
