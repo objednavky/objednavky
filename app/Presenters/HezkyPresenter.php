@@ -71,7 +71,7 @@ class HezkyPresenter extends Nette\Application\UI\Presenter
                                 ->sum('castka');
             $item->sablony = $this->database->table('rozpocet')->where('hezky', $hezky->id)->where('rok', $rok)->where('verze',$verze)
                                 ->sum('sablony');
-
+            $item->plan = $item->castka+$item->sablony;
             $relevantni_zak = $this->database->table('zakazky')->select('zakazka')->where('normativ', 1 );
             $item->mySumN = $this->database->table('denik')->where('hezky', $hezky->id)->where('petky', $argument)->where('zakazky',$relevantni_zak)
                                 ->sum('castka');      // normativ
@@ -139,17 +139,20 @@ class HezkyPresenter extends Nette\Application\UI\Presenter
       
         $grid->addColumnLink('hezz', 'Rozpočet', 'Detail:show', 'hezz', ['detailId' => 'id']);
         // $grid->addColumnText('hezz', 'Rozpočet')->setAlign('left');
-        $grid->addColumnNumber('castka', 'Plán vlastní Kč')->setAlign('right');
-        $grid->addColumnNumber('sablony', 'Plán šablony Kč')->setAlign('right');
+        $grid->addColumnNumber('castka', 'Plán vlastní - součást rozpočtu Kč')->setAlign('right');
+        $grid->addColumnNumber('sablony', 'Plán šablony - součást rozpočtu Kč')->setAlign('right');
+        $grid->addColumnNumber('plan', 'Celkem plán rozpočet  vlastní + šablony Kč')->setAlign('right');
         $grid->addColumnNumber('mySumV', 'Náklady vlastní Kč')->setAlign('right');
         $grid->addColumnNumber('mySumN', 'Náklady normativ Kč')->setAlign('right');
         $grid->addColumnNumber('mySumS', 'Náklady šablony')->setAlign('right');
-        $grid->addColumnNumber('mySumD', 'Jiné účelové dotace')->setAlign('right');
+        $grid->addColumnNumber('soucetV', 'Součet nákladů vlastní+normativ+šablony')->setAlign('right');
         $grid->addColumnNumber('objednanoVS', 'Objednávky z rozpočtu')->setAlign('right');
-        $grid->addColumnNumber('objednanoD', 'Objednávky dotace')->setAlign('right');
-        $grid->addColumnNumber('soucetV', 'Součet vlastní+normativ+šablony')->setAlign('right');
+        $grid->addColumnNumber('mySumD', 'Jiné účelové dotace - ne z rozpočtu')->setAlign('right');
+       
+        $grid->addColumnNumber('objednanoD', 'Objednávky dotace - ne z rozpočtu')->setAlign('right');
+       
         $grid->addColumnNumber('rozdil', 'Zbývá z rozpočtu')->setAlign('right');
-        $grid->setColumnsSummary(['castka','sablony','mySumV', 'mySumN', 'mySumS','mySumD', 'rozdil','objednanoVS','objednanoD','soucetV']);
+        $grid->setColumnsSummary(['castka','sablony','mySumV', 'mySumN', 'mySumS','mySumD', 'rozdil','objednanoVS','objednanoD','soucetV','plan']);
         $grid->setPagination(false);
        
    
