@@ -1,4 +1,6 @@
 <?php
+//Manažérský report zobrazující vybrané  rozpočety z Hezkého rozpočtu v detailu
+
 
 declare(strict_types=1);
 

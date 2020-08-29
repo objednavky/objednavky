@@ -1,4 +1,5 @@
 <?php
+//Úvodní uživatelská obrazovka, zobrazí rozpočty přihlášených skupin
 
 declare(strict_types=1);
 

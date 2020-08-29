@@ -1,4 +1,6 @@
 <?php
+//Manažérský report zobrazující Hezký rozpočet
+
 
 declare(strict_types=1);
 

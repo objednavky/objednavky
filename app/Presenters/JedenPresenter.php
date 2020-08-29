@@ -1,4 +1,5 @@
 <?php
+//Uživatelský report zobrazující detail rozpočtu včetně objednávek schválených a nezaúčtovaných
 
 namespace App\Presenters;
 
