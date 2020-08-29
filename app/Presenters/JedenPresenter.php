@@ -20,7 +20,15 @@ class JedenPresenter extends Nette\Application\UI\Presenter
 	{
         $this->database = $database;
        
-	}
+    }
+    
+    protected function startup()
+    {
+        parent::startup();
+        if (!$this->getUser()->isLoggedIn()) {
+            $this->redirect('Prihlas:show');
+        }
+    }
 
 
     

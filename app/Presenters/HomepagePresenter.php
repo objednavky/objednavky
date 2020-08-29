@@ -12,19 +12,44 @@ use stdClass;
 use Ublaboo\DataGrid\AggregationFunction\FunctionSum;
 use Ublaboo\DataGrid\AggregationFunction\ISingleColumnAggregationFunction;
 
+
+
+
+
+
+
+
 class HomepagePresenter extends Nette\Application\UI\Presenter
 {
-	/** @var Nette\Database\Context */
-	private $database;
 
-	public function __construct(Nette\Database\Context $databaseparam)
+/** @var Nette\Database\Context */
+    private $database;
+	public function __construct(Nette\Database\Context $databaseparam, Nette\Http\Session $session)
+  
 	{
 		$this->database = $databaseparam;
-	}
+    }
+    
+    protected function startup()
+    {
+        parent::startup();
+        if (!$this->getUser()->isLoggedIn()) {
+            $this->redirect('Prihlas:show');
+        }
+    }
+   
+    
+
+
+    
+   
+
 
     public function renderDefault(): void
     {
-        $uz = 8;    //   uživatel
+        $user = $this->getUser();
+
+        $uz = 8;  //   uživatel
         
         $this->template->rozpocty = $this->database->table('rozpocet');
         
@@ -32,13 +57,6 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
 
         $this->template->mySum = $this->sumColumn($source, 'mySum');
         $this->template->castkaSablony = $this->sumColumn($source, 'castkaSablony');
-
-
-       
-
-
-
-
 
         $this->template->objed_ja_sch = $this->database->table('objednavky')->where('kdo = ? OR kdo2 = ?', $uz,$uz)
         ->where('schvalil', NULL)->count('id');    //    počet objednávek čekající na mé schválení
@@ -60,7 +78,13 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
    
         
         $uzivatel = $this->database->table('uzivatel')->where('id',$uz)->fetch();  //tady bude prihlaseny uzivatel
-        $this->template->prihlasen = $uzivatel->jmeno;
+        bdump($this->getUser());
+        $this->template->prihlasen = $this->getUser()->getIdentity()->jmeno . ' v roli ' . implode(';', $this->getUser()->getRoles());
+
+
+
+       
+                                      
 
 
     }

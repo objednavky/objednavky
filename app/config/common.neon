@@ -20,3 +20,4 @@ di:
 
 services:
 	router: App\Router\RouterFactory::createRouter
+	- MyAuthenticator
