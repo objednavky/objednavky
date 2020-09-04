@@ -35,12 +35,19 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
         parent::startup();
         if (!$this->getUser()->isLoggedIn()) {
             $this->redirect('Prihlas:show');
+
+            
         }
     }
    
     
 
-
+    public function prihlasenyId()
+    {
+       
+        $uzivatel = $this->getUser()->getIdentity()->jmeno; 
+         return $this->database->table('uzivatel')->where('jmeno',$uzivatel)->fetch();
+    }
     
    
 
@@ -48,9 +55,21 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
     public function renderDefault(): void
     {
         $user = $this->getUser();
+        $user->setExpiration('20 minutes');
+        bdump($this->getUser());
 
-        $uz = 8;  //   uživatel
-        
+
+
+        // $uzivatel = $this->getUser()->getIdentity()->jmeno;      //   jméno uživatel
+
+        $uz = $this->prihlasenyId();
+        // $uz = $this->database->table('uzivatel')->where('jmeno',$uzivatel)->fetch();  //id prihlaseny uzivatel
+       
+
+      
+        $this->template->prihlasen = $this->getUser()->getIdentity()->jmeno . ' v roli ' . implode(';', $this->getUser()->getRoles());
+
+      
         $this->template->rozpocty = $this->database->table('rozpocet');
         
         $source = $this->mapRozpocet(1);
@@ -77,9 +96,7 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
         $this->template->zbyva = $this->template->castkaSablony - $this->template->mySum;
    
         
-        $uzivatel = $this->database->table('uzivatel')->where('id',$uz)->fetch();  //tady bude prihlaseny uzivatel
-        bdump($this->getUser());
-        $this->template->prihlasen = $this->getUser()->getIdentity()->jmeno . ' v roli ' . implode(';', $this->getUser()->getRoles());
+      
 
 
 
@@ -106,11 +123,10 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
             $rok=$this->getSetup(1)->rok;      //zjitim rok a verzi;
             $verze=$this->getSetup(1)->verze;
 
-
+            $uz = $this->prihlasenyId();   // přihlášený uživatel
             
-                //tady zjistím přihlášeného uživatele, pro účely testu nastavuji id =8 Jana;
-
-            $uz = 8;
+              
+           
             $skupina = $this->database->table('skupiny')->where('uzivatel',$uz)->select('rozpocet');   //vyberu nastavené skupiny 
 
             bdump($skupina);

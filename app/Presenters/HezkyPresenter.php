@@ -23,6 +23,15 @@ class HezkyPresenter extends Nette\Application\UI\Presenter
 		$this->database = $databaseparam;
 	}
 
+    protected function startup()
+    {
+        parent::startup();
+        if (!$this->getUser()->isLoggedIn()) {
+            $this->redirect('Prihlas:show');
+        }
+    }
+
+
     public function renderShow() {                   //renderShow
 
         $source = $this->mapRozpocet(1);
