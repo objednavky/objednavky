@@ -35,6 +35,10 @@
       <th>  Počet objednávek k Vašemu schválení </th>
       <td><b> {$objed_ja_sch} </b> </td>
      </tr>
+      <tr>
+      <th>  Počet objednávek k Vašemu ověření </th>
+      <td><b> {$objed_ja_ov} </b> </td>
+     </tr>
     <tr>
       <th > Počet Vašich otevřených objednávek, které požadujete schválit</th>
       <td><b>{$objed_jiny_sch} </b> </td>
@@ -67,11 +71,18 @@
 <br >
 
 <h4> Objednávky, které čekají na Vaše schválení </h4>
-{control simpleGrid2} 
-</div>
-<br >
-<br >
-<br >
-<br >
+{control schvalitGrid} 
 
+<br >
+<br >
+<br >
+<br >
+<h4> Objednávky, které čekají na Vaše ověření </h4>
+{control overitGrid} 
+
+<br >
+<br >
+<br >
+<br >
+</div>
 {/block}

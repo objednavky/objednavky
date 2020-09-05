@@ -8,7 +8,7 @@ application:
 
 
 session:
-	expiration: 14 days
+	expiration: 20 minutes
 
 
 di:

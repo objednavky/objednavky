@@ -24,6 +24,9 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
 
 /** @var Nette\Database\Context */
     private $database;
+
+    private $grids = [];
+
 	public function __construct(Nette\Database\Context $databaseparam, Nette\Http\Session $session)
   
 	{
@@ -38,6 +41,13 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
 
             
         }
+        $uz = $this->prihlasenyId();
+        $pocetHospodar = $this->database->table('rozpocet')->where('hospodar =? OR hospodar2 = ?',$uz,$uz)->count('*');
+        $pocetOverovatel = $this->database->table('rozpocet')->where('overovatel',$uz)->count('*');               
+
+
+         if (($pocetOverovatel=0 ) && ($pocetHospodar>0 )) {redirect('Homepage:verzeDve');}  
+         if (($pocetOverovatel=0 ) && ($pocetHospodar=0 )) {redirect('Homepage:verzeTri');}  
     }
    
     
@@ -54,37 +64,40 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
 
     public function renderDefault(): void
     {
-        $user = $this->getUser();
-        $user->setExpiration('20 minutes');
-        bdump($this->getUser());
+        // $user = $this->getUser();
+        // $user->setExpiration('20 minutes');
 
 
 
-        // $uzivatel = $this->getUser()->getIdentity()->jmeno;      //   jméno uživatel
 
         $uz = $this->prihlasenyId();
-        // $uz = $this->database->table('uzivatel')->where('jmeno',$uzivatel)->fetch();  //id prihlaseny uzivatel
        
-
-      
+             
         $this->template->prihlasen = $this->getUser()->getIdentity()->jmeno . ' v roli ' . implode(';', $this->getUser()->getRoles());
 
       
+
+
         $this->template->rozpocty = $this->database->table('rozpocet');
         
         $source = $this->mapRozpocet(1);
 
-        $this->template->mySum = $this->sumColumn($source, 'mySum');
-        $this->template->castkaSablony = $this->sumColumn($source, 'castkaSablony');
+        $this->template->mySum = $this->sumColumn($source, 'mySumV') + $this->sumColumn($source, 'mySumS');
+        $this->template->castkaSablony = $this->sumColumn($source, 'castkaRozpocet') + $this->sumColumn($source, 'castkaSablony');
 
-        $this->template->objed_ja_sch = $this->database->table('objednavky')->where('kdo = ? OR kdo2 = ?', $uz,$uz)
-        ->where('schvalil', NULL)->count('id');    //    počet objednávek čekající na mé schválení
+        $this->template->objed_ja_sch = $this->database->table('objednavky')->where('kdo', $uz)
+        ->where('stav ', 0)->count('id');    //    počet objednávek čekající na mé schválení
 
-        $this->template->objed_jiny_sch = $this->database->table('prehled')->where('zadavatel', $uz)->where('schvaleno', 0)->where('zamitnuto', 0)
+        $this->template->objed_ja_ov = $this->database->table('objednavky')->where('kdo2', $uz)
+        ->where('stav ', 1)->count('id');    //    počet objednávek čekající na mé ověření
+
+      
+
+        $this->template->objed_jiny_sch = $this->database->table('objednavky')->where('zakladatel', $uz)->where('stav ?', [0,1,3,4])
         ->count('id');    //    počet objednávek, které jsem zadal a ještě nejsou schválené
 
-        $this->template->objed_zamitnute = $this->database->table('prehled')->where('zadavatel', $uz)->where('zamitnuto', 1)->where('zobrazovat', 1)
-        ->count('id');    //    počet objednávek, které jsem zadal a byly zamítnuté
+        $this->template->objed_zamitnute = $this->database->table('objednavky')->where('zakladatel', $uz)->where('stav = ? OR stav = ?', 2,5)
+           ->count('id');    //    počet objednávek, které jsem zadal a byly zamítnuté
 
 
 
@@ -129,7 +142,6 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
            
             $skupina = $this->database->table('skupiny')->where('uzivatel',$uz)->select('rozpocet');   //vyberu nastavené skupiny 
 
-            bdump($skupina);
             $rozpocets =$this->database->table('rozpocet')->where('rok',$rok)->where('verze',$verze)->where('id',$skupina);
           
            
@@ -140,22 +152,42 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
                 $item = new stdClass;
                 $item->id = $rozpocet->id;
                 $item->rozpocet = $rozpocet->rozpocet;
+                $item->castkaRozpocet = $rozpocet->castka;
                 $item->jmeno = $rozpocet->ref('hospodar')->jmeno;
                 $item->jmeno2 = $rozpocet->ref('hospodar2')->jmeno;
-                $item->castkaSablony = $rozpocet->castka + $rozpocet->sablony;
+                $item->castkaSablony = $rozpocet->sablony;
 
-                $relevantni = $this->database->table('zakazky')->select('zakazka')->where('NOT preuctovani', 1); //    zakázky, které se počítají
-                $utraceno = $this->database->table('denik')->where('rozpocet', $rozpocet->id)->where('petky', $argument)->where('zakazky',$relevantni)
+                $relevantni = $this->database->table('zakazky')->select('zakazka')->where('vlastni', 1); //    vlastní zakázky, které se počítají
+                $utracenoV = $this->database->table('denik')->where('rozpocet', $rozpocet->id)->where('petky', $argument)->where('zakazky',$relevantni)
                                     ->sum('castka');
-                $utraceno = \round($utraceno, 0);
+                $utracenoV = \round($utracenoV, 0);
               
-                $objednavky_suma = $this->database->table('objednavky')->where('cinnost', ':cinnost.id_rozpocet')->where('NOT zamitnuto', 1)->sum('castka');
-                $objednavky_suma = \round($objednavky_suma, 0);     //    nezamítnuté objednávky na rozpočet - celková částka
+                $objednavkyV_suma = $this->database->table('objednavky')->where('cinnost', ':cinnost.id_rozpocet')->where('zakazka',$relevantni)
+                ->where('stav ?', [0,1,3,4])->sum('castka');
+                $objednavkyV_suma = \round($objednavkyV_suma, 0);     //    nezamítnuté vlastní objednávky na rozpočet - celková částka
 
-                $item->mySum = $utraceno + $objednavky_suma;
+                
+                bdump($item->castkaRozpocet);
+                $item->mySumV = $utracenoV + $objednavkyV_suma;
                
 
-                $item->rozdil = $item->castkaSablony - ( $item->mySum );
+                $item->rozdilV = $item->castkaRozpocet - ( $item->mySumV );
+
+
+                $relevantniS = $this->database->table('zakazky')->select('zakazka')->where('sablony', 1); //    zakázky šablony, které se počítají
+                $utracenoS = $this->database->table('denik')->where('rozpocet', $rozpocet->id)->where('petky', $argument)->where('zakazky',$relevantniS)
+                                    ->sum('castka');
+                $utracenoS = \round($utracenoS, 0);
+              
+                $objednavkyS_suma = $this->database->table('objednavky')->where('cinnost', ':cinnost.id_rozpocet')->where('zakazka',$relevantniS)
+                ->where('stav ?', [0,1,3,4])->sum('castka');
+                $objednavkyS_suma = \round($objednavkyS_suma, 0);     //    nezamítnuté šablony objednávky na rozpočet - celková částka
+
+                $item->mySumS = $utracenoS + $objednavkyS_suma;
+               
+
+                $item->rozdilS = $item->castkaSablony - ( $item->mySumS );
+
 
                
                 
@@ -176,7 +208,7 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
             return $sum;
         }
 
-    public function createComponentSimpleGrid($name)
+    public function createComponentSimpleGrid($name)      
     {
         $grid = new DataGrid($this, $name);
         
@@ -189,11 +221,13 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
   
         $grid->addColumnText('jmeno', 'Hospodář');
         $grid->addColumnText('jmeno2', 'Zástupce');
-        $grid->addColumnText('castkaSablony', 'Plán na celý rok schválený  Kč')->setAlign('right');
-        $grid->addColumnText('mySum', 'Již utraceno nebo objednáno  Kč')->setAlign('right');
-        $grid->addColumnText('rozdil', 'Zbývá Kč')->setAlign('right');
+        $grid->addColumnNumber('castkaRozpocet', 'Plánovaný rozpočet na celý rok Kč')->addCellAttributes(['class' => 'text-success']);
+        $grid->addColumnNumber('mySumV', 'Již utraceno nebo objednáno z rozpočtu Kč');
+        $grid->addColumnNumber('rozdilV', 'Zbývá v rozpočtu Kč');
 
-   
+        $grid->addColumnNumber('castkaSablony', 'Plánované šablony na celý rok Kč')->addCellAttributes(['class' => 'text-success']);
+        $grid->addColumnNumber('mySumS', 'Šablony již utraceno nebo objednáno  Kč');
+        $grid->addColumnNumber('rozdilS', 'V šablonách zbývá Kč');
 
 
         // $grid->addExportCsvFiltered('Export do csv s filtrem', 'tabulka.csv', 'windows-1250')
@@ -232,32 +266,54 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
     } 
 
 
-    public function createComponentSimpleGrid2($name)
+
+
+
+    public function schvalitBtn(array $ids): void
+    {
+        $this->flashMessage('Stisknuto');
+    
+        if ($this->isAjax()) {
+            $this->grids['schvalovaciGrid']->reload();
+        } else {
+            $this->redirect('this');
+        }
+    }
+
+
+    public function createComponentSchvalitGrid($name)
     {
 
-        $uz = 8 ;       // tady bude nacteny uzivatel
+        $uz = $this->prihlasenyId();   // přihlášený uživatel
         $grid = new DataGrid($this, $name);
+        $this->grids['schvalovaciGrid'] = $grid;
         
-        $source = $this->database->table('objednavky')->where('kdo', $uz)->where('schvalil', NULL);
+        $source = $this->database->table('objednavky')->where('kdo', $uz)->where('stav', 0);
       
 
         $grid->setDataSource($source);
         $grid->addColumnText('id_prehled','Číslo objednávky');
+        $grid->addColumnText('prehled_popis','Popis objednávky','prehled.popis:id_prehled');
         $grid->addColumnText('radka','Číslo položky');
-        $grid->addColumnText('firma','firma');
-        $grid->addColumnText('popis','popis');
+        $grid->addColumnText('zakladatel','Zakladatel','uzivatel.jmeno:zakladatel' );
+        $grid->addColumnText('firma','Firma');
+        $grid->addColumnText('popis','Popis položky');
         $grid->addColumnText('cinnost','Činnost','cinnost.cinnost:cinnost');
      
         $grid->addColumnText('zakazka','Zakázka','zakazky.zakazka:zakazka');
         $grid->addColumnText('zakazkap','Popis zakázky','zakazky.popis:zakazka');
         $grid->addColumnText('stredisko','Středisko','stredisko.stredisko:stredisko');
         $grid->addColumnText('castka', 'Částka');
+        $grid->addColumnText('nutno:overit', 'Nutné ověřit','lidstina.popis:nutno_overit');
         
         $grid->setPagination(false);
         
        
 
-   
+        
+        $grid->addGroupAction('Schválit')->onSelect[] = [$this, 'schvalitBtn'];
+        $grid->addGroupAction('Zamítnout')->onSelect[] = [$this, 'zamitnoutBtn'];
+       
 
 
         // $grid->addExportCsvFiltered('Export do csv s filtrem', 'tabulka.csv', 'windows-1250')
@@ -279,13 +335,13 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
             'ublaboo_datagrid.all' => 'všechny',
             'ublaboo_datagrid.from' => 'z',
             'ublaboo_datagrid.reset_filter' => 'Resetovat filtr',
-            'ublaboo_datagrid.group_actions' => 'Hromadné akce',
+            'ublaboo_datagrid.group_actions' => 'Vyberte objednávky',
             'ublaboo_datagrid.show_all_columns' => 'Zobrazit všechny sloupce',
             'ublaboo_datagrid.hide_column' => 'Skrýt sloupec',
             'ublaboo_datagrid.action' => 'Akce',
             'ublaboo_datagrid.previous' => 'Předchozí',
             'ublaboo_datagrid.next' => 'Další',
-            'ublaboo_datagrid.choose' => 'Vyberte',
+            'ublaboo_datagrid.choose' => 'Co chcete dělat?',
             'ublaboo_datagrid.execute' => 'Provést',
     
             'Name' => 'Jméno',
@@ -297,6 +353,77 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
       
     } 
 
+    public function createComponentOveritGrid($name)
+    {
+
+        $uz = $this->prihlasenyId();   // přihlášený uživatel
+        $grid = new DataGrid($this, $name);
+        $this->grids['schvalovaciGrid'] = $grid;
+        
+        $source = $this->database->table('objednavky')->where('kdo2', $uz)->where('stav', 1);
+      
+
+        $grid->setDataSource($source);
+        $grid->addColumnText('id_prehled','Číslo objednávky');
+        $grid->addColumnText('prehled_popis','Popis objednávky','prehled.popis:id_prehled');
+        $grid->addColumnText('radka','Číslo položky');
+        $grid->addColumnText('zakladatel','Zakladatel','uzivatel.jmeno:zakladatel' );
+        $grid->addColumnText('firma','Firma');
+        $grid->addColumnText('popis','Popis položky');
+        $grid->addColumnText('cinnost','Činnost','cinnost.cinnost:cinnost');
+     
+        $grid->addColumnText('zakazka','Zakázka','zakazky.zakazka:zakazka');
+        $grid->addColumnText('zakazkap','Popis zakázky','zakazky.popis:zakazka');
+        $grid->addColumnText('stredisko','Středisko','stredisko.stredisko:stredisko');
+        $grid->addColumnText('castka', 'Částka');
+        $grid->addColumnText('nutno:overit', 'Nutné ověřit','lidstina.popis:nutno_overit');
+        
+        $grid->setPagination(false);
+        
+       
+
+        
+        $grid->addGroupAction('Ověřit')->onSelect[] = [$this, 'overitBtn'];
+        $grid->addGroupAction('Zamítnout')->onSelect[] = [$this, 'zamitnoutOvBtn'];
+       
+
+
+        // $grid->addExportCsvFiltered('Export do csv s filtrem', 'tabulka.csv', 'windows-1250')
+        // ->setTitle('Export do csv s filtrem');
+        $grid->addExportCsv('Export do csv', 'tabulka.csv', 'windows-1250')
+        ->setTitle('Export do csv');
+
+        
+
+        $grid->setPagination(false);
+
+
+
+        $translator = new \Ublaboo\DataGrid\Localization\SimpleTranslator([
+            'ublaboo_datagrid.no_item_found_reset' => 'Žádné položky nenalezeny. Filtr můžete vynulovat',
+            'ublaboo_datagrid.no_item_found' => 'Žádné položky nenalezeny.',
+            'ublaboo_datagrid.here' => 'zde',
+            'ublaboo_datagrid.items' => 'Položky',
+            'ublaboo_datagrid.all' => 'všechny',
+            'ublaboo_datagrid.from' => 'z',
+            'ublaboo_datagrid.reset_filter' => 'Resetovat filtr',
+            'ublaboo_datagrid.group_actions' => 'Vyberte objednávky',
+            'ublaboo_datagrid.show_all_columns' => 'Zobrazit všechny sloupce',
+            'ublaboo_datagrid.hide_column' => 'Skrýt sloupec',
+            'ublaboo_datagrid.action' => 'Akce',
+            'ublaboo_datagrid.previous' => 'Předchozí',
+            'ublaboo_datagrid.next' => 'Další',
+            'ublaboo_datagrid.choose' => 'Co chcete dělat?',
+            'ublaboo_datagrid.execute' => 'Provést',
+    
+            'Name' => 'Jméno',
+            'Inserted' => 'Vloženo'
+        ]);
+    
+        $grid->setTranslator($translator);
+    
+      
+    } 
 
 }
 
