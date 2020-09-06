@@ -376,7 +376,7 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
         $grid->addColumnText('zakazkap','Popis zakázky','zakazky.popis:zakazka');
         $grid->addColumnText('stredisko','Středisko','stredisko.stredisko:stredisko');
         $grid->addColumnText('castka', 'Částka');
-        $grid->addColumnText('nutno:overit', 'Nutné ověřit','lidstina.popis:nutno_overit');
+       
         
         $grid->setPagination(false);
         
