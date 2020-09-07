@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace App\Presenters;
 
+use DateTime;
 use Nette;
 use Ublaboo\DataGrid\DataGrid;
 use Nette\Application\UI\Form;
@@ -45,9 +46,9 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
         $pocetHospodar = $this->database->table('rozpocet')->where('hospodar =? OR hospodar2 = ?',$uz,$uz)->count('*');
         $pocetOverovatel = $this->database->table('rozpocet')->where('overovatel',$uz)->count('*');               
 
-
-         if (($pocetOverovatel=0 ) && ($pocetHospodar>0 )) {redirect('Homepage:verzeDve');}  
-         if (($pocetOverovatel=0 ) && ($pocetHospodar=0 )) {redirect('Homepage:verzeTri');}  
+      
+        //  if ($pocetOverovatel<1  && $pocetHospodar>0 ) { $this->redirect('Homepage:dve');}  
+        //  if (($pocetOverovatel<1 ) && ($pocetHospodar=0 )) { $this->redirect('Homepage:tri');}  
     }
    
     
@@ -56,11 +57,12 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
     {
        
         $uzivatel = $this->getUser()->getIdentity()->jmeno; 
-         return $this->database->table('uzivatel')->where('jmeno',$uzivatel)->fetch();
+        $uz = $this->database->table('pokus_jmeno')->where('jmeno',$uzivatel)->fetch();
+        
+         return $this->database->table('uzivatel')->where('id',$uz->id_uzivatel)->fetch();
     }
     
    
-
 
     public function renderDefault(): void
     {
@@ -73,8 +75,9 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
         $uz = $this->prihlasenyId();
        
              
-        $this->template->prihlasen = $this->getUser()->getIdentity()->jmeno . ' v roli ' . implode(';', $this->getUser()->getRoles());
+       
 
+        $this->template->prihlasen = ($this->database->table('uzivatel')->where('id',$uz)->fetch())->jmeno;
       
 
 
@@ -93,7 +96,7 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
 
       
 
-        $this->template->objed_jiny_sch = $this->database->table('objednavky')->where('zakladatel', $uz)->where('stav ?', [0,1,3,4])
+        $this->template->objed_jiny_sch = $this->database->table('objednavky')->where('zakladatel', $uz)->where('stav ?', [0,1,3,4,9])
         ->count('id');    //    počet objednávek, které jsem zadal a ještě nejsou schválené
 
         $this->template->objed_zamitnute = $this->database->table('objednavky')->where('zakladatel', $uz)->where('stav = ? OR stav = ?', 2,5)
@@ -108,18 +111,21 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
 
         $this->template->zbyva = $this->template->castkaSablony - $this->template->mySum;
    
-        
-      
-
-
-
-       
-                                      
-
 
     }
 
-  
+    public function renderDve(): void
+    {
+        $uz = $this->prihlasenyId();
+        $this->template->prihlasen = ($this->database->table('uzivatel')->where('id',$uz)->fetch())->jmeno;
+     }
+
+
+    public function renderTri(): void
+    {
+        $uz = $this->prihlasenyId();
+        $this->template->prihlasen = ($this->database->table('uzivatel')->where('id',$uz)->fetch())->jmeno;
+    }
     
         public function getSetup($id)
     {
@@ -163,11 +169,11 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
                 $utracenoV = \round($utracenoV, 0);
               
                 $objednavkyV_suma = $this->database->table('objednavky')->where('cinnost', ':cinnost.id_rozpocet')->where('zakazka',$relevantni)
-                ->where('stav ?', [0,1,3,4])->sum('castka');
+                ->where('stav ?', [0,1,3,4,9])->sum('castka');
                 $objednavkyV_suma = \round($objednavkyV_suma, 0);     //    nezamítnuté vlastní objednávky na rozpočet - celková částka
 
                 
-                bdump($item->castkaRozpocet);
+             
                 $item->mySumV = $utracenoV + $objednavkyV_suma;
                
 
@@ -180,7 +186,7 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
                 $utracenoS = \round($utracenoS, 0);
               
                 $objednavkyS_suma = $this->database->table('objednavky')->where('cinnost', ':cinnost.id_rozpocet')->where('zakazka',$relevantniS)
-                ->where('stav ?', [0,1,3,4])->sum('castka');
+                ->where('stav ?', [0,1,3,4,9])->sum('castka');
                 $objednavkyS_suma = \round($objednavkyS_suma, 0);     //    nezamítnuté šablony objednávky na rozpočet - celková částka
 
                 $item->mySumS = $utracenoS + $objednavkyS_suma;
@@ -271,8 +277,20 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
 
     public function schvalitBtn(array $ids): void
     {
-        $this->flashMessage('Stisknuto');
-    
+        
+   
+        $this->database->table('objednavky')->where('id',$ids)->where('nutno_overit',1)->update([
+               
+            'stav' => 1,
+            'schvalil' => date('d. m. Y')
+        ]);
+
+        $this->database->table('objednavky')->where('id',$ids)->where('nutno_overit',0)->update([
+               
+            'stav' => 3,
+            'schvalil' => date('d. m. Y')
+        ]);
+
         if ($this->isAjax()) {
             $this->grids['schvalovaciGrid']->reload();
         } else {
@@ -280,6 +298,23 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
         }
     }
 
+
+    public function zamitnoutBtn(array $ids): void
+    {
+        
+   
+        $this->database->table('objednavky')->where('id',$ids)->update([
+               
+            'stav' => 2,
+            'zamitnul' => date('d. m. Y')
+        ]);
+
+        if ($this->isAjax()) {
+            $this->grids['schvalovaciGrid']->reload();
+        } else {
+            $this->redirect('this');
+        }
+    }
 
     public function createComponentSchvalitGrid($name)
     {
@@ -352,6 +387,46 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
     
       
     } 
+
+
+
+    public function overitBtn(array $ids): void
+    {
+        
+   
+        $this->database->table('objednavky')->where('id',$ids)->update([
+               
+            'stav' => 4,
+            'overil' => date('d. m. Y')
+        ]);
+
+       
+
+        if ($this->isAjax()) {
+            $this->grids['schvalovaciGrid']->reload();
+        } else {
+            $this->redirect('this');
+        }
+    }
+
+
+    public function zamitnoutOvBtn(array $ids): void
+    {
+        
+   
+        $this->database->table('objednavky')->where('id',$ids)->update([
+               
+            'stav' => 5,
+            'zamitnul2' => date('d. m. Y')
+        ]);
+
+        if ($this->isAjax()) {
+            $this->grids['schvalovaciGrid']->reload();
+        } else {
+            $this->redirect('this');
+        }
+    }
+
 
     public function createComponentOveritGrid($name)
     {

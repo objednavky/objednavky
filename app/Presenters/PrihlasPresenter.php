@@ -27,6 +27,7 @@ class PrihlasPresenter extends Nette\Application\UI\Presenter
             bdump('yes');
             $this->getUser()->logout();
             //$this->redirect('Homepage:');
+
         }
 
         protected function createComponentRegistrationForm(): Form
@@ -36,7 +37,7 @@ class PrihlasPresenter extends Nette\Application\UI\Presenter
             // $form->addSelect('name', 'Jméno:',["Jarmila","Karla","Tereza"] )->setRequired('Vyberte prosím činnost')->setPrompt(' ');
             $form->addPassword('password', 'Heslo:');
             $form->addSubmit('send', 'Přihlásit');
-            $form->addSubmit('send2', 'Registrovat');
+          
             $form->onSuccess[] = [$this, 'formSucceeded'];
 
             return $form;
@@ -54,13 +55,15 @@ class PrihlasPresenter extends Nette\Application\UI\Presenter
                 $this->redirect('Homepage:');
             }
 
-            if ($form['send2']->isSubmittedBy()) {
-                 $this->database->table('pokus_jmeno')->insert([
+            // if ($form['send2']->isSubmittedBy()) {
+
+
+            //      $this->database->table('pokus_jmeno')->insert([
                
-                    'jmeno' => $data->name,
-                     'heslo' => $this->mojeGlobalniPromenaPasswords->hash($data->password)
-                ]);
-            }
+            //         'jmeno' => $data->name,
+            //          'heslo' => $this->mojeGlobalniPromenaPasswords->hash($data->password)
+            //     ]);
+            // }
         }
 
         

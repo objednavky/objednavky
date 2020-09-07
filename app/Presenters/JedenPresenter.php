@@ -36,8 +36,10 @@ class JedenPresenter extends Nette\Application\UI\Presenter
     {
        
         $uzivatel = $this->getUser()->getIdentity()->jmeno; 
-         return $this->database->table('uzivatel')->where('jmeno',$uzivatel)->fetch();
+        $uz = $this->database->table('pokus_jmeno')->where('jmeno',$uzivatel)->fetch();
+        return $this->database->table('uzivatel')->where('id',$uz->id_uzivatel)->fetch();
     }
+    
 
 	public function renderShow(int $jedenId): void
 	{
@@ -97,58 +99,64 @@ class JedenPresenter extends Nette\Application\UI\Presenter
     private function mapCinnost($argument,$zasejedenID)
     {
        
-        $relevantni = $this->database->table('cinnost')->where('id_rozpocet',$zasejedenID);
+        $relevantni = $this->database->table('cinnost')->where('id_rozpocet',$zasejedenID)->where('vyber',1);
         $deniky =$this->database->table('denik')->where('cinnost_d',$relevantni)->where('petky', $argument)->where('rozpocet',$zasejedenID);
         //vypisuji všechny položky daného rozpočtu pro relevantní činnost - musí splňovat rozpočet, tím máme zajištěný rok;
 
-       
+        $kolikRade = 0;
         $fetchedDeniky = [];
         foreach ($relevantni as $jednacinnost) {
             $item = new stdClass;
-            $item->id = $jednacinnost->id;
-            bdump($item->id);
-         
-            $item->cinnost = $jednacinnost->cinnost;
-            $zakazkaV = $this->database->table('zakazky')->where('vlastni' , 1)->fetch();
 
-            $item->vlastni = $this->database->table('denik')->where('cinnost_d',$jednacinnost)
-                             ->where('petky', $argument)->where('rozpocet',$zasejedenID)->where('zakazky', $zakazkaV)->sum('castka');
+
+            $kolikRade = ++$kolikRade;
+            $item->id = $jednacinnost->id;
+            $item->cinnost = $jednacinnost->cinnost;
+            $item->nazev_cinnosti = $jednacinnost->nazev_cinnosti;
+            $zakazkaV = $this->database->table('zakazky')->where('vlastni' , 1)->fetch();
             
+            $item->vlastni = $this->database->table('denik')->where('cinnost_d', $jednacinnost->cinnost)
+                             ->where('petky', $argument)->where('rozpocet',$zasejedenID)->where('zakazky', $zakazkaV->zakazka)->sum('castka');
+                            
             $item->vlastni = \round($item->vlastni, 0);
 
-            $item->vlastniObj = $this->database->table('objednavky')->where('cinnost',$jednacinnost)->where('stav',[0,1,3,4])
+            $item->vlastniObj = $this->database->table('objednavky')->where('cinnost',$jednacinnost)->where('stav',[0,1,3,4,9])
             ->where('zakazka', $zakazkaV)->sum('castka');
 
             $item->vlastniObj = \round($item->vlastniObj, 0);
 
-            $item->rozpocetV = $this->database->table('rozpocet')->where('id',$zasejedenID)->select('castka')->fetch();
+            $item->rozpocetV = $kolikRade== 1 ? ($this->database->table('rozpocet')->where('id',$zasejedenID)->fetch())->castka : 0;
+            // rozpočet se počítá jen pro první výskyt
 
-
+            $item->celkemV = $item->vlastni + $item->vlastniObj ;
           
-            $item->zbyvaV = $item->rozpocetV->castka - ($item->vlastni + $item->vlastniObj);
+            $item->zbyvaV = $item->rozpocetV - ($item->vlastni + $item->vlastniObj);
 
 
             $zakazkaS = $this->database->table('zakazky')->where('sablony' , 1)->fetch();
 
-            $item->sablony = $this->database->table('denik')->where('cinnost_d',$jednacinnost)
-                             ->where('petky', $argument)->where('rozpocet',$zasejedenID)->where('zakazky', $zakazkaS)->sum('castka');
+            $item->sablony = $this->database->table('denik')->where('cinnost_d', $jednacinnost->cinnost)
+            ->where('petky', $argument)->where('rozpocet',$zasejedenID)->where('zakazky', $zakazkaS->zakazka)->sum('castka');
             
             $item->sablony = \round($item->sablony, 0);
 
-            $item->sablonyObj = $this->database->table('objednavky')->where('cinnost',$jednacinnost)->where('stav',[0,1,3,4])
+            $item->sablonyObj = $this->database->table('objednavky')->where('cinnost',$jednacinnost)->where('stav',[0,1,3,4,9])
             ->where('zakazka', $zakazkaS)->sum('castka');
 
             $item->sablonyObj = \round($item->sablonyObj, 0);
-            $item->rozpocetS = $this->database->table('rozpocet')->where('id',$zasejedenID)->select('sablony')->fetch();
-            $item->zbyvaS = $item->rozpocetS->sablony - ($item->sablony + $item->sablonyObj);
+
+
+            $item->rozpocetS = $kolikRade== 1 ? ($this->database->table('rozpocet')->where('id',$zasejedenID)->fetch())->sablony : 0;
+            $item->celkemS = $item->sablony + $item->sablonyObj;
+            $item->zbyvaS = $item->rozpocetS - ($item->sablony + $item->sablonyObj);
             $zakazkaD = $this->database->table('zakazky')->where('dotace' , 1)->fetch();
 
-            $item->dotace = $this->database->table('denik')->where('cinnost_d',$jednacinnost)
-                             ->where('petky', $argument)->where('rozpocet',$zasejedenID)->where('zakazky', $zakazkaD)->sum('castka');
+            $item->dotace = $this->database->table('denik')->where('cinnost_d', $jednacinnost->cinnost)
+            ->where('petky', $argument)->where('rozpocet',$zasejedenID)->where('zakazky', $zakazkaD->zakazka)->sum('castka');
             
             $item->dotace = \round($item->dotace, 0);
 
-            $item->dotaceObj = $this->database->table('objednavky')->where('cinnost',$jednacinnost)->where('stav',[0,1,3,4])
+            $item->dotaceObj = $this->database->table('objednavky')->where('cinnost',$jednacinnost)->where('stav',[0,1,3,4,9])
             ->where('zakazka', $zakazkaD)->sum('castka');
 
             $item->dotaceObj = \round($item->dotaceObj, 0);
@@ -162,7 +170,7 @@ class JedenPresenter extends Nette\Application\UI\Presenter
             
             // $item->preuctovani = \round($item->preuctovani, 0);
 
-            // $item->preuctovaniObj = $this->database->table('objednavky')->where('cinnost',$jednacinnost)->where('stav',[0,1,3,4])
+            // $item->preuctovaniObj = $this->database->table('objednavky')->where('cinnost',$jednacinnost)->where('stav',[0,1,3,4,9])
             // ->where('zakazky', $zakazkaP)->sum('castka');
 
             // $item->preuctovaniObj = \round($item->preuctovaniObj, 0);
@@ -197,6 +205,8 @@ class JedenPresenter extends Nette\Application\UI\Presenter
         $fetchedDeniky = [];
         foreach ($deniky as $denik) {
             $item = new stdClass;
+
+            
             $item->id = $denik->id;
             $item->datum = $denik->datum;
             $item->cinnost_d = $denik->cinnost_d;
@@ -233,7 +243,6 @@ class JedenPresenter extends Nette\Application\UI\Presenter
        
 
 
-bdump($fetchedDeniky);
 
         return $fetchedDeniky;
     }
@@ -265,23 +274,26 @@ bdump($fetchedDeniky);
             $grid->setDataSource($this->mapCinnost(1,$zasejedenID));
           
             $grid->addColumnText('cinnost', 'Činnost');
-
-            $grid->addColumnNumber('rozpocetV', 'Plánovaný rozpočet na celý rok Kč')->addCellAttributes(['class' => 'text-success']);
+            $grid->addColumnText('nazev_cinnosti', 'Název činnosti');
+            $grid->addColumnNumber('rozpocetV', 'Plánovaný rozpočet - při více činnostech lze použít na všechny')->addCellAttributes(['class' => 'text-success']);
             $grid->addColumnNumber('vlastni', 'Utraceno vlastní Kč');
             $grid->addColumnNumber('vlastniObj', 'Objednáno vlastní Kč');
+            $grid->addColumnNumber('celkemV', 'Celkem Kč');
             $grid->addColumnNumber('zbyvaV', 'Zbývá v rozpočtu Kč');
           
     
             $grid->addColumnNumber('rozpocetS', 'Plánované šablony na celý rok Kč')->addCellAttributes(['class' => 'text-success']);
             $grid->addColumnNumber('sablony', 'Šablony již utraceno Kč');
             $grid->addColumnNumber('sablonyObj', 'Šablony objednáno Kč');
+            $grid->addColumnNumber('celkemS', 'Celkem Kč');
             $grid->addColumnNumber('zbyvaS', 'V šablonách zbývá Kč');
     
 
             $grid->addColumnNumber('dotace', 'Účelové dotace již utraceno Kč');
             $grid->addColumnNumber('dotaceObj', 'Účelové dotace objednáno Kč');
 
-           
+            $grid->setColumnsSummary(['rozpocetV','vlastni','vlastniObj','zbyvaV','celkemV','celkemS',
+            'rozpocetS','sablony','sablonyObj','dotace','zbyvaS','dotace','dotaceObj']);
     
             // $grid->addExportCsvFiltered('Export do csv s filtrem', 'tabulka.csv', 'windows-1250')
             // ->setTitle('Export do csv s filtrem');
@@ -290,7 +302,7 @@ bdump($fetchedDeniky);
     
             $grid->setPagination(false);
     
-    
+    // ->setSplitWordsSearch(FALSE);     bude to hledat při více slovech jen celý řetězec
     
             $translator = new \Ublaboo\DataGrid\Localization\SimpleTranslator([
                 'ublaboo_datagrid.no_item_found_reset' => 'Žádné položky nenalezeny. Filtr můžete vynulovat',
@@ -357,15 +369,23 @@ bdump($fetchedDeniky);
         $grid->addColumnText('popis', 'Popis');
         $grid->addColumnText('stredisko_d', 'Středisko');
         $grid->addColumnText('zakazky', 'Zakázka');
+       
         $grid->addColumnNumber('vlastni', 'Vlastní Kč');
         $grid->addColumnNumber('sablony', 'Šablony Kč');
         $grid->addColumnNumber('dotace', 'Účelové dotace Kč');
         $grid->addColumnNumber('preuctovani', 'Přeúčtování Kč');
         $grid->addColumnNumber('cisloObjednavky', 'Číslo objednávky');
-        $grid->setPagination(false);
-
-        $grid->setColumnsSummary(['vlastni','sablony','dotace', 'preuctovani']);
+       
         
+        $grid->setPagination(true);
+        $grid->setItemsPerPageList([30, 50, 100]);
+
+       
+        $grid->setColumnsSummary(['vlastni','sablony','dotace', 'preuctovani']);
+       
+        
+
+
 
 
 
@@ -425,7 +445,7 @@ bdump($fetchedDeniky);
 
         $relevantni =   $this->database->table('cinnost')->select('id')->where('id_rozpocet',  $zasejedenID );
 
-        $source = $this->database->table('objednavky')->where('cinnost', $relevantni)->where('stav', [3,4]);
+        $source = $this->database->table('objednavky')->where('cinnost', $relevantni)->where('stav', [3,4,9]);
 
 
 

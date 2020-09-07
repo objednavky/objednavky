@@ -29,7 +29,27 @@ class HezkyPresenter extends Nette\Application\UI\Presenter
         if (!$this->getUser()->isLoggedIn()) {
             $this->redirect('Prihlas:show');
         }
+
+
+        $mojerole = $this->getUser()->getRoles();
+     
+        if ($mojerole[0] == 1)
+        {
+            $this->redirect('Homepage:default');
+            $this->flashMessage('Nemáte oprávnění.');
+        } 
+        
     }
+
+
+    public function prihlasenyId()
+    {
+       
+        $uzivatel = $this->getUser()->getIdentity()->jmeno; 
+        $uz = $this->database->table('pokus_jmeno')->where('jmeno',$uzivatel)->fetch();
+        return $this->database->table('uzivatel')->where('id',$uz->id_uzivatel)->fetch();
+    }
+    
 
 
     public function renderShow() {                   //renderShow
