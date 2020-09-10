@@ -1,0 +1,37 @@
+{block content}
+
+<div class="container-fluid">
+
+<br >
+
+<h1 class="display-4">Přehled všech  objednávek - {$prihlasen}</h1>
+<br >
+<br >
+
+<h5> Objednávky v procesu schvalování - zatím nejsou zaúčtované </h5>
+{control archivGrid2} 
+<br >
+<br >
+<br >
+<br >
+<h5> Objednávky zamítnuté </h5>
+{control archivGrid3} 
+<br >
+<br >
+<br >
+<h5> Objednávky již zaúčtované  </h5>
+{control archivGrid4} 
+
+
+</div>
+<br >
+<br >
+<br >
+<br >
+
+
+
+
+
+
+{/block}

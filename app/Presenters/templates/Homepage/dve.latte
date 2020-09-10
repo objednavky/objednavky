@@ -1,0 +1,77 @@
+
+
+
+{block content}
+
+<div class="container-fluid">
+
+<br >
+
+<h2 class="display-4">Hlavní stránka - {$prihlasen} verze 2</h2>
+<br >
+
+
+
+
+{if ($percent < 100) }
+<div class="progress" style="height: 10px;">
+  <div class="progress-bar" style="width: {$percent}%;" role="progressbar" aria-valuenow="{$mySum}" aria-valuemin="0" aria-valuemax="{$castkaSablony}"></div>
+</div>
+
+{else }
+<div class="progress" style="height: 10px;">
+  <div class="progress-bar bg-danger"  style="width: {$percent}%;" role="progressbar" aria-valuenow="{$mySum}" aria-valuemin="0" aria-valuemax="{$castkaSablony}"></div>
+</div>
+
+
+{/if }
+
+<br >
+<table class="table table-borderless" style="width:50%"  >
+  <thead>
+  </thead>
+  <tbody>
+    <tr>
+      <th>  Počet objednávek k Vašemu schválení </th>
+      <td><b> {$objed_ja_sch} </b> </td>
+     </tr>
+    <tr>
+      <th > Počet Vašich otevřených objednávek, které požadujete schválit</th>
+      <td><b>{$objed_jiny_sch} </b> </td>
+    </tr>
+    
+<tr>
+      <th > Počet zamítnutých objednávek</th>
+      <td ><b> {$objed_zamitnute} </b> </h3> </td>
+    </tr>
+   
+
+  </tbody>
+</table>
+
+
+</div>
+<br >
+
+<h4> Vaše rozpočtové skupiny </h4>
+
+<div></div>
+
+          {control simpleGrid} 
+			 
+		  
+     
+
+<br >
+<br >
+<br >
+
+<h4> Hospodáři, tyto objednávky čekají na Vaše schválení </h4>
+{control simpleGrid2} 
+</div>
+<br >
+<br >
+<br >
+<br >
+
+{/block}

@@ -1,0 +1,116 @@
+
+
+
+
+{block content}
+<br>
+<div class="container-fluid">
+  {block title}<h1>{$jeden->rozpocet} - manažérský report</h1>{/block}
+
+
+
+
+
+  {if ($percent < 100) }
+    <div class="progress" style="height: 10px;">
+      <div class="progress-bar" style="width: {$percent}%;" role="progressbar" aria-valuenow="{$vlastni}" aria-valuemin="0" aria-valuemax="{$castka}"></div>
+    </div>
+
+  {else }
+    <div class="progress" style="height: 10px;">
+     <div class="progress-bar bg-danger"  style="width: {$percent}%;" role="progressbar" aria-valuenow="{$vlastni}" aria-valuemin="0" aria-valuemax="{$castka}"></div>
+    </div>
+
+
+  {/if }
+
+
+  <br>
+  <h6>{$jeden->obsah}</h6>
+  <br>
+  <br>
+ 
+  <h6>Přehled</h6>
+  <table class="table table-bordered" style="width:70%" >
+    <thead>
+     
+      <tr>
+        <th  class="p-3 mb-2 bg-light text-dark">Hospodář: {$hospodar} <br>  Zástupce: {$hospodar2}</th>
+        <th class="p-3 mb-2 bg-light text-dark" >Rozpočet na celý rok - vlastní  Kč</th>
+        <th class="p-3 mb-2 bg-light text-dark">Šablony na celý rok  Kč</th>
+        <th class="p-3 mb-2 bg-light text-dark">Objednávky nespárované Kč</th>
+        <th class="p-3 mb-2 bg-light text-dark">Jiné účelové dotace - nejsou součástí rozpočtu Kč</th>
+      </tr>
+      <tr>
+        <th class="p-3 mb-2 bg-light text-dark">Plánované</th>
+        <td>{$castka|number:0:',':' '} </td>
+        <td>{$sablonyplan|number:0:',':' '} </td>
+        <td> </td>
+        <td>neplánují se</td>
+        </tr>
+
+        <tr>
+          <th  class="p-3 mb-2 bg-light text-dark">Již utracené</th>
+        <td>{($vlastni+$normativ)|number:0:',':' '} </td>
+        <td>{$sablony|number:0:',':' '} </td>
+        <td>{($objednanoV+$objednanoD)|number:0:',':' '}  </td>
+        <td>{$dotace|number:0:',':' '} </td>
+
+         
+        </tr>
+        <tr>
+          <th class="p-3 mb-2 bg-light text-dark" >V rozpočtu zbývá (včetně objednávek)</th>
+            {if (($zbyvatab-$objednanoV) > 0) }
+          <td>{($zbyvatab-$objednanoV)|number:0:',':' '} </td>
+          {else}
+          <td class="table-danger"> {($zbyvatab-$objednanoV)|number:0:',':' '} </td>
+          {/if}
+
+
+
+          {if ($sablonyplan - $sablony-$objednanoD > 0) }
+          <td>{($sablonyplan - $sablony-$objednanoD)|number:0:',':' '} </td>
+          {else}
+          <td class="table-danger"> {($sablonyplan - $sablony-$objednanoD)|number:0:',':' '} </td>
+          {/if}
+         
+          <td> </td>
+          <td></td>
+  
+          </tr>
+    </tbody>
+  </table>
+
+  
+  <br>
+  <br>
+  <h6>Jednotlivé zaúčtované doklady</h6>
+
+</div>  
+
+{control simpleGrid} 
+
+<div class="container-fluid"></div>
+  <br>
+
+  <br>
+  <br>
+
+<h6>Objednávky - dosud nespárované</h6>
+{control simpleGrid2} 
+<br>
+<br>
+
+
+
+<br>
+<br>
+
+<br>
+<a class="btn btn-primary" n:href="Hezky:show" role="button">← zpět na Hezký rozpočet</a>
+  <br>
+    <br>
+
+</div>
+
+{/block}
