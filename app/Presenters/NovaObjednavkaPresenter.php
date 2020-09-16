@@ -104,10 +104,12 @@ class NovaObjednavkaPresenter extends Nette\Application\UI\Presenter
 
             $form->addGroup('Objednávka ');
             $form->addText('popis', 'Název celé objednávky: ')->setRequired('Napište název objednávky');
-            $form->addText('firma', 'Firma (prodejce):')->setRequired('Napište název firmy');
+         
             
             $form->addGroup($polozkaC);
+          
             $form->addText('popis_radky', 'Popis:')->setOption('description', 'Pokud nevyplníte, použije se název objednávky');
+            $form->addText('firma', 'Firma (prodejce):')->setRequired('Napište název firmy.');
             $form->addSelect('cinnostVyber', 'Činnost:',$fetchedNovac )->setRequired('Vyberte prosím činnost')->setPrompt(' ');
             $form->addSelect('zakazkaVyber', 'Zakázka:',$fetchedNovaz )->setRequired('Vyberte prosím zakázku')->setPrompt(' ');
             $form->addSelect('strediskoVyber', 'Středisko:',$fetchedNovas )->setRequired('Vyberte prosím zakázku')->setPrompt(' ');
@@ -205,10 +207,11 @@ class NovaObjednavkaPresenter extends Nette\Application\UI\Presenter
 
             $form->addGroup('Objednávka ');
             $form->addText('popis', 'Název celé objednávky: ')->setDisabled()->setDefaultValue($posledniP);
-            $form->addText('firma', 'Firma (prodejce):')->setDisabled()->setDefaultValue($posledniF);
+           
             $form->addInteger('id_prehled', 'Číslo objednávky:' )->setDisabled()->setDefaultValue($posledniO);
             $form->addInteger('radka', 'Číslo řádky:' )->setDisabled()->setDefaultValue($posledniR);
             $form->addGroup($polozkaC);
+            $form->addText('firma', 'Firma (prodejce):')->setDefaultValue($posledniF);
             $form->addText('popis_radky', 'Popis:')->setOption('description', 'Pokud nevyplníte, použije se název objednávky');
             $form->addSelect('cinnostVyber', 'Činnost:',$fetchedNovac )->setRequired('Vyberte prosím činnost')->setPrompt(' ');
             $form->addSelect('zakazkaVyber', 'Zakázka:',$fetchedNovaz )->setRequired('Vyberte prosím zakázku')->setPrompt(' ');
@@ -314,7 +317,7 @@ class NovaObjednavkaPresenter extends Nette\Application\UI\Presenter
             $this->mojeParametryNaPrasaka['formHasError'] = 0;
             if ($jeVlastni == 1)
             {
-                if  ( $data->castka >= $maxCastka) {
+                if  ( $data->castka > $maxCastka) {
                     $this->mojeParametryNaPrasaka['formHasError'] = 1;
                 $form['castka']->addError('Objednávku nelze zadat, byl překročen rozpočet. Zbývá částka ' . $maxCastka .' Kč.' );
                 return;
@@ -337,17 +340,20 @@ class NovaObjednavkaPresenter extends Nette\Application\UI\Presenter
             $data->popis_radky =  $data->popis_radky == NULL ? $data->popis : $data->popis_radky;
             // $kdoma = $this->database->table('prehled')->max('id');
 
-            bdump($posledni) ;
+            $celkem = $objednanoV + $denikV+ $data->castka;
 
-            if (($overeni < $zadanaCastka ) 
-            && ($castkaRozpoctu < ($objednanoV + $denikV+ $data->castka))) 
+        
+            if (($overeni <= $zadanaCastka )             // např. 10 tis < 450Kč
+            ) 
+
+
 
                 {
 
                     $nutnoOverit = 1;
                         
 
-                        // prekrocili jsme castku již v deníku a objednaných  nebo částka převyšuje povolenou velikost
+                        //  částka převyšuje povolenou velikost bez ověření
                     }
                     else 
 
@@ -358,14 +364,22 @@ class NovaObjednavkaPresenter extends Nette\Application\UI\Presenter
                     // částka je menší, není nutné ověřovat
                             }
 
+                            bdump(($overeni <= $zadanaCastka ));
+
+                            bdump($nutnoOverit);
+
+
 
             $stav = 0;             
             if  ($kdoma == $this->prihlasenyId()->id) {
 
-               if ($nutnoOverit=1) {$stav = 1;}  else {$stav = 3;}
+               if ($nutnoOverit==1) {$stav = 1;}  else {$stav = 3;}
 
             } 
 
+          
+
+            bdump($stav);
             $this->database->table('objednavky')->insert([
                 'id_prehled' => $posledni,
                 'radka' => 1,                                                // tady bude cislo radky
@@ -486,7 +500,7 @@ class NovaObjednavkaPresenter extends Nette\Application\UI\Presenter
             $this->mojeParametryNaPrasaka['formHasError'] = 0;
             if ($jeVlastni == 1)
             {
-                if  ( $data->castka >= $maxCastka) {
+                if  ( $data->castka > $maxCastka) {
                   
                     $this->mojeParametryNaPrasaka['formHasError'] = 1;
 
@@ -511,8 +525,8 @@ class NovaObjednavkaPresenter extends Nette\Application\UI\Presenter
 
             // bdump($posledni) ;
 
-            if (($overeni < $zadanaCastka ) 
-            && ($castkaRozpoctu < ($objednanoV + $denikV+ $data->castka))) 
+            if (($overeni <= $zadanaCastka )) 
+            // && ($castkaRozpoctu < ($objednanoV + $denikV+ $data->castka))) 
 
                 {
 
@@ -541,7 +555,7 @@ class NovaObjednavkaPresenter extends Nette\Application\UI\Presenter
             $stav = 0;             
             if  ($kdoma== $this->prihlasenyId()->id) {
 
-               if ($nutnoOverit=1) {$stav = 1;}  else {$stav = 3;}
+               if ($nutnoOverit==1) {$stav = 1;}  else {$stav = 3;}
 
             } 
            

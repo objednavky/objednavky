@@ -104,9 +104,17 @@ class PrehledPresenter extends Nette\Application\UI\Presenter
         $uz = $this->prihlasenyId();   // přihlášený uživatel
         $source = $this->database->table('objednavky')
        ->where('stav', [3,4]);
+  
+    
+   
+    // $source = $this->database->table('objednavky')->where('stav', [3,4])->select('DISTINCT id_prehled');
+    
 
-      
+
         foreach ($source as $objednavky) {
+
+           
+
             $item = new stdClass;
             $item->id = $objednavky->id;
             $item->id_prehled = $objednavky->id_prehled;
@@ -187,7 +195,7 @@ class PrehledPresenter extends Nette\Application\UI\Presenter
         
         
 
-        $grid->addGroupAction('Odložit ze seznamu - již zpracované')->onSelect[] = [$this, 'deleteOdl'];
+        $grid->addGroupAction('Zpracovat - zmizí ze seznamu')->onSelect[] = [$this, 'deleteOdl'];
 
         $grid->addGroupAction('Smazat - nebude se realizovat')->onSelect[] = [$this, 'deleteObj2'];
 

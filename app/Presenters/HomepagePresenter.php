@@ -285,6 +285,13 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
             'schvalil' => date('d. m. Y')
         ]);
 
+        $uz = $this->prihlasenyId();
+        $this->database->table('objednavky')->where('id',$ids)->where('nutno_overit',1)->where('kdo2',$uz)->update([
+               
+            'stav' => 4,
+            'overil' => date('d. m. Y')
+        ]);
+        
         $this->database->table('objednavky')->where('id',$ids)->where('nutno_overit',0)->update([
                
             'stav' => 3,

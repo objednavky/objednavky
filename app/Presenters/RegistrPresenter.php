@@ -31,6 +31,10 @@ class RegistrPresenter extends Nette\Application\UI\Presenter
             $this->redirect('Prihlas:show');
 
         }
+       
+        
+        
+        
         $mojerole = $this->getUser()->getRoles();
      
         if ($mojerole[0] != 3)

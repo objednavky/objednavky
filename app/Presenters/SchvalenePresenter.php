@@ -91,8 +91,11 @@ class SchvalenePresenter extends Nette\Application\UI\Presenter
 
     public function deleteOdl(array $ids): void
     {
-        $this->database->table('objednavky')->where('id',$ids)->update([
-            'stav' => 9
+        $this->database->table('objednavky')->where('id',$ids)->where('nutno_overit',1)->update([
+            'stav' => 4
+        ]);
+        $this->database->table('objednavky')->where('id',$ids)->where('nutno_overit',0)->update([
+            'stav' => 3
         ]);
 
         $this->redirect('this');
@@ -187,7 +190,7 @@ class SchvalenePresenter extends Nette\Application\UI\Presenter
         $grid->setItemsPerPageList([10, 20, 50]);
         
 
-        $grid->addGroupAction('Odložit ze seznamu - již zpracované')->onSelect[] = [$this, 'deleteOdl'];
+        // $grid->addGroupAction('Odložit ze seznamu - již zpracované')->onSelect[] = [$this, 'deleteOdl'];
 
         $grid->addGroupAction('Smazat - nebude se realizovat')->onSelect[] = [$this, 'deleteObj2'];
 
@@ -272,7 +275,7 @@ class SchvalenePresenter extends Nette\Application\UI\Presenter
        
         
 
-        $grid->addGroupAction('Odložit ze seznamu - již zpracované')->onSelect[] = [$this, 'deleteOdl'];
+        $grid->addGroupAction('Zpět odznačit objednávky - vrátit do seznamu')->onSelect[] = [$this, 'deleteOdl'];
 
         $grid->addGroupAction('Smazat - nebude se realizovat')->onSelect[] = [$this, 'deleteObj2'];
 
