@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App;
 
-use Nette\Configurator;
+use Nette\Configurator;	
 
 
 class Bootstrap
@@ -23,8 +23,8 @@ class Bootstrap
 			->addDirectory(__DIR__)
 			->register();
 
-		$configurator->addConfig(__DIR__ . '/config/common.neon');
 		$configurator->addConfig(__DIR__ . '/config/local.neon');
+		$configurator->addConfig(__DIR__ . '/config/common.neon');
 
 		return $configurator;
 	}

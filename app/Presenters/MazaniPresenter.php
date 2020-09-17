@@ -11,58 +11,23 @@ use Ublaboo\DataGrid\AggregationFunction\FunctionSum;
 use Ublaboo\DataGrid\AggregationFunction\ISingleColumnAggregationFunction;
 
 
-class MazaniPresenter extends Nette\Application\UI\Presenter
+class MazaniPresenter extends ObjednavkyBasePresenter
 {
-	/** @var Nette\Database\Context */
-    private $database;
-    
     private $grids = [];
-
-	public function __construct(Nette\Database\Context $database)
-	{
-        $this->database = $database;
-
-       
-    }
-
 
     protected function startup()
     {
         parent::startup();
-        if (!$this->getUser()->isLoggedIn()) {
-            $this->redirect('Prihlas:show');
-        }
     }
 
-
-
-    public function prihlasenyId()
-    {
-       
-        $uzivatel = $this->getUser()->getIdentity()->jmeno; 
-        $uz = $this->database->table('pokus_jmeno')->where('jmeno',$uzivatel)->fetch();
-         return $this->database->table('uzivatel')->where('id',$uz->id_uzivatel)->fetch();
-    }
-    
-    
-    
     public function renderShow(): void
 	{
-
-     
-     
-
-
-
         // $uzivatel = $this->getUser()->getIdentity()->jmeno;      //   jméno uživatel
 
         $uz = $this->prihlasenyId();
         // $uz = $this->database->table('uzivatel')->where('jmeno',$uzivatel)->fetch();  //id prihlaseny uzivatel
-       
-
       
         $this->template->prihlasen = ($this->database->table('uzivatel')->where('id',$uz)->fetch())->jmeno;
-
 
     }
 

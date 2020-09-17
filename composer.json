@@ -20,7 +20,8 @@
 		"nette/utils": "^3.0",
 		"latte/latte": "^2.5",
 		"tracy/tracy": "^2.6",
-		"ublaboo/datagrid": "^6.2"
+		"ublaboo/datagrid": "^6.2",
+		"thenetworg/oauth2-azure": "^1.4"
 	},
 	"require-dev": {
 		"nette/tester": "^2.0"

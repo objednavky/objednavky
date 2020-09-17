@@ -12,20 +12,8 @@ use Ublaboo\DataGrid\AggregationFunction\ISingleColumnAggregationFunction;
 use stdClass;
 
 
-class ManPresenter extends Nette\Application\UI\Presenter
+class ManPresenter extends ObjednavkyBasePresenter
 {
-	/** @var Nette\Database\Context */
-	private $database;
-
-	public function __construct(Nette\Database\Context $database)
-	{
-        $this->database = $database;
-       
-	}
-
-
-    
-
 
 	public function renderShow(int $manId): void
 	{
@@ -81,16 +69,6 @@ class ManPresenter extends Nette\Application\UI\Presenter
 
     } 
     
-    public function prihlasenyId()
-    {
-       
-        $uzivatel = $this->getUser()->getIdentity()->jmeno; 
-        $uz = $this->database->table('pokus_jmeno')->where('jmeno',$uzivatel)->fetch();
-        bdump($uz);
-         return $this->database->table('uzivatel')->where('id',$uz->id_uzivatel)->fetch();
-    }
-    
-
 
     private function mapRozpocet($argument,$zasejedenID)
     {

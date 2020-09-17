@@ -13,15 +13,8 @@ use stdClass;
 use Ublaboo\DataGrid\AggregationFunction\FunctionSum;
 use Ublaboo\DataGrid\AggregationFunction\ISingleColumnAggregationFunction;
 
-class DetailPresenter extends Nette\Application\UI\Presenter
+class DetailPresenter extends ObjednavkyBasePresenter
 {
-	/** @var Nette\Database\Context */
-	private $database;
-
-	public function __construct(Nette\Database\Context $databaseparam)
-	{
-		$this->database = $databaseparam;
-	}
 
     public function renderShow(int $detailId): void
 	{
@@ -53,97 +46,90 @@ class DetailPresenter extends Nette\Application\UI\Presenter
 
     }
 
-    public function getSetup($id)
+
+    private function mapRozpocet($argument)
     {
-         return $this->database->table('setup')->where('id',$id)->fetch();
+        $setup = $this->getSetup(1);
+        $zasejedenID = $this->getParameter('detailId');
+        $rozpocets =$this->database->table('rozpocet')->where('rok',$setup->rok)->where('verze',$setup->verze)->where('hezky',$zasejedenID);
+
+
+        
+        // jen vybrané rozpočty podle hezky
+
+        bdump($rozpocets);
+
+        
+        $fetchedRozpocets = [];
+        foreach ($rozpocets as $rozpocet) {
+            $item = new stdClass;
+            $item->id = $rozpocet->id;
+            $item->rozpocet = $rozpocet->rozpocet;
+            $item->jmeno = $rozpocet->ref('hospodar')->jmeno;
+            $item->jmeno2 = $rozpocet->ref('hospodar2')->jmeno;
+            $item->castka = $rozpocet->castka;
+            $item->sablony = $rozpocet->sablony;
+            // $item->castka = $this->database->table('rozpocet')->where('hezky', $zasejedenID)->where('rok', $setup->rok)->where('verze',$setup->verze);
+            // $item->sablony = $this->database->table('rozpocet')->where('hezky', $zasejedenID)->where('rok', $setup->rok)->where('verze',$setup->verze)
+            //                 ->sum('sablony');
+            
+            $item->plan = $item->castka+$item->sablony;
+            $relevantni = $this->database->table('zakazky')->select('zakazka')->where('vlastni', 1)->where('normativ', 0);
+            $item->mySumV = $this->database->table('denik')->where('rozpocet', $item->id)->where('petky', $argument)->where('zakazky',$relevantni)
+                                ->sum('castka');
+            $item->mySumV = \round($item->mySumV, 0);
+
+            // vlastni 
+
+            $relevantniN = $this->database->table('zakazky')->select('zakazka')->where('normativ', 1);
+            $item->mySumN = $this->database->table('denik')->where('rozpocet', $item->id)->where('petky', $argument)->where('zakazky',$relevantniN)
+                                ->sum('castka');
+            $item->mySumN = \round($item->mySumN, 0);
+
+
+            $relevantniS = $this->database->table('zakazky')->select('zakazka')->where('sablony', 1);
+            $item->mySumS = $this->database->table('denik')->where('rozpocet', $item->id)->where('petky', $argument)->where('zakazky',$relevantniS)
+                                ->sum('castka');
+            $item->mySumS = \round($item->mySumS, 0);            
+            
+
+
+            $relevantni = $this->database->table('zakazky')->select('zakazka')->where('dotace', 1);
+            $item->mySumD = $this->database->table('denik')->where('rozpocet', $item->id)->where('petky', $argument)
+                        ->where('zakazky',$relevantni)->sum('castka');
+                            
+            $item->mySumD = \round($item->mySumD, 0);
+
+            
+            $relevantni_cin = $this->database->table('cinnost')->where('id_rozpocet', $rozpocet->id);
+            $item->objednanoVS = $this->database->table('objednavky')->where('cinnost', $relevantni_cin)
+                                ->where('zakazka.vlastni = ? OR zakazka.sablony = ?', 1,1)->sum('castka');
+            $item->objednanoD = $this->database->table('objednavky')->where('cinnost', $relevantni_cin)
+                                    ->where('zakazka.dotace = 1')->sum('castka');
+
+            $item->objednano = $item->objednanoD + $item->objednanoVS;
+
+
+            
+            
+            $item->soucetV =  ( $item->mySumV)+ ($item->mySumS) +  ($item->mySumN) ;
+
+            $item->rozdil = $item->castka -  $item->mySumV  - $item->mySumN - $item->mySumS - $item->objednanoVS;
+            $fetchedRozpocets[] = $item;
+        }
+
+        return $fetchedRozpocets;
     }
 
-   
-    
-
-        private function mapRozpocet($argument)
-        {
-            $setup = $this->getSetup(1);
-            $zasejedenID = $this->getParameter('detailId');
-            $rozpocets =$this->database->table('rozpocet')->where('rok',$setup->rok)->where('verze',$setup->verze)->where('hezky',$zasejedenID);
-
-
-          
-            // jen vybrané rozpočty podle hezky
-
-            bdump($rozpocets);
-
-           
-            $fetchedRozpocets = [];
-            foreach ($rozpocets as $rozpocet) {
-                $item = new stdClass;
-                $item->id = $rozpocet->id;
-                $item->rozpocet = $rozpocet->rozpocet;
-                $item->jmeno = $rozpocet->ref('hospodar')->jmeno;
-                $item->jmeno2 = $rozpocet->ref('hospodar2')->jmeno;
-                $item->castka = $rozpocet->castka;
-                $item->sablony = $rozpocet->sablony;
-                // $item->castka = $this->database->table('rozpocet')->where('hezky', $zasejedenID)->where('rok', $setup->rok)->where('verze',$setup->verze);
-                // $item->sablony = $this->database->table('rozpocet')->where('hezky', $zasejedenID)->where('rok', $setup->rok)->where('verze',$setup->verze)
-                //                 ->sum('sablony');
-              
-                $item->plan = $item->castka+$item->sablony;
-                $relevantni = $this->database->table('zakazky')->select('zakazka')->where('vlastni', 1)->where('normativ', 0);
-                $item->mySumV = $this->database->table('denik')->where('rozpocet', $item->id)->where('petky', $argument)->where('zakazky',$relevantni)
-                                    ->sum('castka');
-                $item->mySumV = \round($item->mySumV, 0);
-
-                // vlastni 
-
-                $relevantniN = $this->database->table('zakazky')->select('zakazka')->where('normativ', 1);
-                $item->mySumN = $this->database->table('denik')->where('rozpocet', $item->id)->where('petky', $argument)->where('zakazky',$relevantniN)
-                                    ->sum('castka');
-                $item->mySumN = \round($item->mySumN, 0);
-
-
-                $relevantniS = $this->database->table('zakazky')->select('zakazka')->where('sablony', 1);
-                $item->mySumS = $this->database->table('denik')->where('rozpocet', $item->id)->where('petky', $argument)->where('zakazky',$relevantniS)
-                                    ->sum('castka');
-                $item->mySumS = \round($item->mySumS, 0);            
-               
-
-
-                $relevantni = $this->database->table('zakazky')->select('zakazka')->where('dotace', 1);
-                $item->mySumD = $this->database->table('denik')->where('rozpocet', $item->id)->where('petky', $argument)
-                            ->where('zakazky',$relevantni)->sum('castka');
-                               
-                $item->mySumD = \round($item->mySumD, 0);
-
-                
-                $relevantni_cin = $this->database->table('cinnost')->where('id_rozpocet', $rozpocet->id);
-                $item->objednanoVS = $this->database->table('objednavky')->where('cinnost', $relevantni_cin)
-                                    ->where('zakazka.vlastni = ? OR zakazka.sablony = ?', 1,1)->sum('castka');
-                $item->objednanoD = $this->database->table('objednavky')->where('cinnost', $relevantni_cin)
-                                     ->where('zakazka.dotace = 1')->sum('castka');
-
-                $item->objednano = $item->objednanoD + $item->objednanoVS;
-
-
-               
-               
-                $item->soucetV =  ( $item->mySumV)+ ($item->mySumS) +  ($item->mySumN) ;
-
-                $item->rozdil = $item->castka -  $item->mySumV  - $item->mySumN - $item->mySumS - $item->objednanoVS;
-                $fetchedRozpocets[] = $item;
-            }
-
-            return $fetchedRozpocets;
+    private function sumColumn($array ,$columnArgument)
+    {
+        $sum = 0;
+        foreach ($array as $item) {
+            $sum += $item->$columnArgument;
         }
 
-        private function sumColumn($array ,$columnArgument)
-        {
-            $sum = 0;
-            foreach ($array as $item) {
-               $sum += $item->$columnArgument;
-            }
-
-            return $sum;
-        }
+        return $sum;
+    }
 
     public function createComponentSimpleGrid($name)
     {

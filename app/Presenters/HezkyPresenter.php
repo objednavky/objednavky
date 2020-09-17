@@ -13,23 +13,12 @@ use stdClass;
 use Ublaboo\DataGrid\AggregationFunction\FunctionSum;
 use Ublaboo\DataGrid\AggregationFunction\ISingleColumnAggregationFunction;
 
-class HezkyPresenter extends Nette\Application\UI\Presenter
+class HezkyPresenter extends ObjednavkyBasePresenter
 {
-	/** @var Nette\Database\Context */
-	private $database;
-
-	public function __construct(Nette\Database\Context $databaseparam)
-	{
-		$this->database = $databaseparam;
-	}
 
     protected function startup()
     {
         parent::startup();
-        if (!$this->getUser()->isLoggedIn()) {
-            $this->redirect('Prihlas:show');
-        }
-
 
         $mojerole = $this->getUser()->getRoles();
      
@@ -40,16 +29,6 @@ class HezkyPresenter extends Nette\Application\UI\Presenter
         } 
         
     }
-
-
-    public function prihlasenyId()
-    {
-       
-        $uzivatel = $this->getUser()->getIdentity()->jmeno; 
-        $uz = $this->database->table('pokus_jmeno')->where('jmeno',$uzivatel)->fetch();
-        return $this->database->table('uzivatel')->where('id',$uz->id_uzivatel)->fetch();
-    }
-    
 
 
     public function renderShow() {                   //renderShow
@@ -76,13 +55,6 @@ class HezkyPresenter extends Nette\Application\UI\Presenter
         
         bdump($source);
     } 
-
-   
-
-    public function getSetup($id)
-    {
-         return $this->database->table('setup')->where('id',$id)->fetch();
-    }
 
  
     private function mapRozpocet($argument)

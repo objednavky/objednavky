@@ -20,28 +20,15 @@ use Ublaboo\DataGrid\AggregationFunction\ISingleColumnAggregationFunction;
 
 
 
-class HomepagePresenter extends Nette\Application\UI\Presenter
+class HomepagePresenter extends ObjednavkyBasePresenter
 {
-
-/** @var Nette\Database\Context */
-    private $database;
 
     private $grids = [];
 
-	public function __construct(Nette\Database\Context $databaseparam, Nette\Http\Session $session)
-  
-	{
-		$this->database = $databaseparam;
-    }
-    
     protected function startup()
     {
         parent::startup();
-        if (!$this->getUser()->isLoggedIn()) {
-            $this->redirect('Prihlas:show');
 
-            
-        }
         $uz = $this->prihlasenyId();
         $pocetHospodar = $this->database->table('rozpocet')->where('hospodar =? OR hospodar2 = ?',$uz,$uz)->count('*');
         $pocetOverovatel = $this->database->table('rozpocet')->where('overovatel',$uz)->count('*');               
@@ -53,14 +40,6 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
    
     
 
-    public function prihlasenyId()
-    {
-       
-        $uzivatel = $this->getUser()->getIdentity()->jmeno; 
-        $uz = $this->database->table('pokus_jmeno')->where('jmeno',$uzivatel)->fetch();
-        
-         return $this->database->table('uzivatel')->where('id',$uz->id_uzivatel)->fetch();
-    }
     
    
 
@@ -126,13 +105,6 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
         $uz = $this->prihlasenyId();
         $this->template->prihlasen = ($this->database->table('uzivatel')->where('id',$uz)->fetch())->jmeno;
     }
-    
-        public function getSetup($id)
-    {
-         return $this->database->table('setup')->where('id',$id)->fetch();
-    }
-
-  
     
 
         private function mapRozpocet($argument)
