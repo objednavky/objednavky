@@ -11,36 +11,16 @@ use Ublaboo\DataGrid\AggregationFunction\ISingleColumnAggregationFunction;
 use stdClass;
 
 
-class JedenPresenter extends Nette\Application\UI\Presenter
+class JedenPresenter extends ObjednavkyBasePresenter
 {
-	/** @var Nette\Database\Context */
-	private $database;
-
-	public function __construct(Nette\Database\Context $database)
-	{
-        $this->database = $database;
-       
-    }
     
     protected function startup()
     {
         parent::startup();
-        if (!$this->getUser()->isLoggedIn()) {
-            $this->redirect('Prihlas:show');
-        }
     }
 
 
     
-    public function prihlasenyId()
-    {
-       
-        $uzivatel = $this->getUser()->getIdentity()->jmeno; 
-        $uz = $this->database->table('pokus_jmeno')->where('jmeno',$uzivatel)->fetch();
-        return $this->database->table('uzivatel')->where('id',$uz->id_uzivatel)->fetch();
-    }
-    
-
 	public function renderShow(int $jedenId): void
 	{
     

@@ -7,7 +7,7 @@ use Nette\Application\UI\Form;
 use Ublaboo\DataGrid\DataGrid;
 use Ublaboo\DataGrid\AggregationFunction\FunctionSum;
 use Ublaboo\DataGrid\AggregationFunction\ISingleColumnAggregationFunction;
-
+use TheNetworg\OAuth2\Client\Provider\Azure;
 
 class PrihlasPresenter extends Nette\Application\UI\Presenter
 {
@@ -16,82 +16,107 @@ class PrihlasPresenter extends Nette\Application\UI\Presenter
     
     private Nette\Security\Passwords $mojeGlobalniPromenaPasswords;
 
+    private $clientId;
+    private $clientSecret;
+    private $redirectUri;
+
+
 	public function __construct(Nette\Database\Context $database, Nette\Security\Passwords $mojeLokalniPromenaPasswords)
 	{
         $this->database = $database;
         $this->mojeGlobalniPromenaPasswords = $mojeLokalniPromenaPasswords;
     }
     
-        public function renderLogout()
-        {
-            bdump('yes');
-            $this->getUser()->logout();
-            //$this->redirect('Homepage:');
+    public function renderLogout()
+    {
+        bdump('yes');
+        $this->getUser()->logout();
+        //$this->redirect('Homepage:');
 
-        }
+    }
 
-        protected function createComponentRegistrationForm(): Form
-        {
-            $form = new Form;
-            $form->addText('name', 'Jméno:');
-            // $form->addSelect('name', 'Jméno:',["Jarmila","Karla","Tereza"] )->setRequired('Vyberte prosím činnost')->setPrompt(' ');
-            $form->addPassword('password', 'Heslo:');
-            $form->addSubmit('send', 'Přihlásit');
-          
-            $form->onSuccess[] = [$this, 'formSucceeded'];
 
-            return $form;
-        }
-    
-        public function formSucceeded(Form $form,  $data): void
-        {
-            if ($form['send']->isSubmittedBy()) {
+    public function actionShow()
+    {
+
+        $provider = new Azure([
+            'clientId'          => $this->clientId,
+            'clientSecret'      => $this->clientSecret,
+            'redirectUri'       => $this->redirectUri,
+            'state'             => 'objednavky',
+            'scope'             => ['openid', 'profile', 'email', 'user.read']
+        ]);
+        
+        if (!isset($_GET['code'])) {
+            // If we don't have an authorization code then get one
+            $authUrl = $provider->getAuthorizationUrl() . '&prompt=select_account';
+            $_SESSION['oauth2state'] = $provider->getState();
+            $this->redirectUrl($authUrl);
+
+        
+        // Check given state against previously stored one to mitigate CSRF attack
+        } elseif (empty($_GET['state']) || ($_GET['state'] !== $_SESSION['oauth2state'])) {
+        
+            unset($_SESSION['oauth2state']);
+            exit('Invalid state (is '.$_GET['state'].', should be'.$_SESSION['oauth2state'].', provider->getState() == '.$provider->getState().')');
+        
+        } else {
+        
+            // Try to get an access token (using the authorization code grant)
+            $token = $provider->getAccessToken('authorization_code', [
+                'code' => $_GET['code'],
+                'resource' => 'https://graph.windows.net',
+            ]);
+        
+            // Optional: Now you have a token you can look up a users profile data
+            try {
+        
+                // We got an access token, let's now get the user's details
+                $me = $provider->get("me", $token);
+        
                 try {
-                    $this->getUser()->login($data->name, $data->password);
+                    $this->getUser()->login($me['userPrincipalName'], $me['mail']);
                 } catch (Nette\Security\AuthenticationException $e) {
                     $this->flashMessage($e->getMessage());
                 }
             
                 $this->redirect('Homepage:');
+    
+            } catch (Exception $e) {
+        
+                // Failed to get user details
+                exit('Oh dear...');
             }
-
-            // if ($form['send2']->isSubmittedBy()) {
-
-
-            //      $this->database->table('pokus_jmeno')->insert([
-               
-            //         'jmeno' => $data->name,
-            //          'heslo' => $this->mojeGlobalniPromenaPasswords->hash($data->password)
-            //     ]);
-            // }
+    
         }
 
+    }
+
+    public function formSucceeded(Form $form,  $data): void
+    {
+        if ($form['send']->isSubmittedBy()) {
+            try {
+                $this->getUser()->login($data->name, $data->password);
+            } catch (Nette\Security\AuthenticationException $e) {
+                $this->flashMessage($e->getMessage());
+            }
         
+            $this->redirect('Homepage:');
+        }
+
+    }
+
+    public function setClientId($clientId) {
+        $this->clientId = $clientId;
+    }
+    public function setClientSecret($clientSecret){
+        $this->clientSecret = $clientSecret;
+    }
+    public function setRedirectUri($redirectUri) {
+        $this->redirectUri = $redirectUri;
+    }
 
 
          
-            // $this->database->table('pokus_jmeno')->insert([
-               
-            //         'jmeno' => $data->name,
-            //         'heslo' => $data->password
-            // ]);
-
-   
-
-
-	// public function renderShow(int $jedenId): void
-	// {
-    
-    // $jeden = $this->database->table('rozpocet')->get($jedenId);
-   
-	// if (!$jeden) {
-	// 	$this->error('Stránka nebyla nalezena');
-	// }
-
-
-	// $this->template->jeden = $jeden;
-    // } 
-    
-    
     
 }

@@ -11,28 +11,14 @@ use Ublaboo\DataGrid\AggregationFunction\FunctionSum;
 use Ublaboo\DataGrid\AggregationFunction\ISingleColumnAggregationFunction;
 
 
-class PrehledPresenter extends Nette\Application\UI\Presenter
+class PrehledPresenter extends ObjednavkyBasePresenter
 {
-	/** @var Nette\Database\Context */
-    private $database;
-    
+      
     private $grids = [];
-
-	public function __construct(Nette\Database\Context $database)
-	{
-        $this->database = $database;
-
-       
-    }
-
 
     protected function startup()
     {
         parent::startup();
-        if (!$this->getUser()->isLoggedIn()) {
-            $this->redirect('Prihlas:show');
-        }
-
 
         $mojerole = $this->getUser()->getRoles();
      
@@ -42,22 +28,9 @@ class PrehledPresenter extends Nette\Application\UI\Presenter
             $this->flashMessage('Nemáte oprávnění.');
         } 
         
-
-
     }
 
-
-
-    public function prihlasenyId()
-    {
-       
-        $uzivatel = $this->getUser()->getIdentity()->jmeno; 
-        $uz = $this->database->table('pokus_jmeno')->where('jmeno',$uzivatel)->fetch();
-         return $this->database->table('uzivatel')->where('id',$uz->id_uzivatel)->fetch();
-    }
-    
-    
-    
+   
     public function renderShow(): void
 	{
 

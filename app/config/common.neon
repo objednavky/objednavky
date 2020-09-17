@@ -1,6 +1,3 @@
-parameters:
-
-
 application:
 	errorPresenter: Error
 	mapping:
@@ -21,3 +18,9 @@ di:
 services:
 	router: App\Router\RouterFactory::createRouter
 	- MyAuthenticator
+	-
+		class: App\Presenters\PrihlasPresenter
+		setup:
+			- setClientId(%oauth.clientId%)
+			- setClientSecret(%oauth.clientSecret%)
+			- setRedirectUri(%oauth.redirectUri%)

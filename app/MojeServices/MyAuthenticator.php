@@ -15,22 +15,25 @@ class MyAuthenticator implements Nette\Security\IAuthenticator
 	{
 		[$username, $password] = $credentials;
 
-		$radkaVTabulcePokusUser = $this->database->table('pokus_jmeno')
-			->where('jmeno', $username)
+		$radkaVTabulceUzivatel = $this->database->table('uzivatel')
+			->where('prihlaseni', $username)
 			->fetch();
 
-		if (!$radkaVTabulcePokusUser) {
+		if (!$radkaVTabulceUzivatel) {
 			throw new Nette\Security\AuthenticationException('Neznámý uživatel.');
 		}
 
-		if (!$this->passwords->verify($password, $radkaVTabulcePokusUser->heslo)) {
+/* 		if (!$this->passwords->verify($password, $radkaVTabulceUzivatel->heslo)) {
 			throw new Nette\Security\AuthenticationException('Chybné heslo.');
-        }
-                
+		}
+ */				
 		return new Nette\Security\Identity(
-			$radkaVTabulcePokusUser->id,
-			$radkaVTabulcePokusUser->mojerole, // nebo pole více rolí
-			['jmeno' => $radkaVTabulcePokusUser->jmeno]
+			$radkaVTabulceUzivatel->id,
+			$radkaVTabulceUzivatel->role, // nebo pole více rolí
+			[
+				'jmeno' => $radkaVTabulceUzivatel->jmeno,
+				'prihlaseni' => $radkaVTabulceUzivatel->prihlaseni,
+			]
 		);
 	}
 }

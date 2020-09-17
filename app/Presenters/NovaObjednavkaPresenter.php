@@ -11,41 +11,17 @@ use Ublaboo\DataGrid\AggregationFunction\ISingleColumnAggregationFunction;
 use App\Utils;
 
 
-class NovaObjednavkaPresenter extends Nette\Application\UI\Presenter
+class NovaObjednavkaPresenter extends ObjednavkyBasePresenter
 {
-	/** @var Nette\Database\Context */
-    private $database;
     
     private $mojeParametryNaPrasaka = [];
-
-	public function __construct(Nette\Database\Context $database)
-	{
-        $this->database = $database;
-
-       
-    }
-
 
     protected function startup()
     {
         parent::startup();
-        if (!$this->getUser()->isLoggedIn()) {
-            $this->redirect('Prihlas:show');
-        }
     }
 
 
-
-    public function prihlasenyId()
-    {
-       
-        $uzivatel = $this->getUser()->getIdentity()->jmeno; 
-        $uz = $this->database->table('pokus_jmeno')->where('jmeno',$uzivatel)->fetch();
-        return $this->database->table('uzivatel')->where('id',$uz->id_uzivatel)->fetch();
-    }
-    
-    
-    
     public function renderShow(): void
 	{
 
@@ -246,21 +222,6 @@ class NovaObjednavkaPresenter extends Nette\Application\UI\Presenter
         }
     
 
-
-
-
-
-
-
-
-        public function getSetup($id)
-        {
-             return $this->database->table('setup')->where('id',$id)->fetch();
-        }
-    
-     
-      
-          
         public function dataProInsert(Form $form, $data)
         {
             $rok=$this->getSetup(1)->rok;      //zjitim rok a verzi;
