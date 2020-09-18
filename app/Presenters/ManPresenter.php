@@ -79,15 +79,6 @@ class ManPresenter extends ObjednavkyBasePresenter
         return $fetchedRozpocets;
     }
 
-    private function sumColumn($array ,$columnArgument)
-    {
-        $sum = 0;
-        foreach ($array as $item) {
-            $sum += $item->$columnArgument;
-        }
-        return $sum;
-    }
-
     public function createComponentSimpleGrid($name)
     {
         $grid = new DataGrid($this, $name);
