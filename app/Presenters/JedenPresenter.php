@@ -138,15 +138,6 @@ class JedenPresenter extends ObjednavkyBasePresenter
         return $fetchedDeniky;
     }
 
-    private function sumColumn($array ,$columnArgument)
-    {
-        $sum = 0;
-        foreach ($array as $item) {
-            $sum += $item->$columnArgument;
-        }
-        return $sum;
-    }
-
     public function createComponentPrehledGrid($name)      
     {
         $grid = new DataGrid($this, $name);
