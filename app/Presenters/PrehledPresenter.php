@@ -19,36 +19,20 @@ class PrehledPresenter extends ObjednavkyBasePresenter
     protected function startup()
     {
         parent::startup();
-
         $mojerole = $this->getUser()->getRoles();
-     
         if ($mojerole[0] == 1)
         {
             $this->redirect('Homepage:default');
             $this->flashMessage('Nemáte oprávnění.');
         } 
-        
     }
 
-   
     public function renderShow(): void
 	{
-
-     
-     
-
-
-
         // $uzivatel = $this->getUser()->getIdentity()->jmeno;      //   jméno uživatel
-
         $uz = $this->prihlasenyId();
         // $uz = $this->database->table('uzivatel')->where('jmeno',$uzivatel)->fetch();  //id prihlaseny uzivatel
-       
-
-      
         $this->template->prihlasen = ($this->database->table('uzivatel')->where('id',$uz)->fetch())->jmeno;
-
-
     }
 
     public function deleteObj2(array $ids): void
@@ -56,47 +40,29 @@ class PrehledPresenter extends ObjednavkyBasePresenter
         $this->database->table('objednavky')->where('id',$ids)->update([
             'stav' => 8
         ]);
-
         $this->redirect('this');
     }
-
-
 
     public function deleteOdl(array $ids): void
     {
         $this->database->table('objednavky')->where('id',$ids)->update([
             'stav' => 9
         ]);
-
         $this->redirect('this');
     }
     
     private function mapRozpocet($argument)
     {
-
         $uz = $this->prihlasenyId();   // přihlášený uživatel
         $source = $this->database->table('objednavky')
-       ->where('stav', [3,4]);
-  
-    
-   
-    // $source = $this->database->table('objednavky')->where('stav', [3,4])->select('DISTINCT id_prehled');
-    
-
-
+           ->where('stav', [3,4]);
+        // $source = $this->database->table('objednavky')->where('stav', [3,4])->select('DISTINCT id_prehled');
         foreach ($source as $objednavky) {
-
-           
-
             $item = new stdClass;
             $item->id = $objednavky->id;
             $item->id_prehled = $objednavky->id_prehled;
             $item->radka = $objednavky->radka;
-
-
             $pomoc =  $this->database->table('objednavky')->where('id_prehled',$item->id_prehled )->fetch();
-
-            
             // $pom2 = $this->database->table('prehled')->where('id',$pomoc->id_prehled)->fetch();
             // $pom3 = $this->database->table('uzivatel')->where('id',$pom2->id_uzivatel)->fetch();
             // bdump($pom2);
@@ -110,43 +76,25 @@ class PrehledPresenter extends ObjednavkyBasePresenter
             $item->stav = $objednavky->ref('stav')->popis;
             $item->firma = $objednavky->firma;
             $item->popis = $objednavky->popis;
-
             $item->cinnost = $objednavky->ref('cinnost')->cinnost;
             $item->cinnostP = $objednavky->ref('cinnost')->nazev_cinnosti;
             $item->zakazka = $objednavky->ref('zakazka')->zakazka;
             $item->stredisko = $objednavky->ref('stredisko')->stredisko;
             $item->castka = $objednavky->castka;
-
-                        
             $fetchedRozpocets[] = $item;
         }
         return $fetchedRozpocets;
-    
-    
     }
     
     public function createComponentSimpleGrid2($name)
     {
-
-        
         $grid = new DataGrid($this, $name);
         $this->grids['mazaciGrid'] = $grid;
         $source = $this->mapRozpocet(1);
-
-    
         $grid->setDataSource($source);
-                        
-
-
-        
-        
         $grid->addColumnText('id_prehled','Číslo objednávky');
         $grid->addColumnText('radka','Číslo položky');
         $grid->addColumnNumber('castka', 'Částka jednotlivé položky');
-
-
-        
-
         $grid->addColumnText('zadavatel','Zadavatel');
         $grid->addColumnText('stav','stav objednávky');
         $grid->addColumnText('schvalovatel','Schvalovatel');
@@ -154,35 +102,20 @@ class PrehledPresenter extends ObjednavkyBasePresenter
         $grid->addColumnText('nutno_overit','Nutno ověřit');
         $grid->addColumnText('overovatel','Ověřovatel');
         $grid->addColumnDateTime('overil','Ověřeno');
-
         $grid->addColumnText('firma','firma');
         $grid->addColumnText('popis','popis');
         $grid->addColumnText('cinnost','Činnost');
         $grid->addColumnText('cinnostP','Popis činnosti');
         $grid->addColumnText('zakazka','Zakázka');
-        
         $grid->addColumnText('stredisko','Středisko');
-       
-        
         $grid->setPagination(false);
-        
-        
-
         $grid->addGroupAction('Zpracovat - zmizí ze seznamu')->onSelect[] = [$this, 'deleteOdl'];
-
         $grid->addGroupAction('Smazat - nebude se realizovat')->onSelect[] = [$this, 'deleteObj2'];
-
-
         // $grid->addExportCsvFiltered('Export do csv s filtrem', 'tabulka.csv', 'windows-1250')
         // ->setTitle('Export do csv s filtrem');
         $grid->addExportCsv('Export do csv', 'tabulka.csv', 'windows-1250')
-        ->setTitle('Export do csv');
-
-        
-
+            ->setTitle('Export do csv');
         $grid->setPagination(false);
-
-
 
         $translator = new \Ublaboo\DataGrid\Localization\SimpleTranslator([
             'ublaboo_datagrid.no_item_found_reset' => 'Žádné položky nenalezeny. Filtr můžete vynulovat',
@@ -200,11 +133,9 @@ class PrehledPresenter extends ObjednavkyBasePresenter
             'ublaboo_datagrid.next' => 'Další',
             'ublaboo_datagrid.choose' => 'Vyber činnost"',
             'ublaboo_datagrid.execute' => 'Vykonej',
-    
             'Name' => 'Jméno',
             'Inserted' => 'Vloženo'
         ]);
-    
         $grid->setTranslator($translator);
     } 
 }

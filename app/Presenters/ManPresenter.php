@@ -17,67 +17,39 @@ class ManPresenter extends ObjednavkyBasePresenter
 
 	public function renderShow(int $manId): void
 	{
-    
-    $jeden = $this->database->table('rozpocet')->get($manId);
-   
-	if (!$jeden) {
-		$this->error('Stránka nebyla nalezena');
-	}
-
-
-    $this->template->jeden = $jeden;
-  
-
-    $this->template->hospodar = $jeden->ref('hospodar')->jmeno;
-    $this->template->hospodar2 = $jeden->ref('hospodar2')->jmeno;
-
-
-
-    $source = $this->mapRozpocet(1,$manId);
-
-    $this->template->vlastni = $this->sumColumn($source, 'vlastni');
-    $this->template->normativ = $this->sumColumn($source, 'normativ');
-    $this->template->dotace = $this->sumColumn($source, 'dotace');
-    $this->template->sablony = $this->sumColumn($source, 'sablony');
-
-
-
-    $nacti = $this->database->table('rozpocet')->where('id',$manId)->fetch();;
-    $this->template->castka = $jeden->castka;      //ziskam castku vlastni;
-    $this->template->sablonyplan = $nacti->sablony;    //ziskam castku sablony;
-   
-
-    
-
-    $this->template->zbyva = $this->template->castka - ($this->template->vlastni) ;
-    $this->template->zbyvatab = $this->template->castka - ($this->template->vlastni) - $this->template->normativ ;
-    $utraceno = ($this->template->vlastni) + ($this->template->sablony);
-    $plan = ($this->template->castka) + ($this->template->sablonyplan);
-    $this->template->percent = $utraceno == 0 ? 0: round(($utraceno / $plan ) * 100, 0);
-    
-            //vypocet procent a kontrola deleni nulou
-
-
-
-    $relevantni =$this->database->table('cinnost')->select('id')->where('id_rozpocet',$manId);
-    $source = $this->database->table('objednavky')->where('cinnost', $relevantni)->where('zakazka.vlastni',1);
-    $source2 = $this->database->table('objednavky')->where('cinnost', $relevantni)->where('zakazka.dotace',1); 
-    $this->template->objednanoV = $this->sumColumn($source, 'castka');
-    $this->template->objednanoD =  $this->sumColumn($source2, 'castka'); 
-  
-    
-
+        $jeden = $this->database->table('rozpocet')->get($manId);
+        if (!$jeden) {
+            $this->error('Stránka nebyla nalezena');
+        }
+        $this->template->jeden = $jeden;
+        $this->template->hospodar = $jeden->ref('hospodar')->jmeno;
+        $this->template->hospodar2 = $jeden->ref('hospodar2')->jmeno;
+        $source = $this->mapRozpocet(1,$manId);
+        $this->template->vlastni = $this->sumColumn($source, 'vlastni');
+        $this->template->normativ = $this->sumColumn($source, 'normativ');
+        $this->template->dotace = $this->sumColumn($source, 'dotace');
+        $this->template->sablony = $this->sumColumn($source, 'sablony');
+        $nacti = $this->database->table('rozpocet')->where('id',$manId)->fetch();;
+        $this->template->castka = $jeden->castka;      //ziskam castku vlastni;
+        $this->template->sablonyplan = $nacti->sablony;    //ziskam castku sablony;
+        $this->template->zbyva = $this->template->castka - ($this->template->vlastni) ;
+        $this->template->zbyvatab = $this->template->castka - ($this->template->vlastni) - $this->template->normativ ;
+        $utraceno = ($this->template->vlastni) + ($this->template->sablony);
+        $plan = ($this->template->castka) + ($this->template->sablonyplan);
+        $this->template->percent = $utraceno == 0 ? 0: round(($utraceno / $plan ) * 100, 0);
+        //vypocet procent a kontrola deleni nulou
+        $relevantni =$this->database->table('cinnost')->select('id')->where('id_rozpocet',$manId);
+        $source = $this->database->table('objednavky')->where('cinnost', $relevantni)->where('zakazka.vlastni',1);
+        $source2 = $this->database->table('objednavky')->where('cinnost', $relevantni)->where('zakazka.dotace',1); 
+        $this->template->objednanoV = $this->sumColumn($source, 'castka');
+        $this->template->objednanoD =  $this->sumColumn($source2, 'castka'); 
     } 
     
-
     private function mapRozpocet($argument,$zasejedenID)
     {
         $relevantni_zak = $this->database->table('zakazky')->select('zakazka')->where('NOT preuctovani', 1 );
-        
         $rozpocets =$this->database->table('denik')->where('rozpocet',$zasejedenID)->where('petky', $argument)->where('zakazky', $relevantni_zak);
         //bdump($rozpocets);
-
-       
         $fetchedRozpocets = [];
         foreach ($rozpocets as $denik) {
             $item = new stdClass;
@@ -89,59 +61,38 @@ class ManPresenter extends ObjednavkyBasePresenter
             $item->popis = $denik->popis;
             $item->stredisko_d = $denik->stredisko_d;
             $item->zakazky = $denik->zakazky;
-            
             $item->cisloObjednavky = "nějaké číslo";
-           
             $relatedZakazka = $this->database->table('zakazky')->where('zakazka' , $denik->zakazky)->fetch();
-            
             bdump($relatedZakazka);
-           
             $item->vlastni0 = $relatedZakazka->vlastni == 1  ? $denik->castka : 0;      //vlastni 
             $item->vlastni0 = \round($item->vlastni0, 0);
-
             $item->normativ = $relatedZakazka->normativ == 1  ? $denik->castka : 0;      //vlastni 
             $item->normativ = \round($item->normativ, 0);
-
             $item->vlastni = $item->vlastni0 - $item->normativ;
-          
             $item->sablony = $relatedZakazka->sablony == 1  ? $denik->castka : 0;      //sablony
             $item->sablony = \round($item->sablony, 0);
-
             $item->dotace = $relatedZakazka->dotace == 1 ? $denik->castka : 0;
             $item->dotace = \round($item->dotace, 0);
-
-
             $fetchedRozpocets[] = $item;
         }
-                //$item->vlastni = $this->database->query('')
+        //$item->vlastni = $this->database->query('')
         return $fetchedRozpocets;
     }
 
-
     private function sumColumn($array ,$columnArgument)
-        {
-            $sum = 0;
-            foreach ($array as $item) {
-               $sum += $item->$columnArgument;
-            }
-
-            return $sum;
+    {
+        $sum = 0;
+        foreach ($array as $item) {
+            $sum += $item->$columnArgument;
         }
+        return $sum;
+    }
 
     public function createComponentSimpleGrid($name)
     {
         $grid = new DataGrid($this, $name);
-
-   
-
         $zasejedenID = $this->getParameter('manId');
-
-     
-       
-       $grid->setDataSource($this->mapRozpocet(1,$zasejedenID));
-
-      
-        
+        $grid->setDataSource($this->mapRozpocet(1,$zasejedenID));
         $grid->addColumnText('datum', 'Datum');
         $grid->addColumnText('cinnost_d', 'Činnost');
         $grid->addColumnText('doklad', 'Doklad');
@@ -154,7 +105,6 @@ class ManPresenter extends ObjednavkyBasePresenter
         $grid->addColumnNumber('dotace', 'Dotace Kč')->setAlign('right');
         $grid->addColumnText('cisloObjednavky', 'Číslo objednávky');
         // $grid->addFilterRange('vlastni', 'Částka Kč');
-      
         // $grid->addExportCsvFiltered('Export do csv s filtrem', 'tabulka.csv', 'windows-1250')
         // ->setTitle('Export do csv s filtrem');
         $grid->addExportCsv('Export do csv', 'tabulka.csv', 'windows-1250')
@@ -176,45 +126,19 @@ class ManPresenter extends ObjednavkyBasePresenter
             'ublaboo_datagrid.next' => 'Další',
             'ublaboo_datagrid.choose' => 'Vyberte',
             'ublaboo_datagrid.execute' => 'Provést',
-    
             'Name' => 'Jméno',
             'Inserted' => 'Vloženo'
         ]);
-    
         $grid->setTranslator($translator);
-
-
-      
     //    $grid->setMultiSortEnabled($enabled = TRUE);
-        
-    // $grid->addAggregationFunction('castka', new FunctionSum('castka'));
-
-
-
+    //    $grid->addAggregationFunction('castka', new FunctionSum('castka'));
     } 
-
-
 
     private function mapObjednavky($zasejedenID)
     {
-
-        
         $relevantni =   $this->database->table('cinnost')->select('id')->where('id_rozpocet',  $zasejedenID );
-
-
         $uz = 8 ;       // tady bude nacteny uzivatel
-       
-        
         $source = $this->database->table('objednavky')->where('cinnost', $relevantni);
-
-
-        
-        
-
-
-       
-
-       
         $fetchedSource = [];
         foreach ($source as $objednavky) 
         {
@@ -230,76 +154,42 @@ class ManPresenter extends ObjednavkyBasePresenter
             $item->stredisko = $objednavky->ref('stredisko')->stredisko;
             $item->hospodar = $objednavky->ref('kdo')->jmeno;
             $item->castka = $objednavky->castka;
-
-        
-         if ($objednavky->nutno_overit == 0) {
-            $item->overeni = "neověřuje se";
-         }
-            
-          
-          elseif 
-            ($objednavky->overil == NULL)
-            {
+            if ($objednavky->nutno_overit == 0) {
+                $item->overeni = "neověřuje se";
+            } elseif ($objednavky->overil == NULL) {
                 $item->overeni = "čeká na ověření";
+            } else {
+                $item->overeni = "ověřeno";
             }
-           else {$item->overeni = "ověřeno";}
-
-           $item->overeni = ($objednavky->zamitnul2) == NULL  ? $item->overeni : "zamítnuto";
-
-           $item->schvaleni = $objednavky->schvalil == NULL  ? "čeká na schválení" : "schvaleno" ;
-           $item->schvaleni = ($objednavky->zamitnul) == NULL  ? $item->schvaleni : "zamítnuto";
-           
-
-        $fetchedSource[] = $item;
+            $item->overeni = ($objednavky->zamitnul2) == NULL  ? $item->overeni : "zamítnuto";
+            $item->schvaleni = $objednavky->schvalil == NULL  ? "čeká na schválení" : "schvaleno" ;
+            $item->schvaleni = ($objednavky->zamitnul) == NULL  ? $item->schvaleni : "zamítnuto";
+            $fetchedSource[] = $item;
         }
         return $fetchedSource;
     }
 
-
-
-
-
     public function createComponentSimpleGrid2($name)
-
     {
         $zasejedenID = $this->getParameter('manId');
-
         $grid = new DataGrid($this, $name);
-       $grid->setDataSource($this->mapObjednavky($zasejedenID));        // schválené a OVERENE
-
-
-
-        
-
-     
+        $grid->setDataSource($this->mapObjednavky($zasejedenID));        // schválené a OVERENE
         $grid->addColumnText('id_prehled','Číslo objednávky');
         $grid->addColumnText('radka','Číslo položky');
         $grid->addColumnText('firma','firma')->setFilterText();
         $grid->addColumnText('popis','popis')->setFilterText();
         $grid->addColumnText('cinnost','Činnost')->setFilterText();
-     
         $grid->addColumnText('zakazka','Zakázka')->setFilterText();
         $grid->addColumnText('zakazkap','Popis zakázky')->setFilterText();
         $grid->addColumnText('stredisko','Středisko')->setFilterText();
         $grid->addColumnText('hospodar','Hospodář')->setFilterText();
-
         $grid->addColumnNumber('castka', 'Částka');
-        
         $grid->setPagination(false);
-        
-       
-
-   
-
-
         // $grid->addExportCsvFiltered('Export do csv s filtrem', 'tabulka.csv', 'windows-1250')
         // ->setTitle('Export do csv s filtrem');
         $grid->addExportCsv('Export do csv', 'tabulka.csv', 'windows-1250')
-        ->setTitle('Export do csv');
-
+            ->setTitle('Export do csv');
         $grid->setPagination(false);
-
-
 
         $translator = new \Ublaboo\DataGrid\Localization\SimpleTranslator([
             'ublaboo_datagrid.no_item_found_reset' => 'Žádné položky nenalezeny. Filtr můžete vynulovat',
@@ -317,48 +207,22 @@ class ManPresenter extends ObjednavkyBasePresenter
             'ublaboo_datagrid.next' => 'Další',
             'ublaboo_datagrid.choose' => 'Vyberte',
             'ublaboo_datagrid.execute' => 'Provést',
-    
             'Name' => 'Jméno',
             'Inserted' => 'Vloženo'
         ]);
-    
         $grid->setTranslator($translator);
-    
-      
     } 
-
-
-
 
     public function createComponentSimpleGrid3($name)
-
     {
         $zasejedenID = $this->getParameter('manId');
-
         $grid = new DataGrid($this, $name);
         $obsah = $this->database->table('cinnost')->where('id_rozpocet',$zasejedenID);
-    
-       $grid->setDataSource($obsah);        // seznam činností zahrnutých rozpočtem
-
-
-
-        
-
-     
+        $grid->setDataSource($obsah);        // seznam činností zahrnutých rozpočtem
         $grid->addColumnText('cinnost','Činnost');
         $grid->addColumnText('nazev_cinnosti','Název činnosti');
-              
         $grid->setPagination(false);
-        
-       
-
-   
-
-
-       
         $grid->setPagination(false);
-
-
 
         $translator = new \Ublaboo\DataGrid\Localization\SimpleTranslator([
             'ublaboo_datagrid.no_item_found_reset' => 'Žádné položky nenalezeny. Filtr můžete vynulovat',
@@ -376,26 +240,10 @@ class ManPresenter extends ObjednavkyBasePresenter
             'ublaboo_datagrid.next' => 'Další',
             'ublaboo_datagrid.choose' => 'Vyberte',
             'ublaboo_datagrid.execute' => 'Provést',
-    
             'Name' => 'Jméno',
             'Inserted' => 'Vloženo'
         ]);
-    
         $grid->setTranslator($translator);
-    
-      
     } 
-    
-      
-   
-
-
-
-
-
-
-
-
-
 
 }

@@ -43,6 +43,14 @@ abstract class ObjednavkyBasePresenter extends Presenter
         return $this->getUser()->getIdentity()->id; 
     }
 
+    private final function sumColumn($array ,$columnArgument)
+    {
+        $sum = 0;
+        foreach ($array as $item) {
+            $sum += $item->$columnArgument;
+        }
+        return $sum;
+    }
 }
 
 

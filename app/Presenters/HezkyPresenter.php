@@ -31,28 +31,19 @@ class HezkyPresenter extends ObjednavkyBasePresenter
     }
 
 
-    public function renderShow() {                   //renderShow
-
+    public function renderShow() 
+    {                   //renderShow
         $source = $this->mapRozpocet(1);
-
         $this->template->mySumV = $this->sumColumn($source, 'mySumV');
         $this->template->mySumN = $this->sumColumn($source, 'mySumN');
         $this->template->mySumD = $this->sumColumn($source, 'mySumD');
         $this->template->mySumS = $this->sumColumn($source, 'mySumS');
-       
-
         $this->template->naklady = $this->sumColumn($source, 'mySumV') + $this->sumColumn($source, 'mySumN') + $this->sumColumn($source, 'mySumS');
         $this->template->plan = $this->sumColumn($source, 'castka') + $this->sumColumn($source, 'sablony');
         $this->template->castka = $this->sumColumn($source, 'castka');
         $this->template->sablony = $this->sumColumn($source, 'sablony');
-
-
-       
         $this->template->percent = $this->template->naklady == 0 ? 0 : round(($this->template->plan /  $this->template->naklady) * 100, 0);
-
         $this->template->zbyva = $this->template->plan - $this->template->naklady;
-
-        
         bdump($source);
     } 
 
@@ -62,32 +53,27 @@ class HezkyPresenter extends ObjednavkyBasePresenter
         $rok=$this->getSetup(1)->rok;      //zjitim rok a verzi;
         $verze=$this->getSetup(1)->verze;
         $rozpocets =$this->database->table('hezky');
-        
-              
         $fetchedRozpocets = [];
         foreach ($rozpocets as $hezky) {
             $item = new stdClass;
             $item->id = $hezky->id;
             $item->hezz = $hezky->hezky_rozpocet;
-
             $item->castka = $this->database->table('rozpocet')->where('hezky', $hezky->id)->where('rok', $rok)->where('verze',$verze)
                                 ->sum('castka');
             $item->sablony = $this->database->table('rozpocet')->where('hezky', $hezky->id)->where('rok', $rok)->where('verze',$verze)
                                 ->sum('sablony');
             $item->plan = $item->castka+$item->sablony;
+            
             $relevantni_zak = $this->database->table('zakazky')->select('zakazka')->where('normativ', 1 );
             $item->mySumN = $this->database->table('denik')->where('hezky', $hezky->id)->where('petky', $argument)->where('zakazky',$relevantni_zak)
                                 ->sum('castka');      // normativ
-                            
-            $item->mySumN = \round($item->mySumN, 0);     
+            $item->mySumN = \round($item->mySumN, 0);    
 
             $relevantni_zak = $this->database->table('zakazky')->select('zakazka')->where('vlastni', 1 );
             $item->mySumV = $this->database->table('denik')->where('hezky', $hezky->id)->where('petky', $argument)->where('zakazky',$relevantni_zak)
                                 ->sum('castka');      // vlastní vcetne normativu
-
             $item->mySumV -= $item->mySumN;    // vlastní bez normativu
             $item->mySumV = \round($item->mySumV, 0);     
-
 
             $relevantni_zak = $this->database->table('zakazky')->select('zakazka')->where('sablony', 1 );
             $item->mySumS = $this->database->table('denik')->where('hezky', $hezky->id)->where('petky', $argument)->where('zakazky',$relevantni_zak)
@@ -95,15 +81,10 @@ class HezkyPresenter extends ObjednavkyBasePresenter
                             
             $item->mySumS = \round($item->mySumS, 0); 
 
-
             $relevantni2 = $this->database->table('zakazky')->select('zakazka')->where('dotace', 1);
             $item->mySumD = $this->database->table('denik')->where('hezky', $hezky->id)->where('petky', $argument)
                         ->where('zakazky',$relevantni2)->sum('castka');
             $item->mySumD = \round($item->mySumD, 0);  // dotace
-
-
-
-            
 
             $relevantni_cin = $this->database->table('cinnost')->where('id_hezky', $hezky->id)->where('rok', $rok);
             $item->objednanoVS = $this->database->table('objednavky')->where('cinnost', $relevantni_cin)
@@ -117,18 +98,7 @@ class HezkyPresenter extends ObjednavkyBasePresenter
 
             $fetchedRozpocets[] = $item;
         }
-
         return $fetchedRozpocets;
-    }
-
-    private function sumColumn($array ,$columnArgument)
-    {
-        $sum = 0;
-        foreach ($array as $item) {
-            $sum += $item->$columnArgument;
-        }
-
-        return $sum;
     }
 
     public function createComponentSimpleGrid($name)

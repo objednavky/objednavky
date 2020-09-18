@@ -20,7 +20,6 @@ class PrihlasPresenter extends Nette\Application\UI\Presenter
     private $clientSecret;
     private $redirectUri;
 
-
 	public function __construct(Nette\Database\Context $database, Nette\Security\Passwords $mojeLokalniPromenaPasswords)
 	{
         $this->database = $database;
@@ -32,13 +31,10 @@ class PrihlasPresenter extends Nette\Application\UI\Presenter
         bdump('yes');
         $this->getUser()->logout();
         //$this->redirect('Homepage:');
-
     }
-
 
     public function actionShow()
     {
-
         $provider = new Azure([
             'clientId'          => $this->clientId,
             'clientSecret'      => $this->clientSecret,
@@ -53,15 +49,11 @@ class PrihlasPresenter extends Nette\Application\UI\Presenter
             $_SESSION['oauth2state'] = $provider->getState();
             $this->redirectUrl($authUrl);
 
-        
         // Check given state against previously stored one to mitigate CSRF attack
         } elseif (empty($_GET['state']) || ($_GET['state'] !== $_SESSION['oauth2state'])) {
-        
             unset($_SESSION['oauth2state']);
             exit('Invalid state (is '.$_GET['state'].', should be'.$_SESSION['oauth2state'].', provider->getState() == '.$provider->getState().')');
-        
         } else {
-        
             // Try to get an access token (using the authorization code grant)
             $token = $provider->getAccessToken('authorization_code', [
                 'code' => $_GET['code'],
@@ -70,26 +62,19 @@ class PrihlasPresenter extends Nette\Application\UI\Presenter
         
             // Optional: Now you have a token you can look up a users profile data
             try {
-        
                 // We got an access token, let's now get the user's details
                 $me = $provider->get("me", $token);
-        
                 try {
                     $this->getUser()->login($me['userPrincipalName'], $me['mail']);
                 } catch (Nette\Security\AuthenticationException $e) {
                     $this->flashMessage($e->getMessage());
                 }
-            
                 $this->redirect('Homepage:');
-    
             } catch (Exception $e) {
-        
                 // Failed to get user details
                 exit('Oh dear...');
             }
-    
         }
-
     }
 
     public function formSucceeded(Form $form,  $data): void

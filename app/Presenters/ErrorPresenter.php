@@ -17,7 +17,6 @@ final class ErrorPresenter implements Nette\Application\IPresenter
 	/** @var ILogger */
 	private $logger;
 
-
 	public function __construct(ILogger $logger)
 	{
 		$this->logger = $logger;
