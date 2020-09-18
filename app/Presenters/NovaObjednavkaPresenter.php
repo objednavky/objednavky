@@ -189,7 +189,7 @@ class NovaObjednavkaPresenter extends ObjednavkyBasePresenter
         bdump(($overeni <= $zadanaCastka ));
         bdump($nutnoOverit);
         $stav = 0;             
-        if  ($kdoma == $this->prihlasenyId()->id) {
+        if  ($kdoma == $this->prihlasenyId()) {
             if ($nutnoOverit==1) {$stav = 1;}  else {
                 $stav = 3;
             }
