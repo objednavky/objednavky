@@ -206,7 +206,7 @@ class NovaObjednavkaPresenter extends ObjednavkyBasePresenter
             'zakazka' => $zakazka->id,
             'kdo' => $kdoma,
             'kdo2' => $kdoma2,
-            'zakladatel' => $this->prihlasenyId()->id,
+            'zakladatel' => $this->prihlasenyId(),
             'nutno_overit' => $nutnoOverit,
             'presne' => $data->presne,
             'stav' => $stav
@@ -300,7 +300,7 @@ class NovaObjednavkaPresenter extends ObjednavkyBasePresenter
         $posledniF = ($this->database->table('objednavky')->where('zakladatel',$uz)->where('id_prehled',$posledniO)->fetch())->firma;
         $posledniR= ++$posledniR;  
         $stav = 0;             
-        if  ($kdoma== $this->prihlasenyId()->id) {
+        if  ($kdoma== $this->prihlasenyId()) {
             if ($nutnoOverit==1) {$stav = 1;}  else {$stav = 3;}
         } 
         
@@ -315,7 +315,7 @@ class NovaObjednavkaPresenter extends ObjednavkyBasePresenter
             'zakazka' => $zakazka->id,
             'kdo' => $kdoma,
             'kdo2' => $kdoma2,
-            'zakladatel' => $this->prihlasenyId()->id,
+            'zakladatel' => $this->prihlasenyId(),
             'nutno_overit' => $nutnoOverit,
             'presne' => $data->presne,
             'stav' => $stav
