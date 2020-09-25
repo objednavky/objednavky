@@ -41,16 +41,16 @@
 						<a class="dropdown-item" n:href="NovaObjednavka:show">Nová objednávka</a>									
 						<a class="dropdown-item" n:href="Mazani:arch">Všechny Vaše objednávky</a>
 						<a class="dropdown-item" n:href="Mazani:show">Mazání objednávek</a>
+						<a class="dropdown-item" n:href="Hezky:show">Hezký rozpočet</a>
 					</div>
       </li>
 	  {if $presenter->getUser()->getRoles()[0] == 2 ||  $presenter->getUser()->getRoles()[0] == 3}
 	  <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle"  id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-					Finanční skupina
+					Účtárna
 					</a>
 					<div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
 					<a class="dropdown-item" href="#">Všechny rozpočty</a> 
-					<a class="dropdown-item" n:href="Hezky:show">Hezký rozpočet</a>
 					<a class="dropdown-item" n:href="Homepage:default">Kompletní deník - jen náklady</a>
 					<a class="dropdown-item" n:href="Homepage:default">Kompletní deník - všechny položky</a>
 					<a class="dropdown-item" n:href="Schvalene:show">Přehled objednávek - neschválené a již zpracované</a>
@@ -60,7 +60,7 @@
 	  {/if}
 	  <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle"  id="navbarDropdownMenuLink2" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-						Školní rok
+						Školní rok 
 					</a>
 					<div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink2">
 						<a class="dropdown-item" n:href="Homepage:default">2019/2020</a>

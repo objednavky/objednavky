@@ -57,6 +57,9 @@ class PrehledPresenter extends ObjednavkyBasePresenter
         $source = $this->database->table('objednavky')
            ->where('stav', [3,4]);
         // $source = $this->database->table('objednavky')->where('stav', [3,4])->select('DISTINCT id_prehled');
+
+        $fetchedRozpocets = []; //iniciace promene pred blokem cyklu
+
         foreach ($source as $objednavky) {
             $item = new stdClass;
             $item->id = $objednavky->id;
@@ -82,7 +85,9 @@ class PrehledPresenter extends ObjednavkyBasePresenter
             $item->stredisko = $objednavky->ref('stredisko')->stredisko;
             $item->castka = $objednavky->castka;
             $fetchedRozpocets[] = $item;
+          
         }
+       
         return $fetchedRozpocets;
     }
     

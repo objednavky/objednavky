@@ -57,6 +57,9 @@ class SchvalenePresenter extends ObjednavkyBasePresenter
         $uz = $this->prihlasenyId();   // přihlášený uživatel
         $source = $this->database->table('objednavky')
        ->where('stav', $aray);
+
+       $fetchedRozpocets = [];
+
         foreach ($source as $objednavky) {
             $item = new stdClass;
             $item->id = $objednavky->id;
@@ -83,9 +86,10 @@ class SchvalenePresenter extends ObjednavkyBasePresenter
             $item->zakazka = $objednavky->ref('zakazka')->zakazka;
             $item->stredisko = $objednavky->ref('stredisko')->stredisko;
             $item->castka = $objednavky->castka;
-
+            
             $fetchedRozpocets[] = $item;
         }
+      
         return $fetchedRozpocets;
     }
     

@@ -86,7 +86,7 @@ class MazaniPresenter extends ObjednavkyBasePresenter
         $grid = new DataGrid($this, $name);
         $this->grids['mazaciGrid'] = $grid;
         bdump($this->grids);
-        $source = $this->mapRozpocet(1,[0,1]);
+        $source = $this->mapRozpocet(1,[0,1,3,4]);
         $grid->setDataSource($source);
         $grid->addColumnText('id_prehled','Číslo objednávky');
         $grid->addColumnText('radka','Číslo položky');

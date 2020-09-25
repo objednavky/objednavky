@@ -34,7 +34,8 @@ class NovaObjednavkaPresenter extends ObjednavkyBasePresenter
 
     protected function createComponentObjednavkyForm1(): Form
     {
-        $cinnost = $this->database->table('cinnost')->where('vyber',1);
+        $rok=$this->getSetup(1)->rok; 
+        $cinnost = $this->database->table('cinnost')->where('vyber',1)->where('rok',$rok);
         foreach ($cinnost as $polozka) 
         {
             $dohromady = $polozka->cinnost . " ".$polozka->nazev_cinnosti;
@@ -58,7 +59,7 @@ class NovaObjednavkaPresenter extends ObjednavkyBasePresenter
         // $form->setDefaults($row);
         $form->onRender[] = '\App\Utils\FormStylePomocnik::makeBootstrap4';
         $form->addGroup('Objednávka ');
-        $form->addText('popis', 'Název celé objednávky: ')->setRequired('Napište název objednávky');
+        $form->addText('popis', 'Název celé objednávky: ')->setRequired('Napište název objednávky')->addRule($form::MAX_LENGTH, 'Max. délka popisu může být 50 znaků.', 50);
         $form->addGroup($polozkaC);
         $form->addText('popis_radky', 'Popis:')->setOption('description', 'Pokud nevyplníte, použije se název objednávky');
         $form->addText('firma', 'Firma (prodejce):')->setRequired('Napište název firmy.');
@@ -80,6 +81,7 @@ class NovaObjednavkaPresenter extends ObjednavkyBasePresenter
     protected function createComponentObjednavkyForm2(): Form
     {
         $uz = $this->prihlasenyId();
+        $rok=$this->getSetup(1)->rok; 
         // $posledni = $this->database->table('prehled')->where('zakladatel',$uz)->max('id');
         $posledniO = $this->database->table('objednavky')->where('zakladatel',$uz)->max('id_prehled');
         $posledniR = $this->database->table('objednavky')->where('zakladatel',$uz)->where('id_prehled',$posledniO)->max('radka');
@@ -87,7 +89,7 @@ class NovaObjednavkaPresenter extends ObjednavkyBasePresenter
         $posledniP = ($this->database->table('prehled')->where('id',$posledniO)->fetch())->popis;
         $posledniS = $this->database->table('objednavky')->where('id_prehled',$posledniO)->sum('castka');
         $posledniR= ++$posledniR;
-        $cinnost = $this->database->table('cinnost')->where('vyber',1);
+        $cinnost = $this->database->table('cinnost')->where('vyber',1)->where('rok',$rok);
         foreach ($cinnost as $polozka) 
         {
             $dohromady = $polozka->cinnost . " ".$polozka->nazev_cinnosti;
@@ -111,7 +113,7 @@ class NovaObjednavkaPresenter extends ObjednavkyBasePresenter
         $form->setDefaults($row);
         $form->onRender[] = '\App\Utils\FormStylePomocnik::makeBootstrap4';
         $form->addGroup('Objednávka ');
-        $form->addText('popis', 'Název celé objednávky: ')->setDisabled()->setDefaultValue($posledniP);
+        $form->addText('popis', 'Název celé objednávky: ')->setDisabled()->setDefaultValue($posledniP)->addRule($form::MAX_LENGTH, 'Max. délka popisu může být 50 znaků.', 50);
         $form->addInteger('id_prehled', 'Číslo objednávky:' )->setDisabled()->setDefaultValue($posledniO);
         $form->addInteger('radka', 'Číslo řádky:' )->setDisabled()->setDefaultValue($posledniR);
         $form->addGroup($polozkaC);
@@ -134,23 +136,26 @@ class NovaObjednavkaPresenter extends ObjednavkyBasePresenter
 
     public function dataProInsert(Form $form, $data)
     {
-        $rok=$this->getSetup(1)->rok;      //zjitim rok a verzi;
+        $rok=$this->getSetup(1)->rok; 
+        //zjitim rok a verzi;
         //$verze=$this->getSetup(1)->verze;
         $verze = MujPomocnik::getSetupGlobal($this->database, 1);
-        $cinnostdatab = $this->database->table('cinnost')->where('vyber',1)->select('id');
+        
+        bdump($rok);
+        $cinnostdatab = $this->database->table('cinnost')->where('vyber',1)->where('rok',$rok)->select('id');
         $strediskotdatab = $this->database->table('stredisko')->where('vyber',1)->select('id');
         $zakazkadatab = $this->database->table('zakazky')->where('vyber',1)->select('id');
         $cinnost = $cinnostdatab[$data->cinnostVyber];
         $stredisko = $strediskotdatab[$data->strediskoVyber];
         $zakazka = $zakazkadatab[$data->zakazkaVyber];
         $zadanaCastka = $data->castka;
-        bdump($cinnost);
-        $pomoc = $this->database->table('cinnost')->where('id',$cinnost)->where('rok',$rok)->select('id_rozpocet');
+        bdump($cinnost->id);
+        $pomoc = $this->database->table('cinnost')->where('id',$cinnost)->select('id_rozpocet');
         $radkaRozpoctu = $this->database->table('rozpocet')->where('id',$pomoc)->fetch();
         $kdoma = $radkaRozpoctu->hospodar;
         $overeni = $radkaRozpoctu->overeni;
         $kdoma2= $radkaRozpoctu->overovatel;
-        $cinnost_d = $this->database->table('cinnost')->where('id',$cinnost)->fetch();
+        $cinnost_d = $this->database->table('cinnost')->where('id',$cinnost)->where('rok',$rok)->fetch();
         $castkaRozpoctu = $radkaRozpoctu->castka;
         $relevantni = $this->database->table('zakazky')->where('vlastni', 1)->select('zakazka'); 
         $relevantniId = $this->database->table('zakazky')->where('vlastni', 1)->select('id');
@@ -241,7 +246,7 @@ class NovaObjednavkaPresenter extends ObjednavkyBasePresenter
         //$verze=$this->getSetup(1)->verze;
         $verze = MujPomocnik::getSetupGlobal($this->database, 1);
 
-        $cinnostdatab = $this->database->table('cinnost')->where('vyber',1)->select('id');
+        $cinnostdatab = $this->database->table('cinnost')->where('vyber',1)->where('rok',$rok)->select('id');
         $strediskotdatab = $this->database->table('stredisko')->where('vyber',1)->select('id');
         $zakazkadatab = $this->database->table('zakazky')->where('vyber',1)->select('id');
 
