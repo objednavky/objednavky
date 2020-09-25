@@ -41,11 +41,18 @@
 						<a class="dropdown-item" n:href="NovaObjednavka:show">Nová objednávka</a>									
 						<a class="dropdown-item" n:href="Mazani:arch">Všechny Vaše objednávky</a>
 						<a class="dropdown-item" n:href="Mazani:show">Mazání objednávek</a>
-						<a class="dropdown-item" n:href="Hezky:show">Hezký rozpočet</a>
 					</div>
       </li>
 	  {if $presenter->getUser()->getRoles()[0] == 2 ||  $presenter->getUser()->getRoles()[0] == 3}
 	  <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle"  id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					Přehledy
+					</a>
+					<div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+					<a class="dropdown-item" href="Hezky:show">Hezký rozpočet</a> 
+					</div>
+      </li>
+	   <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle"  id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 					Účtárna
 					</a>
@@ -69,11 +76,10 @@
       </li>
 	   <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle"  id="navbarDropdownMenuLink2" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-						Přihlášení
+						Odhlášení
 					</a>
 					<div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink2">
-						<a class="dropdown-item" n:href="Prihlas:logout"">Odhlasit</a>
-						<a class="dropdown-item" n:href="Registr:show"">Registrovat</a>
+						<a class="dropdown-item" n:href="Prihlas:logout"">Odhlásit</a>
 					</div>
       </li>
 	  

@@ -20,13 +20,6 @@ class HezkyPresenter extends ObjednavkyBasePresenter
     {
         parent::startup();
 
-        $mojerole = $this->getUser()->getRoles();
-     
-        if ($mojerole[0] == 1)
-        {
-            $this->redirect('Homepage:default');
-            $this->flashMessage('Nemáte oprávnění.');
-        } 
         
     }
 
