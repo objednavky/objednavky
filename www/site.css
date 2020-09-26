@@ -7,3 +7,12 @@
 body{
     background-color: rgb(218, 218, 218);
 }
+
+body.test {
+    background-image: url(test.png);
+    background-color: white;
+}
+body.test2 {
+    background-image: url(test2.png);
+    background-color: white;
+}
