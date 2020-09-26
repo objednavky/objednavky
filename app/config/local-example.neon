@@ -2,7 +2,7 @@ parameters:
 	oauth:
 		clientId: '<client-id MS Azure ověřovací aplikace>'
 		clientSecret: '<client secret MS Azure aplikace>'
-		redirectUri: 'https://<server s objednavkami>/prihlas/show'
+		redirectUri: 'https://<server s objednavkami>/prihlas/login'
 
 database:
 	dsn: 'mysql:host=localhost;port=3306;dbname=objednavky'

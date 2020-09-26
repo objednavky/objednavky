@@ -9,31 +9,31 @@ use Ublaboo\DataGrid\AggregationFunction\FunctionSum;
 use Ublaboo\DataGrid\AggregationFunction\ISingleColumnAggregationFunction;
 use TheNetworg\OAuth2\Client\Provider\Azure;
 
-class PrihlasPresenter extends Nette\Application\UI\Presenter
-{
-	/** @var Nette\Database\Context */
-    private $database;
-    
-    private Nette\Security\Passwords $mojeGlobalniPromenaPasswords;
-
+class PrihlasPresenter extends BasePresenter
+{    
     private $clientId;
     private $clientSecret;
     private $redirectUri;
-
-	public function __construct(Nette\Database\Context $database, Nette\Security\Passwords $mojeLokalniPromenaPasswords)
-	{
-        $this->database = $database;
-        $this->mojeGlobalniPromenaPasswords = $mojeLokalniPromenaPasswords;
-    }
     
     public function renderLogout()
     {
         bdump('yes');
         $this->getUser()->logout();
+        $this->getUser()->getIdentity()->jmeno = "nepřihlášený";
         //$this->redirect('Homepage:');
     }
 
-    public function actionShow()
+    public function actionLogin()
+    {
+        $this->doLogin(false);
+    }
+    
+    public function actionLoginAs()
+    {
+        $this->doLogin(true);
+    }
+    
+    public function doLogin($wantToSelectAccount)
     {
         $provider = new Azure([
             'clientId'          => $this->clientId,
@@ -45,7 +45,8 @@ class PrihlasPresenter extends Nette\Application\UI\Presenter
         
         if (!isset($_GET['code'])) {
             // If we don't have an authorization code then get one
-            $authUrl = $provider->getAuthorizationUrl() . '&prompt=select_account';
+            // add prompt for account if user wants it
+            $authUrl = $provider->getAuthorizationUrl() . ($wantToSelectAccount ? '&prompt=select_account' : '');
             $_SESSION['oauth2state'] = $provider->getState();
             $this->redirectUrl($authUrl);
 

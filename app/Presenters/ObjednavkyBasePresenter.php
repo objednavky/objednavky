@@ -14,25 +14,13 @@ use stdClass;
 use Ublaboo\DataGrid\AggregationFunction\FunctionSum;
 use Ublaboo\DataGrid\AggregationFunction\ISingleColumnAggregationFunction;
 
-abstract class ObjednavkyBasePresenter extends Presenter
+abstract class ObjednavkyBasePresenter extends BasePresenter
 {
-	/** @var Nette\Database\Context */
-	protected $database;
-
-    private $instanceName;
-    private $cssClass;
-    private $testing;
-
-	public final function __construct(Nette\Database\Context $databaseparam)
-	{
-		$this->database = $databaseparam;
-	}
-
     protected function startup()
     {
         parent::startup();
         if (!$this->getUser()->isLoggedIn()) {
-            $this->redirect('Prihlas:show');
+            $this->redirect('Prihlas:login');
         }
     }
 
@@ -54,28 +42,6 @@ abstract class ObjednavkyBasePresenter extends Presenter
             $sum += $item->$columnArgument;
         }
         return $sum;
-    }
-
-    public final function setInstanceParam($instanceName, $cssClass, $testing)
-    {
-        $this->instanceName = $instanceName;
-        $this->cssClass = $cssClass;
-        $this->testing = $testing;
-    }
-
-    public final function getInstanceName()
-    {
-        return $this->instanceName;
-    }
-
-    public final function getCssClass()
-    {
-        return $this->cssClass;
-    }
-
-    public final function isTesting()
-    {
-        return $this->testing;
     }
 
 }
