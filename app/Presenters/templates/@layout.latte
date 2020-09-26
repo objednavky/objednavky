@@ -16,15 +16,17 @@
 
 	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
 
+	<link rel="stylesheet" href="site.css">
+
 	<title>{ifset title}{include title|stripHtml} | {/ifset}Nette Web</title>
 </head>
 
-<body style="overflow-x:hidden">
+<body style="overflow-x:hidden" class="{$presenter->getCssClass()}">
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
   	<a class="navbar-brand" n:href="Homepage:default">
 			<img src="{$basePath}/home.png" width="30" height="30" class="d-inline-block align-top" alt="">
-			WZŠ Dobromysl
+			{$presenter->getInstanceName()}
 	</a>	
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
@@ -49,7 +51,7 @@
 					Přehledy
 					</a>
 					<div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-					<a class="dropdown-item" href="Hezky:show">Hezký rozpočet</a> 
+					<a class="dropdown-item" n:href="Hezky:show">Hezký rozpočet</a> 
 					</div>
       </li>
 	   <li class="nav-item dropdown">

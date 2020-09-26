@@ -19,6 +19,10 @@ abstract class ObjednavkyBasePresenter extends Presenter
 	/** @var Nette\Database\Context */
 	protected $database;
 
+    private $instanceName;
+    private $cssClass;
+    private $testing;
+
 	public final function __construct(Nette\Database\Context $databaseparam)
 	{
 		$this->database = $databaseparam;
@@ -51,6 +55,29 @@ abstract class ObjednavkyBasePresenter extends Presenter
         }
         return $sum;
     }
+
+    public final function setInstanceParam($instanceName, $cssClass, $testing)
+    {
+        $this->instanceName = $instanceName;
+        $this->cssClass = $cssClass;
+        $this->testing = $testing;
+    }
+
+    public final function getInstanceName()
+    {
+        return $this->instanceName;
+    }
+
+    public final function getCssClass()
+    {
+        return $this->cssClass;
+    }
+
+    public final function isTesting()
+    {
+        return $this->testing;
+    }
+
 }
 
 
