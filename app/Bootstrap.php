@@ -13,8 +13,11 @@ class Bootstrap
 	{
 		$configurator = new Configurator;
 
-		$configurator->setDebugMode(true); // enable for your remote IP
-		$configurator->enableTracy(__DIR__ . '/../log');
+		// enable debug if there is .debug file in application root dir
+		if (file_exists(__DIR__ . '/../.debug')) {  	
+			$configurator->setDebugMode(true); 
+			$configurator->enableTracy(__DIR__ . '/../log');
+		}
 
 		$configurator->setTimeZone('Europe/Prague');
 		$configurator->setTempDirectory(__DIR__ . '/../temp');
