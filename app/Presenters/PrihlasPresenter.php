@@ -11,6 +11,7 @@ use TheNetworg\OAuth2\Client\Provider\Azure;
 
 class PrihlasPresenter extends BasePresenter
 {    
+
     private $clientId;
     private $clientSecret;
     private $redirectUri;
@@ -43,21 +44,21 @@ class PrihlasPresenter extends BasePresenter
             'scope'             => ['openid', 'profile', 'email', 'user.read']
         ]);
         
-        if (!isset($_GET['code'])) {
+        if (empty($this->getHttpRequest()->getQuery('code'))) {
             // If we don't have an authorization code then get one
             // add prompt for account if user wants it
             $authUrl = $provider->getAuthorizationUrl() . ($wantToSelectAccount ? '&prompt=select_account' : '');
-            $_SESSION['oauth2state'] = $provider->getState();
+            $this->getSession('oauth2')['oauth2state'] = $provider->getState();
             $this->redirectUrl($authUrl);
 
         // Check given state against previously stored one to mitigate CSRF attack
-        } elseif (empty($_GET['state']) || ($_GET['state'] !== $_SESSION['oauth2state'])) {
-            unset($_SESSION['oauth2state']);
-            exit('Invalid state (is '.$_GET['state'].', should be'.$_SESSION['oauth2state'].', provider->getState() == '.$provider->getState().')');
+        } elseif (empty($this->getHttpRequest()->getQuery('state')) || ($this->getHttpRequest()->getQuery('state') !== $this->getSession('oauth2')['oauth2state'])) {
+            unset($this->getSession('oauth2')['oauth2state']);
+            exit('Invalid state (is '.$this->getHttpRequest()->getQuery('state').', should be '.$this->getSession('oauth2')['oauth2state'].', provider->getState() == '.$provider->getState().')');
         } else {
             // Try to get an access token (using the authorization code grant)
             $token = $provider->getAccessToken('authorization_code', [
-                'code' => $_GET['code'],
+                'code' => $this->getHttpRequest()->getQuery('code'),
                 'resource' => 'https://graph.windows.net',
             ]);
         

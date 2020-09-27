@@ -17,7 +17,10 @@ use Ublaboo\DataGrid\AggregationFunction\ISingleColumnAggregationFunction;
 abstract class BasePresenter extends Presenter
 {
 	/** @var Nette\Database\Context */
-	protected $database;
+    protected $database;
+    
+    /* @var Nette\Http\Session @inject */
+    public $session;
 
     private $instanceName;
     private $cssClass;
