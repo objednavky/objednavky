@@ -24,7 +24,9 @@ services:
 			- setClientId(%oauth.clientId%)
 			- setClientSecret(%oauth.clientSecret%)
 			- setRedirectUri(%oauth.redirectUri%)
-	-
-		class: App\Presenters\HomepagePresenter
+
+decorator:
+	# u všech služeb, co jsou instancí této třídy nebo rozhraní
+	App\Presenters\BasePresenter:
 		setup:
 			- setInstanceParam(%instance.name%, %instance.cssClass%, %instance.testing%)
