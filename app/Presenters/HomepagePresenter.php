@@ -121,12 +121,12 @@ class HomepagePresenter extends ObjednavkyBasePresenter
         $grid->addColumnLink('rozpocet', 'Rozpočet', 'Jeden:show', 'rozpocet', ['jedenId' => 'id']);
         $grid->addColumnText('jmeno', 'Hospodář');
         $grid->addColumnText('jmeno2', 'Zástupce');
-        $grid->addColumnNumber('castkaRozpocet', 'Plánovaný rozpočet na celý rok Kč')->addCellAttributes(['class' => 'text-success']);
-        $grid->addColumnNumber('mySumV', 'Již utraceno nebo objednáno z rozpočtu Kč');
-        $grid->addColumnNumber('rozdilV', 'Zbývá v rozpočtu Kč');
-        $grid->addColumnNumber('castkaSablony', 'Plánované šablony na celý rok Kč')->addCellAttributes(['class' => 'text-success']);
-        $grid->addColumnNumber('mySumS', 'Šablony již utraceno nebo objednáno  Kč');
-        $grid->addColumnNumber('rozdilS', 'V šablonách zbývá Kč');
+        $grid->addColumnNumber('castkaRozpocet', 'Rozpočet - roční plán')->addCellAttributes(['class' => 'text-success']);
+        $grid->addColumnNumber('mySumV', 'Rozpočet - čerpáno');
+        $grid->addColumnNumber('rozdilV', 'Rozpočet - zbývá');
+        $grid->addColumnNumber('castkaSablony', 'Šablony - roční plán')->addCellAttributes(['class' => 'text-success']);
+        $grid->addColumnNumber('mySumS', 'Šablony - čerpáno');
+        $grid->addColumnNumber('rozdilS', 'Šablony - zbývá');
         // $grid->addExportCsvFiltered('Export do csv s filtrem', 'tabulka.csv', 'windows-1250')
         // ->setTitle('Export do csv s filtrem');
         $grid->addExportCsv('Export do csv', 'tabulka.csv', 'windows-1250')
@@ -201,9 +201,9 @@ class HomepagePresenter extends ObjednavkyBasePresenter
         $this->grids['schvalovaciGrid'] = $grid;
         $source = $this->database->table('objednavky')->where('kdo', $uz)->where('stav', 0);
         $grid->setDataSource($source);
-        $grid->addColumnText('id_prehled','Číslo objednávky');
+        $grid->addColumnText('id_prehled','Č. obj.');
         $grid->addColumnText('prehled_popis','Popis objednávky','prehled.popis:id_prehled');
-        $grid->addColumnText('radka','Číslo položky');
+        $grid->addColumnText('radka','Č. pol.');
         $grid->addColumnText('zakladatel','Zakladatel','uzivatel.jmeno:zakladatel' );
         $grid->addColumnText('firma','Firma');
         $grid->addColumnText('popis','Popis položky');
@@ -280,9 +280,9 @@ class HomepagePresenter extends ObjednavkyBasePresenter
         $this->grids['schvalovaciGrid'] = $grid;
         $source = $this->database->table('objednavky')->where('kdo2', $uz)->where('stav', 1);
         $grid->setDataSource($source);
-        $grid->addColumnText('id_prehled','Číslo objednávky');
+        $grid->addColumnText('id_prehled','Č. obj.');
         $grid->addColumnText('prehled_popis','Popis objednávky','prehled.popis:id_prehled');
-        $grid->addColumnText('radka','Číslo položky');
+        $grid->addColumnText('radka','Č. pol.');
         $grid->addColumnText('zakladatel','Zakladatel','uzivatel.jmeno:zakladatel' );
         $grid->addColumnText('firma','Firma');
         $grid->addColumnText('popis','Popis položky');

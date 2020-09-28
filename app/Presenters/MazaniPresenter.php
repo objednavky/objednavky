@@ -88,8 +88,8 @@ class MazaniPresenter extends ObjednavkyBasePresenter
         bdump($this->grids);
         $source = $this->mapRozpocet(1,[0,1,3,4]);
         $grid->setDataSource($source);
-        $grid->addColumnText('id_prehled','Číslo objednávky');
-        $grid->addColumnText('radka','Číslo položky');
+        $grid->addColumnText('id_prehled','Č. obj.');
+        $grid->addColumnText('radka','Č. pol.');
         $grid->addColumnText('zadavatel','Zadavatel');
         $grid->addColumnText('stav','stav objednávky');
         $grid->addColumnText('schvalovatel','Schvalovatel');
@@ -153,8 +153,8 @@ class MazaniPresenter extends ObjednavkyBasePresenter
         $this->grids['zamitGrid'] = $grid;
         $source = $this->mapRozpocet(1, [2,5,8]);
         $grid->setDataSource($source);
-        $grid->addColumnText('id_prehled','Číslo objednávky');
-        $grid->addColumnText('radka','Číslo položky');
+        $grid->addColumnText('id_prehled','Č. obj.');
+        $grid->addColumnText('radka','Č. pol.');
         $grid->addColumnText('zadavatel','Zadavatel');
         $grid->addColumnText('stav','stav objednávky');
         $grid->addColumnText('schvalovatel','Schvalovatel');
@@ -205,8 +205,8 @@ class MazaniPresenter extends ObjednavkyBasePresenter
         $this->grids['archivGrid'] = $grid;
         $source = $this->mapRozpocet(1, [0,1,3,4,9]);
         $grid->setDataSource($source);     
-        $grid->addColumnText('id_prehled','Číslo objednávky');
-        $grid->addColumnText('radka','Číslo položky');
+        $grid->addColumnText('id_prehled','Č. obj.');
+        $grid->addColumnText('radka','Č. pol.');
         $grid->addColumnText('zadavatel','Zadavatel');
         $grid->addColumnText('stav','stav objednávky');
         $grid->addColumnText('schvalovatel','Schvalovatel');

@@ -19,3 +19,12 @@ body.test2 {
     background-image: url(test2.png);
     background-color: white;
 }
+
+.datagrid {
+    white-space: nowrap;
+}
+.datagrid table td {
+    max-width: 14rem;
+    overflow: hidden;
+    font-size: 90%;
+}
