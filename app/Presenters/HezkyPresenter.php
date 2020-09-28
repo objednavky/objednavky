@@ -56,27 +56,30 @@ class HezkyPresenter extends ObjednavkyBasePresenter
             $item->sablony = $this->database->table('rozpocet')->where('hezky', $hezky->id)->where('rok', $rok)->where('verze',$verze)
                                 ->sum('sablony');
             $item->plan = $item->castka+$item->sablony;
-            
+
+
+            $relevantni_roz = $this->database->table('rozpocet')->where('hezky', $hezky->id)->where('rok', $rok)->where('verze',$verze)->select('id');
+
             $relevantni_zak = $this->database->table('zakazky')->select('zakazka')->where('normativ', 1 );
             $item->mySumN = $this->database->table('denik')->where('hezky', $hezky->id)->where('petky', $argument)->where('zakazky',$relevantni_zak)
-                                ->sum('castka');      // normativ
+                        ->where('rozpocet',$relevantni_roz)->sum('castka');      // normativ
             $item->mySumN = \round($item->mySumN, 0);    
 
             $relevantni_zak = $this->database->table('zakazky')->select('zakazka')->where('vlastni', 1 );
             $item->mySumV = $this->database->table('denik')->where('hezky', $hezky->id)->where('petky', $argument)->where('zakazky',$relevantni_zak)
-                                ->sum('castka');      // vlastní vcetne normativu
+                    ->where('rozpocet',$relevantni_roz)->sum('castka');      // vlastní vcetne normativu
             $item->mySumV -= $item->mySumN;    // vlastní bez normativu
             $item->mySumV = \round($item->mySumV, 0);     
 
             $relevantni_zak = $this->database->table('zakazky')->select('zakazka')->where('sablony', 1 );
             $item->mySumS = $this->database->table('denik')->where('hezky', $hezky->id)->where('petky', $argument)->where('zakazky',$relevantni_zak)
-                                ->sum('castka');      // šablona
+                            ->where('rozpocet',$relevantni_roz)->sum('castka');      // šablona
                             
             $item->mySumS = \round($item->mySumS, 0); 
 
             $relevantni2 = $this->database->table('zakazky')->select('zakazka')->where('dotace', 1);
             $item->mySumD = $this->database->table('denik')->where('hezky', $hezky->id)->where('petky', $argument)
-                        ->where('zakazky',$relevantni2)->sum('castka');
+                                ->where('rozpocet',$relevantni_roz)->where('zakazky',$relevantni2)->sum('castka');
             $item->mySumD = \round($item->mySumD, 0);  // dotace
 
             $relevantni_cin = $this->database->table('cinnost')->where('id_hezky', $hezky->id)->where('rok', $rok);

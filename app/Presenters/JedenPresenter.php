@@ -11,7 +11,7 @@ use Ublaboo\DataGrid\AggregationFunction\ISingleColumnAggregationFunction;
 use stdClass;
 
 
-class JedenPresenter extends ObjednavkyBasePresenter
+class JedenPresenter extends ObjednavkyBasePresenter //změna
 {
     private int $jedenId;
 
