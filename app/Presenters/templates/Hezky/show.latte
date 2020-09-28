@@ -11,28 +11,18 @@
 
 <br >
 <br>	 
-<div>
+
 <div class="progress" style="height: 10px;">
   <div class="progress-bar" style="width: {$percent}%;" role="progressbar" aria-valuenow="{$naklady}" aria-valuemin="0" aria-valuemax="{$plan}"></div>
 </div>
 <br>
-<h5 >Plánovaný příjem 17 601 068 Kč</h5>
+
 <br>
 
 
  
 
-
-{*
-  {snippet detailRozpocet}
-  {if $detailItem != null}
-    <div>
-        <h1>{$detailItem}</h1>
-    </div>
-  {/if}
-  {/snippet}*}
-
-          {control simpleGrid} 
+  {control simpleGrid} 
 			 
 	 <br>
 <a class="btn btn-primary" n:href="Homepage:default" role="button">← zpět na hlavní stránku</a>

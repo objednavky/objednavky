@@ -13,15 +13,28 @@ use stdClass;
 
 class JedenPresenter extends ObjednavkyBasePresenter
 {
-    
+    private int $jedenId;
+
     protected function startup()
     {
         parent::startup();
     }
     
-	public function renderShow(int $jedenId): void
+    public function actionShow(int $jedenId = null): void
 	{
-        $jeden = $this->database->table('rozpocet')->get($jedenId);
+        if (null == $jedenId) {
+            // když není nastaven jedenId, zkus ho vytáhnout ze session
+            $jedenId = $this->getSession('JedenPresenter')->jedenId;
+        } else {
+            // když je nastaven jedenId, ulož ho do session pro příště
+            $this->getSession('JedenPresenter')->jedenId = $jedenId;
+        }
+        $this->jedenId = $jedenId;
+    }
+
+    public function renderShow(): void
+    {
+        $jeden = $this->database->table('rozpocet')->get($this->jedenId);
         if (!$jeden) {
             $this->error('Stránka nebyla nalezena');
         }
@@ -29,12 +42,12 @@ class JedenPresenter extends ObjednavkyBasePresenter
         $this->template->hospodar = $jeden->ref('hospodar')->jmeno;
         $this->template->hospodar2 = $jeden->ref('hospodar2')->jmeno;
 
-        $source = $this->mapDenik(1,$jedenId);
+        $source = $this->mapDenik(1,$this->jedenId);
         $this->template->vlastni = $this->sumColumn($source, 'vlastni');
         $this->template->dotace = $this->sumColumn($source, 'dotace');
         $this->template->sablony = $this->sumColumn($source, 'sablony');
 
-        $nacti = $this->database->table('rozpocet')->where('id',$jedenId)->fetch();;
+        $nacti = $this->database->table('rozpocet')->where('id',$this->jedenId)->fetch();;
         $this->template->castka = $jeden->castka;      //ziskam castku vlastni;
         $this->template->sablonyplan = $nacti->sablony;    //ziskam castku sablony;
         $this->template->zbyva = $this->template->castka - ($this->template->vlastni) ;
@@ -44,7 +57,7 @@ class JedenPresenter extends ObjednavkyBasePresenter
         $this->template->percent = $utraceno == 0 ? 0: round(($utraceno / $plan ) * 100, 0);
 
         //vypocet procent a kontrola deleni nulou
-        $relevantni =$this->database->table('cinnost')->select('id')->where('id_rozpocet',$jedenId);
+        $relevantni =$this->database->table('cinnost')->select('id')->where('id_rozpocet',$this->jedenId);
         $source = $this->database->table('objednavky')->where('cinnost', $relevantni)->where('zakazka.vlastni',1);
         $source2 = $this->database->table('objednavky')->where('cinnost', $relevantni)->where('zakazka.dotace',1); 
         $this->template->objednanoV = $this->sumColumn($source, 'castka');
@@ -141,7 +154,7 @@ class JedenPresenter extends ObjednavkyBasePresenter
     public function createComponentPrehledGrid($name)      
     {
         $grid = new DataGrid($this, $name);
-        $zasejedenID = $this->getParameter('jedenId');
+        $zasejedenID = $this->jedenId;
         $grid->setDataSource($this->mapCinnost(1,$zasejedenID));
         $grid->addColumnText('cinnost', 'Činnost');
         $grid->addColumnText('nazev_cinnosti', 'Název činnosti');
@@ -191,7 +204,7 @@ class JedenPresenter extends ObjednavkyBasePresenter
     public function createComponentSimpleGrid($name)
     {
         $grid = new DataGrid($this, $name);
-        $zasejedenID = $this->getParameter('jedenId');
+        $zasejedenID = $this->jedenId;
         //     $relevantni = $this->database->table('cinnost')->select('cinnost')->where('id_rozpocet',$zasejedenID);   //seznam cinnosti patrici k vybranemu rozpoctu
         //    $vysledek = $this->database->table('denik')->where('cinnost_d', $relevantni)->where('petky',  1) ;   //polozky deniku dle seznamu cinnosti
        $grid->setDataSource($this->mapDenik(1,$zasejedenID));
@@ -243,7 +256,7 @@ class JedenPresenter extends ObjednavkyBasePresenter
 
     public function createComponentSimpleGrid2($name)
     {
-        $zasejedenID = $this->getParameter('jedenId');
+        $zasejedenID = $this->jedenId;
         $relevantni =   $this->database->table('cinnost')->select('id')->where('id_rozpocet',  $zasejedenID );
         $source = $this->database->table('objednavky')->where('cinnost', $relevantni)->where('stav', [3,4,9]);
         $grid = new DataGrid($this, $name);
@@ -292,7 +305,7 @@ class JedenPresenter extends ObjednavkyBasePresenter
 
     public function createComponentSimpleGrid3($name)
     {
-        $zasejedenID = $this->getParameter('jedenId');
+        $zasejedenID = $this->jedenId;
         $relevantni =   $this->database->table('cinnost')->select('id')->where('id_rozpocet',  $zasejedenID );
         $source = $this->database->table('objednavky')->where('cinnost', $relevantni)->where('stav', [0,1]);
         $grid = new DataGrid($this, $name);

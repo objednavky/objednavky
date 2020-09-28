@@ -21,7 +21,7 @@ body.test2 {
 }
 
 .datagrid {
-    white-space: nowrap;
+    white-space: normal;
 }
 .datagrid table td {
     max-width: 14rem;

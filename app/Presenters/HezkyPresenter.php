@@ -81,8 +81,8 @@ class HezkyPresenter extends ObjednavkyBasePresenter
 
             $relevantni_cin = $this->database->table('cinnost')->where('id_hezky', $hezky->id)->where('rok', $rok);
             $item->objednanoVS = $this->database->table('objednavky')->where('cinnost', $relevantni_cin)
-                                                ->where('zakazka.vlastni = ? OR zakazka.sablony = ?', 1,1)->sum('castka');
-            $item->objednanoD = $this->database->table('objednavky')->where('cinnost', $relevantni_cin)
+                                                ->where('zakazka.vlastni = ? OR zakazka.sablony = ?', 1,1)->where('stav ?', [0,1,3,4,9])->sum('castka');
+            $item->objednanoD = $this->database->table('objednavky')->where('cinnost', $relevantni_cin)->where('stav ?', [0,1,3,4,9])
                                                 ->where('zakazka.dotace = 1')->sum('castka');
             
             $item->objednano = $item->objednanoD + $item->objednanoVS;

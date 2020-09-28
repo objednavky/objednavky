@@ -87,9 +87,21 @@ class HomepagePresenter extends ObjednavkyBasePresenter
                                 ->sum('castka');
             $utracenoV = \round($utracenoV, 0);
             
-            $objednavkyV_suma = $this->database->table('objednavky')->where('cinnost', ':cinnost.id_rozpocet')->where('zakazka',$relevantni)
+            // $objednavkyV_suma = $this->database->table('objednavky')->where('cinnost', ':cinnost.id_rozpocet')->where('zakazka',$relevantni)
+            // ->where('stav ?', [0,1,3,4,9])->sum('castka');
+           
+            $rozpocetId = $rozpocet->id;
+            $pomoc = $this->database->table('cinnost')->where('id_rozpocet',$rozpocetId);
+            $relevantniCelaRadkaList = $this->database->table('zakazky')->select('id')->where('vlastni', 1)->fetchAll();
+            
+         bdump($relevantniCelaRadkaList);
+            $objednavkyV_suma = $this->database->table('objednavky')->where('cinnost', $pomoc)->where('zakazka',$relevantniCelaRadkaList)
             ->where('stav ?', [0,1,3,4,9])->sum('castka');
+            
+            
+           
             $objednavkyV_suma = \round($objednavkyV_suma, 0);     //    nezamítnuté vlastní objednávky na rozpočet - celková částka
+            
             
             $item->mySumV = $utracenoV + $objednavkyV_suma;
 

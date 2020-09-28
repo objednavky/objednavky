@@ -69,7 +69,7 @@ class NovaObjednavkaPresenter extends ObjednavkyBasePresenter
         $castkaObj = "  ";
         $form->addGroup($castkaObj);
         $form->addInteger('castka', 'Částka v Kč:' )
-            ->setRequired('Zadejte částku' );
+            ->setRequired('Zadejte částku' )->addRule($form::RANGE,'Zadejte nejméně %d a nejvíce %d Kč' , [1, 200000]);
         $form->addRadioList('presne', 'Je částka přesná?   ',
                 ['  Ano, na faktuře bude přesně tato částka', '  Ne, částka může být v rozsahu +- 10 procent'])->setDefaultValue(0);
         $form->addSubmit('pridat', 'Přidat další položku');
@@ -124,7 +124,7 @@ class NovaObjednavkaPresenter extends ObjednavkyBasePresenter
         $form->addSelect('strediskoVyber', 'Středisko:',$fetchedNovas )->setRequired('Vyberte prosím zakázku')->setPrompt(' ');
         $castkaObj = "  ";
         $form->addGroup($castkaObj);
-        $form->addInteger('castka', 'Částka v Kč:' )
+        $form->addInteger('castka', 'Částka v Kč:' )->addRule($form::RANGE,'Zadejte nejméně %d a nejvíce %d Kč', [1, 200000])
             ->setRequired('Zadejte částku' );
         $form->addRadioList('presne', 'Je částka přesná?   ',
             ['  Ano, na faktuře bude přesně tato částka', '  Ne, částka může být v rozsahu +- 10 procent'])->setDefaultValue(0);
