@@ -161,7 +161,7 @@ class NovaObjednavkaPresenter extends ObjednavkyBasePresenter
         $relevantniId = $this->database->table('zakazky')->where('vlastni', 1)->select('id');
         $objednanoV = $this->database->table('objednavky')->where('cinnost', $cinnost)->where('zakazka',$relevantniId)
             ->where('stav',[0,1,3,4,9])->sum('castka');
-        $denikV = $this->database->table('denik')->where('rozpocet', $cinnost_d->id_rozpocet)->where('zakazky',$relevantni)
+        $denikV = $this->database->table('denik')->where('rozpocet', $pomoc)->where('zakazky',$relevantni)
             ->where('petky',1)->sum('castka');
         $maxCastka = round($castkaRozpoctu - ($objednanoV + $denikV));
         bdump($zakazka->id);
