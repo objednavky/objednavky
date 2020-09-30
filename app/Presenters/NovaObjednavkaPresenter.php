@@ -305,7 +305,7 @@ class NovaObjednavkaPresenter extends ObjednavkyBasePresenter
         $uz = $this->prihlasenyId();
         $posledniO = $this->database->table('objednavky')->where('zakladatel',$uz)->max('id_prehled');
         $posledniR = $this->database->table('objednavky')->where('zakladatel',$uz)->where('id_prehled',$posledniO)->max('radka');
-        $posledniF = ($this->database->table('objednavky')->where('zakladatel',$uz)->where('id_prehled',$posledniO)->fetch())->firma;
+        // $posledniF = ($this->database->table('objednavky')->where('zakladatel',$uz)->where('id_prehled',$posledniO)->fetch())->firma;
         $posledniR= ++$posledniR;  
         $stav = 0;             
         if  ($kdoma== $this->prihlasenyId()) {
@@ -316,7 +316,7 @@ class NovaObjednavkaPresenter extends ObjednavkyBasePresenter
             'id_prehled' => $posledniO,
             'radka' => $posledniR,                                                // tady bude cislo radky
             'castka' => $data->castka,
-            'firma' => $posledniF,
+            'firma' => $data->firma,
             'popis' => $data->popis_radky,
             'cinnost' =>  $cinnost->id,
             'stredisko' => $stredisko->id,
