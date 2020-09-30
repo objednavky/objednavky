@@ -85,9 +85,9 @@ class DetailPresenter extends ObjednavkyBasePresenter
             $item->mySumD = \round($item->mySumD, 0);
 
             $relevantni_cin = $this->database->table('cinnost')->where('id_rozpocet', $rozpocet->id);
-            $item->objednanoVS = $this->database->table('objednavky')->where('cinnost', $relevantni_cin)
+            $item->objednanoVS = $this->database->table('objednavky')->where('cinnost', $relevantni_cin)->where('stav', [0,1,3,4,9])
                                 ->where('zakazka.vlastni = ? OR zakazka.sablony = ?', 1,1)->sum('castka');
-            $item->objednanoD = $this->database->table('objednavky')->where('cinnost', $relevantni_cin)
+            $item->objednanoD = $this->database->table('objednavky')->where('cinnost', $relevantni_cin)->where('stav', [0,1,3,4,9])
                                     ->where('zakazka.dotace = 1')->sum('castka');
             $item->objednano = $item->objednanoD + $item->objednanoVS;
             

@@ -39,8 +39,8 @@ class ManPresenter extends ObjednavkyBasePresenter
         $this->template->percent = $utraceno == 0 ? 0: round(($utraceno / $plan ) * 100, 0);
         //vypocet procent a kontrola deleni nulou
         $relevantni =$this->database->table('cinnost')->select('id')->where('id_rozpocet',$manId);
-        $source = $this->database->table('objednavky')->where('cinnost', $relevantni)->where('zakazka.vlastni',1);
-        $source2 = $this->database->table('objednavky')->where('cinnost', $relevantni)->where('zakazka.dotace',1); 
+        $source = $this->database->table('objednavky')->where('cinnost', $relevantni)->where('zakazka.vlastni',1)->where('stav', [0,1,3,4,9]);
+        $source2 = $this->database->table('objednavky')->where('cinnost', $relevantni)->where('zakazka.dotace',1)->where('stav', [0,1,3,4,9]); 
         $this->template->objednanoV = $this->sumColumn($source, 'castka');
         $this->template->objednanoD =  $this->sumColumn($source2, 'castka'); 
     } 
@@ -129,7 +129,7 @@ class ManPresenter extends ObjednavkyBasePresenter
     {
         $relevantni =   $this->database->table('cinnost')->select('id')->where('id_rozpocet',  $zasejedenID );
         $uz = 8 ;       // tady bude nacteny uzivatel
-        $source = $this->database->table('objednavky')->where('cinnost', $relevantni);
+        $source = $this->database->table('objednavky')->where('cinnost', $relevantni)->where('stav', [0,1,3,4,9]);
         $fetchedSource = [];
         foreach ($source as $objednavky) 
         {
@@ -145,6 +145,7 @@ class ManPresenter extends ObjednavkyBasePresenter
             $item->stredisko = $objednavky->ref('stredisko')->stredisko;
             $item->hospodar = $objednavky->ref('kdo')->jmeno;
             $item->castka = $objednavky->castka;
+            $item->stav = $objednavky->stav;
             if ($objednavky->nutno_overit == 0) {
                 $item->overeni = "neověřuje se";
             } elseif ($objednavky->overil == NULL) {
@@ -167,8 +168,9 @@ class ManPresenter extends ObjednavkyBasePresenter
         $grid->setDataSource($this->mapObjednavky($zasejedenID));        // schválené a OVERENE
         $grid->addColumnText('id_prehled','Číslo objednávky');
         $grid->addColumnText('radka','Číslo položky');
-        $grid->addColumnText('firma','firma')->setFilterText();
-        $grid->addColumnText('popis','popis')->setFilterText();
+        $grid->addColumnText('firma','Firma')->setFilterText();
+        $grid->addColumnText('popis','Popis')->setFilterText();
+        $grid->addColumnNumber('stav', 'Stav');
         $grid->addColumnText('cinnost','Činnost')->setFilterText();
         $grid->addColumnText('zakazka','Zakázka')->setFilterText();
         $grid->addColumnText('zakazkap','Popis zakázky')->setFilterText();
