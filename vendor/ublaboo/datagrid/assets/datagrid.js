@@ -1,6 +1,9 @@
 var dataGridRegisterExtension, dataGridRegisterAjaxCall, dataGridLoad, dataGridSubmitForm;
 
 if (typeof naja !== "undefined") {
+	var isNaja2 = function () { return naja && naja.VERSION && naja.VERSION >= 2 };
+	var najaEventParams = function (params) { return isNaja2() ? params.detail : params };
+	var najaRequest = function (params) { return isNaja2() ? params.detail.request : params.xhr };
 	dataGridRegisterExtension = function (name, extension) {
 		var init = extension.init;
 		var success = extension.success;
@@ -12,46 +15,66 @@ if (typeof naja !== "undefined") {
 		var NewExtension = function NewExtension(naja, name) {
 			this.name = name;
 
-			if(init) {
-				naja.addEventListener('init', function (params)  {
-					init(params.defaultOptions);
-				});
-			}
-
-			if(success) {
-				naja.addEventListener('success', function (params)  {
-					success(params.response, params.options);
-				});
-			}
-
-			naja.addEventListener('interaction', function (params) {
-				params.options.nette = {
-					el: $(params.element)
+			this.initialize = function (naja) {
+				if(init) {
+					naja.addEventListener('init', function (params)  {
+						init(najaEventParams(params).defaultOptions);
+					});
 				}
-				if (interaction) {
-					if (!interaction(params.options)){
-						params.preventDefault();
+
+				if(success) {
+					naja.addEventListener('success', function (params)  {
+						var payload = isNaja2() ? params.detail.payload : params.response;
+						success(payload, najaEventParams(params).options);
+					});
+				}
+
+				var interactionTarget = naja;
+				if (isNaja2()) {
+					interactionTarget = interactionTarget.uiHandler;
+				}
+
+				interactionTarget.addEventListener('interaction', function (params) {
+					if (isNaja2()) {
+						params.detail.options.nette = {
+							el: $(params.detail.element)
+						}
+					} else {
+						params.options.nette = {
+							el: $(params.element)
+						}
 					}
+					if (interaction) {
+						if (!interaction(najaEventParams(params).options)){
+							params.preventDefault();
+						}
+					}
+				});
+
+				if(before) {
+					naja.addEventListener('before', function (params) {
+						if (!before(najaRequest(params), najaEventParams(params).options))
+							params.preventDefault();
+					});
 				}
-			});
 
-			if(before) {
-				naja.addEventListener('before', function (params) {
-					if (!before(params.xhr, params.options))
-						params.preventDefault();
-				});
+				if(complete) {
+					naja.addEventListener('complete', function (params) {
+						complete(najaRequest(params), najaEventParams(params).options);
+					});
+				}
 			}
-
-			if(complete) {
-				naja.addEventListener('complete', function (params) {
-					complete(params.xhr, params.options);
-				});
+			if (!isNaja2()) {
+				this.initialize(naja);
 			}
-
 			return this;
 		}
 
-		naja.registerExtension(NewExtension, name);
+		if (isNaja2()) {
+			naja.registerExtension(new NewExtension(null, name));
+		} else {
+			naja.registerExtension(NewExtension, name);
+		}
 	};
 
 
@@ -679,11 +702,7 @@ $(document).on('click', '[data-datagrid-editable-url]', function(event) {
 			input.attr('rows', Math.round(cell_lines));
 		} else if (cell.data('datagrid-editable-type') === 'select') {
 			input = $(cell.data('datagrid-editable-element'));
-			input.find('option').each(function() {
-				if ($(this).val() === valueToEdit) {
-					return input.find("option[value='" + valueToEdit + "']").prop('selected', true);
-				}
-			});
+			input.find("option[value='" + valueToEdit + "']").prop('selected', true);
 		} else {
 			input = $('<input type="' + cell.data('datagrid-editable-type') + '">');
 			input.val(valueToEdit);

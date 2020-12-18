@@ -6,6 +6,7 @@ declare(strict_types=1);
 
 namespace App\Presenters;
 
+use App\Model\ObjednavkyManager;
 use Nette;
 use Ublaboo\DataGrid\DataGrid;
 use Nette\Application\UI\Form;
@@ -22,13 +23,17 @@ abstract class BasePresenter extends Presenter
     /* @var Nette\Http\Session @inject */
     public $session;
 
+    /** @var App\Model\ObjednavkyManager */
+    protected $objednavkyManager;
+
     private $instanceName;
     private $cssClass;
     private $testing;
 
-	public final function __construct(Nette\Database\Context $databaseparam)
+	public final function __construct(Nette\Database\Context $databaseparam, ObjednavkyManager $objednavkyManager)
 	{
 		$this->database = $databaseparam;
+        $this->objednavkyManager = $objednavkyManager;
 	}
 
     protected function startup()

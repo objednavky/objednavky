@@ -55,8 +55,11 @@ final class RoutingPanel implements Tracy\IBarPanel
 	}
 
 
-	public function __construct(Routing\Router $router, Nette\Http\IRequest $httpRequest, Nette\Application\IPresenterFactory $presenterFactory)
-	{
+	public function __construct(
+		Routing\Router $router,
+		Nette\Http\IRequest $httpRequest,
+		Nette\Application\IPresenterFactory $presenterFactory
+	) {
 		$this->router = $router;
 		$this->httpRequest = $httpRequest;
 		$this->presenterFactory = $presenterFactory;
@@ -96,13 +99,21 @@ final class RoutingPanel implements Tracy\IBarPanel
 	/**
 	 * Analyses simple route.
 	 */
-	private function analyse(Routing\Router $router, string $module = '', bool $parentMatches = true, int $level = -1): void
-	{
+	private function analyse(
+		Routing\Router $router,
+		string $module = '',
+		bool $parentMatches = true,
+		int $level = -1
+	): void {
 		if ($router instanceof Routing\RouteList) {
-			$parentMatches = $parentMatches && $router->match($this->httpRequest) !== null;
+			try {
+				$parentMatches = $parentMatches && $router->match($this->httpRequest) !== null;
+			} catch (\Throwable $e) {
+			}
 			$next = count($this->routers);
+			$parentModule = $module . ($router instanceof Nette\Application\Routers\RouteList ? $router->getModule() : '');
 			foreach ($router->getRouters() as $subRouter) {
-				$this->analyse($subRouter, $module . $router->getModule(), $parentMatches, $level + 1);
+				$this->analyse($subRouter, $parentModule, $parentMatches, $level + 1);
 			}
 
 			if ($info = $this->routers[$next] ?? null) {
@@ -117,8 +128,11 @@ final class RoutingPanel implements Tracy\IBarPanel
 		$matched = 'no';
 		$params = $e = null;
 		try {
-			$params = $parentMatches ? $router->match($this->httpRequest) : null;
-		} catch (\Exception $e) {
+			$params = $parentMatches
+				? $router->match($this->httpRequest)
+				: null;
+		} catch (\Throwable $e) {
+			$matched = 'error';
 		}
 		if ($params !== null) {
 			if ($module) {
@@ -169,6 +183,8 @@ final class RoutingPanel implements Tracy\IBarPanel
 			}
 		}
 
-		$this->source = isset($method) && $rc->hasMethod($method) ? $rc->getMethod($method) : $rc;
+		$this->source = isset($method) && $rc->hasMethod($method)
+			? $rc->getMethod($method)
+			: $rc;
 	}
 }

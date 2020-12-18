@@ -14,6 +14,8 @@ di:
 		tags: no
 		types:
 
+extensions:
+    - Contributte\FormMultiplier\DI\MultiplierExtension
 
 services:
 	router: App\Router\RouterFactory::createRouter
@@ -24,6 +26,7 @@ services:
 			- setClientId(%oauth.clientId%)
 			- setClientSecret(%oauth.clientSecret%)
 			- setRedirectUri(%oauth.redirectUri%)
+	- App\Model\ObjednavkyManager
 
 decorator:
 	# u všech služeb, co jsou instancí této třídy nebo rozhraní

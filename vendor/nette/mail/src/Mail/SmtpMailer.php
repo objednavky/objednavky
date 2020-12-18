@@ -57,7 +57,9 @@ class SmtpMailer implements Mailer
 	{
 		if (isset($options['host'])) {
 			$this->host = $options['host'];
-			$this->port = isset($options['port']) ? (int) $options['port'] : null;
+			$this->port = isset($options['port'])
+				? (int) $options['port']
+				: null;
 		} else {
 			$this->host = ini_get('SMTP');
 			$this->port = (int) ini_get('smtp_port');
@@ -65,8 +67,12 @@ class SmtpMailer implements Mailer
 		$this->username = $options['username'] ?? '';
 		$this->password = $options['password'] ?? '';
 		$this->secure = $options['secure'] ?? '';
-		$this->timeout = isset($options['timeout']) ? (int) $options['timeout'] : 20;
-		$this->context = isset($options['context']) ? stream_context_create($options['context']) : stream_context_get_default();
+		$this->timeout = isset($options['timeout'])
+			? (int) $options['timeout']
+			: 20;
+		$this->context = isset($options['context'])
+			? stream_context_create($options['context'])
+			: stream_context_get_default();
 		if (!$this->port) {
 			$this->port = $this->secure === 'ssl' ? 465 : 25;
 		}
@@ -147,7 +153,11 @@ class SmtpMailer implements Mailer
 	{
 		$this->connection = @stream_socket_client(// @ is escalated to exception
 			($this->secure === 'ssl' ? 'ssl://' : '') . $this->host . ':' . $this->port,
-			$errno, $error, $this->timeout, STREAM_CLIENT_CONNECT, $this->context
+			$errno,
+			$error,
+			$this->timeout,
+			STREAM_CLIENT_CONNECT,
+			$this->context
 		);
 		if (!$this->connection) {
 			throw new SmtpException($error ?: error_get_last()['message'], $errno);
@@ -155,13 +165,8 @@ class SmtpMailer implements Mailer
 		stream_set_timeout($this->connection, $this->timeout, 0);
 		$this->read(); // greeting
 
-		$this->write("EHLO $this->clientHost");
-		$ehloResponse = $this->read();
-		if ((int) $ehloResponse !== 250) {
-			$this->write("HELO $this->clientHost", 250);
-		}
-
 		if ($this->secure === 'tls') {
+			$this->write("EHLO $this->clientHost", 250);
 			$this->write('STARTTLS', 220);
 			if (!stream_socket_enable_crypto(
 				$this->connection,
@@ -170,10 +175,21 @@ class SmtpMailer implements Mailer
 			)) {
 				throw new SmtpException('Unable to connect via TLS.');
 			}
-			$this->write("EHLO $this->clientHost", 250);
+			$this->write("EHLO $this->clientHost");
+			$ehloResponse = $this->read();
+			if ((int) $ehloResponse !== 250) {
+				throw new SmtpException('SMTP server did not accept EHLO with error: ' . trim($response));
+			}
+
+		} else {
+			$this->write("EHLO $this->clientHost");
+			$ehloResponse = $this->read();
+			if ((int) $ehloResponse !== 250) {
+				$this->write("HELO $this->clientHost", 250);
+			}
 		}
 
-		if ($this->username != null && $this->password != null) {
+		if ($this->username !== '') {
 			$authMechanisms = [];
 			if (preg_match('~^250[ -]AUTH (.*)$~im', $ehloResponse, $matches)) {
 				$authMechanisms = explode(' ', trim($matches[1]));
@@ -185,7 +201,9 @@ class SmtpMailer implements Mailer
 			} else {
 				$this->write('AUTH LOGIN', 334);
 				$this->write(base64_encode($this->username), 334, 'username');
-				$this->write(base64_encode($this->password), 235, 'password');
+				if ($this->password !== '') {
+					$this->write(base64_encode($this->password), 235, 'password');
+				}
 			}
 		}
 	}

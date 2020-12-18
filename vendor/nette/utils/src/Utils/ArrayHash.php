@@ -17,16 +17,17 @@ use Nette;
  */
 class ArrayHash extends \stdClass implements \ArrayAccess, \Countable, \IteratorAggregate
 {
-	/** @return static */
-	public static function from(array $arr, bool $recursive = true)
+	/**
+	 * Transforms array to ArrayHash.
+	 * @return static
+	 */
+	public static function from(array $array, bool $recursive = true)
 	{
 		$obj = new static;
-		foreach ($arr as $key => $value) {
-			if ($recursive && is_array($value)) {
-				$obj->$key = static::from($value, true);
-			} else {
-				$obj->$key = $value;
-			}
+		foreach ($array as $key => $value) {
+			$obj->$key = $recursive && is_array($value)
+				? static::from($value, true)
+				: $value;
 		}
 		return $obj;
 	}

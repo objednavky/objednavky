@@ -1,0 +1,53 @@
+{block content}
+
+<div class="nova-objednavka-form container">
+
+  <h1 class="display-4 mt-4">Založení nové objednávky</h1>
+
+  {form objednavkyMultipleForm}
+    <div class="nova-objednavka-hlavicka">
+      <div class="row" n:if="$form->hasErrors()">
+        <ul class="nova-objednavka-error" n:if="$form->hasErrors()">
+          <li n:foreach="$form->errors as $error">{$error}</li>
+        </ul>
+      </div>
+      <div class="row">
+        <div class="nova-objednavka-label col-2">{label popis}</div>
+        <div class="nova-objednavka-input col-10">{input popis}</div>
+      </div>
+    </div>
+    <div class="nova-objednavka-polozka" n:multiplier="polozka">
+      <div class="row">
+        <div class="nova-objednavka-label col-4 col-md-2">{label popis_radky}</div>
+        <div class="nova-objednavka-input col-8 col-md-4">{input popis_radky}<span n:ifcontent>{inputError popis_radky}</span></div>
+        <div class="nova-objednavka-label col-4 col-md-2">{label firma}</div>
+        <div class="nova-objednavka-input col-8 col-md-4">{input firma}<span n:ifcontent>{inputError firma}</span></div>
+      </div>
+      <div class="row">
+        <div class="nova-objednavka-label col-4 col-md-2">{label strediskoVyber}</div>
+        <div class="nova-objednavka-input col-8 col-md-4">{input strediskoVyber}<span n:ifcontent>{inputError strediskoVyber}</span></div>
+        <div class="nova-objednavka-label col-4 col-md-2">{label cinnostVyber}</div>
+        <div class="nova-objednavka-input col-8 col-md-4">{input cinnostVyber}<span n:ifcontent>{inputError cinnostVyber}</span></div>
+      </div>
+      <div class="row">
+      </div>
+      <div class="row">
+        <div class="nova-objednavka-label col-4 col-md-2">{label zakazkaVyber}</div>
+        <div class="nova-objednavka-input col-8 col-md-4">{input zakazkaVyber}<span n:ifcontent>{inputError zakazkaVyber}</span></div>
+        <div class="nova-objednavka-label col-4 col-md-2">{label castka}</div>
+        <div class="nova-objednavka-input col-8 col-md-4 input-right-align">{input castka}<span n:ifcontent>{inputError castka}</span></div>
+      </div>
+    {btnRemove polozka}
+    </div>
+    {btnCreate polozka}
+    {input hotovo}
+    <a class="btn btn-primary" n:href="Homepage:default" role="button">← Zahodit tuto objednávku</a>
+  </div>
+  {/form}
+  <br>
+    <br>
+
+</div>
+</div>
+
+{/block}

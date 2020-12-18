@@ -23,6 +23,7 @@ return array(
     'GuzzleHttp\\Promise\\' => array($vendorDir . '/guzzlehttp/promises/src'),
     'GuzzleHttp\\' => array($vendorDir . '/guzzlehttp/guzzle/src'),
     'Firebase\\JWT\\' => array($vendorDir . '/firebase/php-jwt/src'),
+    'Contributte\\FormMultiplier\\' => array($vendorDir . '/contributte/forms-multiplier/src'),
     'Contributte\\Application\\' => array($vendorDir . '/contributte/application/src'),
     'App\\' => array($baseDir . '/app'),
 );

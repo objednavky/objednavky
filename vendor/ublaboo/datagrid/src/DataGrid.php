@@ -74,6 +74,11 @@ class DataGrid extends Control
 
 	use TDataGridAggregationFunction;
 
+	private const HIDEABLE_COLUMNS_SESSION_KEYS = [
+		'_grid_hidden_columns',
+		'_grid_hidden_columns_manipulated',
+	];
+
 	/**
 	 * @var array|callable[]
 	 */
@@ -334,6 +339,11 @@ class DataGrid extends Control
 	/**
 	 * @var bool
 	 */
+	protected $rememberHideableColumnsState = true;
+
+	/**
+	 * @var bool
+	 */
 	protected $refreshURL = true;
 
 	/**
@@ -467,7 +477,7 @@ class DataGrid extends Control
 				/**
 				 * Get session
 				 */
-				if ($this->rememberState) {
+				if ($this->rememberState || $this->canHideColumns()) {
 					$sessionSection = $presenter->getSession($this->getSessionSectionName());
 
 					if (!$sessionSection instanceof SessionSection) {
@@ -823,6 +833,10 @@ class DataGrid extends Control
 	{
 		foreach ($sort as $key => $order) {
 			unset($sort[$key]);
+
+			if ($order !== 'ASC' && $order !== 'DESC') {
+				continue;
+			}
 
 			try {
 				$column = $this->getColumn($key);
@@ -1362,7 +1376,14 @@ class DataGrid extends Control
 	public function setDefaultFilter(array $defaultFilter, bool $useOnReset = true): self
 	{
 		foreach ($defaultFilter as $key => $value) {
+			/** @var Filter|null $filter */
 			$filter = $this->getFilter($key);
+
+			if ($filter === null) {
+				throw new DataGridException(
+					sprintf('Can not set default value to nonexisting filter [%s]', $key)
+				);
+			}
 
 			if ($filter instanceof FilterMultiSelect && !is_array($value)) {
 				throw new DataGridException(
@@ -1371,11 +1392,19 @@ class DataGrid extends Control
 			}
 
 			if ($filter instanceof FilterRange || $filter instanceof FilterDateRange) {
-				if (!is_array($value) || !isset($value['from'], $value['to'])) {
+				if (!is_array($value)) {
+					throw new DataGridException(
+						sprintf('Default value of filter [%s] - Range/DateRange has to be an array [from/to => ...]', $key)
+					);
+				}
+
+				$temp = $value;
+				unset($temp['from'], $temp['to']);
+
+				if (count($temp) > 0) {
 					throw new DataGridException(
 						sprintf(
-							'Default value of filter [%s] - %s has to be an array [from/to => ...]',
-							FilterDateRange::class,
+							'Default value of filter [%s] - Range/DateRange can contain only [from/to => ...] values',
 							$key
 						)
 					);
@@ -2718,9 +2747,10 @@ class DataGrid extends Control
 	/**
 	 * @return static
 	 */
-	public function setRememberState(bool $remember = true): self
+	public function setRememberState(bool $remember = true, bool $rememberHideableColumnsState = false): self
 	{
 		$this->rememberState = $remember;
+		$this->rememberHideableColumnsState = $rememberHideableColumnsState;
 
 		return $this;
 	}
@@ -2743,13 +2773,21 @@ class DataGrid extends Control
 	 */
 	public function getSessionData(?string $key = null, $defaultValue = null)
 	{
-		if (!$this->rememberState) {
-			return $key === null
-				? []
-				: $defaultValue;
+		$getValue = function() use ($key, $defaultValue) {
+			return ($key !== null ? $this->gridSession[$key] : $this->gridSession) ?: $defaultValue;
+		};
+
+		if ($this->rememberState) {
+			return ($getValue)();
 		}
 
-		return ($key !== null ? $this->gridSession[$key] : $this->gridSession) ?: $defaultValue;
+		if ($this->rememberHideableColumnsState && in_array($key, self::HIDEABLE_COLUMNS_SESSION_KEYS, true)) {
+			return ($getValue)();
+		}
+		
+		return $key === null
+			? []
+			: $defaultValue;
 	}
 
 
@@ -2759,6 +2797,8 @@ class DataGrid extends Control
 	public function saveSessionData(string $key, $value): void
 	{
 		if ($this->rememberState) {
+			$this->gridSession[$key] = $value;
+		} elseif ($this->rememberHideableColumnsState && in_array($key, self::HIDEABLE_COLUMNS_SESSION_KEYS, true)) {
 			$this->gridSession[$key] = $value;
 		}
 	}

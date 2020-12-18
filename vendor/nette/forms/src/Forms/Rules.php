@@ -249,7 +249,11 @@ class Rules implements \IteratorAggregate
 			}
 
 			$success = $this->validateRule($rule);
-			if ($success && $rule->branch && !$rule->branch->validate($rule->validator === Form::BLANK ? false : $emptyOptional)) {
+			if (
+				$success
+				&& $rule->branch
+				&& !$rule->branch->validate($rule->validator === Form::BLANK ? false : $emptyOptional)
+			) {
 				return false;
 
 			} elseif (!$success && !$rule->branch) {
@@ -295,7 +299,7 @@ class Rules implements \IteratorAggregate
 			2 => [], // other rules
 		];
 		foreach ($this->rules as $rule) {
-			$priorities[$rule->validator === Form::BLANK ? 0 : 2][] = $rule;
+			$priorities[$rule->validator === Form::BLANK && $rule->control === $this->control ? 0 : 2][] = $rule;
 		}
 		return new \ArrayIterator(array_merge(...$priorities));
 	}
@@ -310,7 +314,9 @@ class Rules implements \IteratorAggregate
 			$rule->isNegative = true;
 			$rule->validator = ~$rule->validator;
 			if (!$rule->branch) {
-				$name = strncmp($rule->validator, ':', 1) ? $rule->validator : 'Form:' . strtoupper($rule->validator);
+				$name = strncmp($rule->validator, ':', 1)
+					? $rule->validator
+					: 'Form:' . strtoupper($rule->validator);
 				trigger_error("Negative validation rules such as ~$name are deprecated.", E_USER_DEPRECATED);
 			}
 			if (isset(self::NEG_RULES[$rule->validator])) {
@@ -321,7 +327,9 @@ class Rules implements \IteratorAggregate
 		}
 
 		if (!is_callable($this->getCallback($rule))) {
-			$validator = is_scalar($rule->validator) ? " '$rule->validator'" : '';
+			$validator = is_scalar($rule->validator)
+				? " '$rule->validator'"
+				: '';
 			throw new Nette\InvalidArgumentException("Unknown validator$validator for control '{$rule->control->name}'.");
 		}
 	}
@@ -330,10 +338,8 @@ class Rules implements \IteratorAggregate
 	private static function getCallback(Rule $rule)
 	{
 		$op = $rule->validator;
-		if (is_string($op) && strncmp($op, ':', 1) === 0) {
-			return [Validator::class, 'validate' . ltrim($op, ':')];
-		} else {
-			return $op;
-		}
+		return is_string($op) && strncmp($op, ':', 1) === 0
+			? [Validator::class, 'validate' . ltrim($op, ':')]
+			: $op;
 	}
 }

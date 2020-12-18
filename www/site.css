@@ -28,3 +28,51 @@ body.test2 {
     overflow: hidden;
     font-size: 90%;
 }
+
+.datagrid-tree-item{
+    background-color: white;
+}
+
+.datagrid-tree-item .datagrid-tree-item {
+  background-color:#D6C77F;
+}
+
+.datagrid-tree-header{
+      background-color: unset;
+}
+
+table tr th a {
+    color: black;
+}
+
+a.nav-link {
+    cursor: pointer;
+}
+
+
+.nova-objednavka-hlavicka {
+    padding: 1rem;
+    margin: 1rem;
+}
+.nova-objednavka-label {
+    margin-top: 0.9rem;
+}
+.nova-objednavka-input {
+    padding: .3rem;
+}
+.nova-objednavka-input input,
+.nova-objednavka-input select {
+    width: 100%;
+}
+.input-right-align input{
+    text-align: right; 
+}
+.nova-objednavka-error {
+    color: red;
+    font-weight: 700;
+}
+.nova-objednavka-polozka {
+    border: 1px solid black;    
+    padding: 1rem;
+    margin: 1rem;
+}

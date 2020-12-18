@@ -1,0 +1,17 @@
+{block content}
+
+<div class="container-fluid">
+
+<h4 class="display-4 mt-4">Mazání objednávek  - {$prihlasen}</h4>
+
+<h4 class="mt-4">Zamítnuté objednávky</h4>
+<p>Vaše objednávky, které byly zamítnuté schvalovatelem nebo ověřovatelem, je proto možné je smazat.</p> 
+{control zamitnuteObjednavkyMazaniGrid} 
+
+<h4 class="mt-5">Aktivní objednávky</h4>
+<p>Vaše objednávky, které jsou aktivní a dosud je nepřevzala účtárna, je proto možné je smazat.</p>
+{control aktivniObjednavkyMazaniGrid} 
+
+</div>
+
+{/block}

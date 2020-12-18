@@ -112,7 +112,7 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
             // $item->preuctovaniObj = $this->database->table('objednavky')->where('cinnost',$jednacinnost)->where('stav',[0,1,3,4,9])
             // ->where('zakazky', $zakazkaP)->sum('castka');
             // $item->preuctovaniObj = \round($item->preuctovaniObj, 0);
-            $fetchedDeniky[] = $item;
+            $fetchedDeniky[] = json_decode(json_encode($item), true);
         }
         //$item->vlastni = $this->database->query('')
         return $fetchedDeniky;
@@ -145,7 +145,7 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
             $item->dotace = \round($item->dotace, 0);
             $item->preuctovani = $relatedZakazka->preuctovani == 1 ? $denik->castka : 0;
             $item->preuctovani = \round($item->preuctovani, 0);
-            $fetchedDeniky[] = $item;
+            $fetchedDeniky[] = json_decode(json_encode($item), true);
         }
         //$item->vlastni = $this->database->query('')
         return $fetchedDeniky;

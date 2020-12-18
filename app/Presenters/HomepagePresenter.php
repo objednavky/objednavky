@@ -5,8 +5,8 @@ declare(strict_types=1);
 
 namespace App\Presenters;
 
-use DateTime;
 use Nette;
+use Nette\Utils;
 use Ublaboo\DataGrid\DataGrid;
 use Nette\Application\UI\Form;
 use stdClass;
@@ -71,6 +71,9 @@ class HomepagePresenter extends ObjednavkyBasePresenter
         $uz = $this->prihlasenyId();   // přihlášený uživatel
         $skupina = $this->database->table('skupiny')->where('uzivatel',$uz)->select('rozpocet');   //vyberu nastavené skupiny 
         $rozpocets =$this->database->table('rozpocet')->where('rok',$rok)->where('verze',$verze)->where('id',$skupina);
+    
+        $fmt = new \NumberFormatter( 'cs_CZ', \NumberFormatter::CURRENCY );
+        $fmt->setAttribute(\NumberFormatter::FRACTION_DIGITS, 0);
         
         $fetchedRozpocets = [];
         foreach ($rozpocets as $rozpocet) {
@@ -120,7 +123,7 @@ class HomepagePresenter extends ObjednavkyBasePresenter
 
             $item->rozdilS = $item->castkaSablony - ( $item->mySumS );
 
-            $fetchedRozpocets[] = $item;
+            $fetchedRozpocets[] = json_decode(json_encode($item), true);;
         }
         return $fetchedRozpocets;
     }
@@ -171,18 +174,18 @@ class HomepagePresenter extends ObjednavkyBasePresenter
     {
         $this->database->table('objednavky')->where('id',$ids)->where('nutno_overit',1)->update([
             'stav' => 1,
-            'schvalil' => date('d. m. Y')
+            'schvalil' => new DateTime(),
         ]);
 
         $uz = $this->prihlasenyId();
         $this->database->table('objednavky')->where('id',$ids)->where('nutno_overit',1)->where('kdo2',$uz)->update([
             'stav' => 4,
-            'overil' => date('d. m. Y')
+            'overil' => new DateTime(),
         ]);
         
         $this->database->table('objednavky')->where('id',$ids)->where('nutno_overit',0)->update([
             'stav' => 3,
-            'schvalil' => date('d. m. Y')
+            'schvalil' => new DateTime(),
         ]);
 
         if ($this->isAjax()) {
@@ -196,7 +199,7 @@ class HomepagePresenter extends ObjednavkyBasePresenter
     {
         $this->database->table('objednavky')->where('id',$ids)->update([
             'stav' => 2,
-            'zamitnul' => date('d. m. Y')
+            'zamitnul' => new DateTime(),
         ]);
 
         if ($this->isAjax()) {
@@ -260,7 +263,7 @@ class HomepagePresenter extends ObjednavkyBasePresenter
     {
         $this->database->table('objednavky')->where('id',$ids)->update([
             'stav' => 4,
-            'overil' => date('d. m. Y')
+            'overil' => new DateTime(),
         ]);
         if ($this->isAjax()) {
             $this->grids['schvalovaciGrid']->reload();
@@ -274,7 +277,7 @@ class HomepagePresenter extends ObjednavkyBasePresenter
     {
         $this->database->table('objednavky')->where('id',$ids)->update([
             'stav' => 5,
-            'zamitnul2' => date('d. m. Y')
+            'zamitnul2' => new DateTime(),
         ]);
 
         if ($this->isAjax()) {

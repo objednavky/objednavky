@@ -39,7 +39,7 @@ abstract class ObjednavkyBasePresenter extends BasePresenter
     {
         $sum = 0;
         foreach ($array as $item) {
-            $sum += $item->$columnArgument;
+            $sum += $item[$columnArgument];
         }
         return $sum;
     }

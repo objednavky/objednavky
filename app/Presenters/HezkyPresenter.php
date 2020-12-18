@@ -95,7 +95,7 @@ class HezkyPresenter extends ObjednavkyBasePresenter
             $item->rozdil = ($item->castka) +($item->sablony) - ( $item->mySumV)- ($item->mySumS) -  ($item->mySumN) - $item->objednanoVS;
             $item->soucetV =  ( $item->mySumV)+ ($item->mySumS) +  ($item->mySumN) ;
 
-            $fetchedRozpocets[] = $item;
+            $fetchedRozpocets[] = json_decode(json_encode($item), true);
         }
         return $fetchedRozpocets;
     }

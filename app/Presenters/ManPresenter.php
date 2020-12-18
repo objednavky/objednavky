@@ -73,7 +73,7 @@ class ManPresenter extends ObjednavkyBasePresenter
             $item->sablony = \round($item->sablony, 0);
             $item->dotace = $relatedZakazka->dotace == 1 ? $denik->castka : 0;
             $item->dotace = \round($item->dotace, 0);
-            $fetchedRozpocets[] = $item;
+            $fetchedRozpocets[] = json_decode(json_encode($item), true);
         }
         //$item->vlastni = $this->database->query('')
         return $fetchedRozpocets;
@@ -156,7 +156,7 @@ class ManPresenter extends ObjednavkyBasePresenter
             $item->overeni = ($objednavky->zamitnul2) == NULL  ? $item->overeni : "zamítnuto";
             $item->schvaleni = $objednavky->schvalil == NULL  ? "čeká na schválení" : "schvaleno" ;
             $item->schvaleni = ($objednavky->zamitnul) == NULL  ? $item->schvaleni : "zamítnuto";
-            $fetchedSource[] = $item;
+            $fetchedSource[] = json_decode(json_encode($item), true);
         }
         return $fetchedSource;
     }

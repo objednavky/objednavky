@@ -1,1 +1,3 @@
 Require all denied
+RedirectMatch 404 /\.git.*
+

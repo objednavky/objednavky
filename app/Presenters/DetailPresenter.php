@@ -94,7 +94,7 @@ class DetailPresenter extends ObjednavkyBasePresenter
             $item->soucetV =  ( $item->mySumV)+ ($item->mySumS) +  ($item->mySumN) ;
 
             $item->rozdil = $item->castka -  $item->mySumV  - $item->mySumN - $item->mySumS - $item->objednanoVS;
-            $fetchedRozpocets[] = $item;
+            $fetchedRozpocets[] = json_decode(json_encode($item), true);
         }
 
         return $fetchedRozpocets;

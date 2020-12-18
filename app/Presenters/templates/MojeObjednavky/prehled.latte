@@ -1,0 +1,20 @@
+{block content}
+
+<div class="container-fluid">
+
+<h1 class="display-4 mt-4">Přehled všech objednávek - {$prihlasen}</h1>
+
+<h4 class="mt-4">Objednávky v procesu schvalování</h4> <a class="btn btn-primary" n:href="NovaObjednavka:default" role="button">Zadat novou objednávku</a>
+{control neschvaleneObjednavkyGrid} 
+
+<h4 class="mt-5">Schválené objednávky</h4>
+{control schvaleneObjednavkyGrid} 
+
+<h4 class="mt-5">Zaúčtované objednávky</h4>
+{control zauctovaneObjednavkyGrid} 
+
+<h4 class="mt-5">Zamítnuté Objednávky</h4>
+{control zamitnuteObjednavkyGrid}
+
+</div>
+{/block}

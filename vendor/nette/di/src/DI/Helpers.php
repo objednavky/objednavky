@@ -91,10 +91,35 @@ final class Helpers
 		}
 		if ($php) {
 			$res = array_filter($res, function ($val): bool { return $val !== ''; });
-			$res = array_map(function ($val): string { return $val instanceof DynamicParameter ? "($val)" : var_export((string) $val, true); }, $res);
+			$res = array_map(function ($val): string {
+				return $val instanceof DynamicParameter
+					? "($val)"
+					: var_export((string) $val, true);
+			}, $res);
 			return new DynamicParameter(implode(' . ', $res));
 		}
 		return implode('', $res);
+	}
+
+
+	/**
+	 * Escapes '%' and '@'
+	 * @param  mixed  $value
+	 * @return mixed
+	 */
+	public static function escape($value)
+	{
+		if (is_array($value)) {
+			$res = [];
+			foreach ($value as $key => $val) {
+				$key = is_string($key) ? str_replace('%', '%%', $key) : $key;
+				$res[$key] = self::escape($val);
+			}
+			return $res;
+		} elseif (is_string($value)) {
+			return preg_replace('#^@|%#', '$0$0', $value);
+		}
+		return $value;
 	}
 
 
@@ -113,8 +138,8 @@ final class Helpers
 			} elseif (is_array($v)) {
 				$args[$k] = self::filterArguments($v);
 			} elseif ($v instanceof Statement) {
-				$tmp = self::filterArguments([$v->getEntity()]);
-				$args[$k] = new Statement($tmp[0], self::filterArguments($v->arguments));
+				[$tmp] = self::filterArguments([$v->getEntity()]);
+				$args[$k] = new Statement($tmp, self::filterArguments($v->arguments));
 			}
 		}
 		return $args;
@@ -191,5 +216,29 @@ final class Helpers
 		return class_exists($type) || interface_exists($type)
 			? (new \ReflectionClass($type))->name
 			: $type;
+	}
+
+
+	/**
+	 * Non data-loss type conversion.
+	 * @param  mixed  $value
+	 * @return mixed
+	 * @throws Nette\InvalidStateException
+	 */
+	public static function convertType($value, string $type)
+	{
+		if (is_scalar($value)) {
+			$norm = ($value === false ? '0' : (string) $value);
+			if ($type === 'float') {
+				$norm = preg_replace('#\.0*$#D', '', $norm);
+			}
+			$orig = $norm;
+			settype($norm, $type);
+			if ($orig === ($norm === false ? '0' : (string) $norm)) {
+				return $norm;
+			}
+		}
+		$value = is_scalar($value) ? "'$value'" : gettype($value);
+		throw new Nette\InvalidStateException("Cannot convert $value to $type.");
 	}
 }
