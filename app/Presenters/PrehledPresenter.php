@@ -57,7 +57,7 @@ class PrehledPresenter extends ObjednavkyBasePresenter
     {
         $grid = new DataGrid($this, $name);
         $this->grids['mazaciGrid'] = $grid;
-        $source = $this->mapRozpocet([0,1]);
+        $source = $this->objednavkyManager->mapRozpocetPrehled([0,1]);
     
         $grid->setDataSource($source);
         
@@ -120,7 +120,7 @@ class PrehledPresenter extends ObjednavkyBasePresenter
     {
         $grid = new DataGrid($this, $name);
         $this->grids['mazaciGrid'] = $grid;
-        $source = $this->mapRozpocet([9]);
+        $source = $this->objednavkyManager->mapRozpocetPrehled([9]);
     
         $grid->setDataSource($source);
         

@@ -39,7 +39,7 @@ class ObjednavkyManager
 		return $this->mapRozpocetFromSource($source);
     }
 	
-	private function mapRozpocetPrehled($aray)
+	public function mapRozpocetPrehled($aray)
     {
 		$source = $this->database->table('objednavky')
 						->where('stav', $aray)
