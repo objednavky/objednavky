@@ -227,7 +227,12 @@ class HomepagePresenter extends ObjednavkyBasePresenter
         $grid->addColumnText('zakazkap','Popis zakázky','zakazky.popis:zakazka');
         $grid->addColumnText('stredisko','Středisko','stredisko.stredisko:stredisko');
         $grid->addColumnText('castka', 'Částka');
-        $grid->addColumnText('nutno:overit', 'Nutné ověřit','lidstina.popis:nutno_overit');
+        $grid->addColumnText('nutno_overit', 'Nutné ověřit','nutno_overit');
+        $grid->addColumnCallback('nutno_overit', function($column, $item) {
+                $column->setRenderer(function() use ($item) {
+                    return $item->nutno_overit == 1 ? "Určitě" : "Nikoli";   //TK: jen jako ukázka pro Magdu, následně změnit na "Ano" : "Ne"
+                });
+            });
         $grid->setPagination(false);
         $grid->addGroupAction('Schválit')->onSelect[] = [$this, 'schvalitBtn'];
         $grid->addGroupAction('Zamítnout')->onSelect[] = [$this, 'zamitnoutBtn'];
