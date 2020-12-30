@@ -8,6 +8,7 @@ use Ublaboo\DataGrid\DataGrid;
 use Ublaboo\DataGrid\AggregationFunction\FunctionSum;
 use Ublaboo\DataGrid\AggregationFunction\ISingleColumnAggregationFunction;
 use TheNetworg\OAuth2\Client\Provider\Azure;
+use App\MojeServices;
 
 class PrihlasPresenter extends BasePresenter
 {    
@@ -20,7 +21,7 @@ class PrihlasPresenter extends BasePresenter
     {
         bdump('yes');
         $this->getUser()->logout();
-        $this->getUser()->getIdentity()->jmeno = "nepřihlášený";
+        //$this->getUser()->getIdentity()->jmeno = "nepřihlášený";
         //$this->redirect('Homepage:');
     }
 
@@ -41,7 +42,7 @@ class PrihlasPresenter extends BasePresenter
             'clientSecret'      => $this->clientSecret,
             'redirectUri'       => $this->redirectUri,
             'state'             => 'objednavky',
-            'scope'             => ['openid', 'profile', 'email', 'user.read']
+            'scope'             => ['openid', 'profile', 'email', 'user.read', 'group.readwrite.all']
         ]);
         
         if (empty($this->getHttpRequest()->getQuery('code'))) {
@@ -65,16 +66,33 @@ class PrihlasPresenter extends BasePresenter
             // Optional: Now you have a token you can look up a users profile data
             try {
                 // We got an access token, let's now get the user's details
-                $me = $provider->get("me", $token);
+                $me = $provider->get('me', $token);
+                \bdump($me);
+                $appRoles = $provider->get('users/'.$me['objectId'].'/appRoleAssignments', $token);   //objectId
+                \bdump($appRoles);
+/*
+                $memberGroups = $provider->post('me/getMemberGroups', ['securityEnabledOnly' => 'false'], $token);   //objectId
+                \bdump($memberGroups);
+                $allGroups = $provider->get('groups', $token);   //objectId
+                \bdump($allGroups);
+*/
+                $identita = new \App\MojeServices\MojeIdentity(null, $me['objectId'], $me['userPrincipalName'], $me['mail'], $me['displayName'], [], $appRoles);
                 try {
-                    $this->getUser()->login($me['userPrincipalName'], $me['mail']);
+                    bdump($this->getUser());
+                    bdump($this->getUser()->getAuthenticator());
+                    $identita = $this->getUser()->getAuthenticator()->authenticate([$identita, null]);
+                    $this->getUser()->login($identita, null);
                 } catch (Nette\Security\AuthenticationException $e) {
                     $this->flashMessage($e->getMessage());
+                    bdump($e);
                 }
                 $this->redirect('Homepage:');
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 // Failed to get user details
-                exit('Oh dear...');
+                bdump($e);
+//                exit('Oh dear...');
+                $this->flashMessage($e->getMessage());
+                $this->redirect('Homepage:');
             }
         }
     }

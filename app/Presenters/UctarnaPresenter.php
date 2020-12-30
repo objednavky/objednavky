@@ -19,7 +19,7 @@ class UctarnaPresenter extends ObjednavkyBasePresenter
     {
         parent::startup();
         $mojerole = $this->getUser()->getRoles();
-        if ($mojerole[0] == 1)
+        if (empty($mojerole))
         {
             $this->redirect('Homepage:default');
             $this->flashMessage('Nemáte oprávnění.');

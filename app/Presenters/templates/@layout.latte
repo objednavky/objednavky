@@ -53,7 +53,7 @@
 					<a class="dropdown-item" n:href="Hezky:show">Hezký rozpočet</a> 
 					</div>
       </li>
-	  {if $presenter->getUser()->getRoles()[0] == 2 ||  $presenter->getUser()->getRoles()[0] == 3}
+	  {if in_array('finance', $presenter->getUser()->getRoles()) ||  in_array('admin', $presenter->getUser()->getRoles()) }
 	 
 	   <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle"  id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -79,11 +79,11 @@
 					</div>
       </li>	  
     </ul>
-    <div class="navbar-text navbar-right"><i class="fa fa-user"></i>&nbsp;{$presenter->getUser()->isLoggedIn() ? $presenter->getUser()->getIdentity()->jmeno : 'nepřihlášený'}</div>
-	{if $presenter->getUser()->isLoggedIn() }
-	<div class="navbar-nav navbar-right">
+    <div class="navbar-text navbar-right"><i class="fa fa-user"></i>&nbsp;{$presenter->getUser()->isLoggedIn() ? $presenter->getUser()->getIdentity()->getFullname() : 'nepřihlášený'}</div>
+	{if $presenter->getUser()->isLoggedIn() }&nbsp;
+	(<div class="navbar-nav navbar-right">
       <a n:href="Prihlas:loginas" class="nav-item nav-link"><span class="fa fa-sign-in"></span>Změnit uživatele</a>
-    </div>
+    </div>)
 	{/if}
   </div>
 </nav>

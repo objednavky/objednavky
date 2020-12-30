@@ -16,7 +16,7 @@ class RegistrPresenter extends ObjednavkyBasePresenter
     {
         parent::startup();
         $mojerole = $this->getUser()->getRoles();
-        if ($mojerole[0] != 3)
+        if (in_array('admin',$mojerole))
         {
             $this->redirect('Homepage:default');
             $this->flashMessage('Nemáte oprávnění.');
