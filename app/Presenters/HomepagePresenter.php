@@ -174,18 +174,18 @@ class HomepagePresenter extends ObjednavkyBasePresenter
     {
         $this->database->table('objednavky')->where('id',$ids)->where('nutno_overit',1)->update([
             'stav' => 1,
-            'schvalil' => new DateTime(),
+            'schvalil' => new \DateTime(),
         ]);
 
         $uz = $this->prihlasenyId();
         $this->database->table('objednavky')->where('id',$ids)->where('nutno_overit',1)->where('kdo2',$uz)->update([
             'stav' => 4,
-            'overil' => new DateTime(),
+            'overil' => new \DateTime(),
         ]);
         
         $this->database->table('objednavky')->where('id',$ids)->where('nutno_overit',0)->update([
             'stav' => 3,
-            'schvalil' => new DateTime(),
+            'schvalil' => new \DateTime(),
         ]);
 
         if ($this->isAjax()) {
@@ -199,7 +199,7 @@ class HomepagePresenter extends ObjednavkyBasePresenter
     {
         $this->database->table('objednavky')->where('id',$ids)->update([
             'stav' => 2,
-            'zamitnul' => new DateTime(),
+            'zamitnul' => new \DateTime(),
         ]);
 
         if ($this->isAjax()) {
@@ -278,7 +278,7 @@ class HomepagePresenter extends ObjednavkyBasePresenter
     {
         $this->database->table('objednavky')->where('id',$ids)->update([
             'stav' => 4,
-            'overil' => new DateTime(),
+            'overil' => new \DateTime(),
         ]);
         if ($this->isAjax()) {
             $this->grids['schvalovaciGrid']->reload();
@@ -292,7 +292,7 @@ class HomepagePresenter extends ObjednavkyBasePresenter
     {
         $this->database->table('objednavky')->where('id',$ids)->update([
             'stav' => 5,
-            'zamitnul2' => new DateTime(),
+            'zamitnul2' => new \DateTime(),
         ]);
 
         if ($this->isAjax()) {
