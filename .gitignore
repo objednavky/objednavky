@@ -1,3 +1,5 @@
 app/config/local.neon
 www/.htaccess
 .debug
+.htaccess
+.vscode/launch.json

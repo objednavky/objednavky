@@ -63,11 +63,12 @@ class ObjednavkyManager
         	    // $pom3 = $this->database->table('uzivatel')->where('id',$pom2->id_uzivatel)->fetch();
             	// $item->zadavatel =$pom3->jmeno ;
             	'zadavatel' => $objednavky->ref('zakladatel')->jmeno,
+				'zalozil' => $objednavky->zalozil,
             	'schvalovatel' => $objednavky->ref('kdo')->jmeno,
             	'schvalil' => $objednavky->schvalil,
             	'overovatel' => $objednavky->ref('kdo2')->jmeno,
             	'overil' => $objednavky->overil,
-            	'nutno_overit' => $objednavky->ref('nutno_overit')->popis,
+            	'nutno_overit' => $objednavky->nutno_overit,
             	'stav' => $objednavky->ref('stav')->popis,
             	'firma' => $objednavky->firma,
             	'popis' => $objednavky->popis,
@@ -75,7 +76,7 @@ class ObjednavkyManager
             	'cinnostP' => $objednavky->ref('cinnost')->nazev_cinnosti,
             	'zakazka' => $objednavky->ref('zakazka')->zakazka,
             	'stredisko' => $objednavky->ref('stredisko')->stredisko,
-				'castka' => $this->fmt->formatCurrency($objednavky->castka,'CZK'),
+				'castka' => $objednavky->castka,
 			];
 			$fetchedRozpocets[] = $item;
 		}

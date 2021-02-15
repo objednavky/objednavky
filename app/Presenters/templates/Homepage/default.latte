@@ -5,53 +5,67 @@
 
 <div class="container-fluid">
 
-<br >
+  <br >
 
-<h1 class="display-4">Hlavní stránka - {$prihlasen} </h1>
-<br >
-
-
+  <h1 class="display-4">Hlavní stránka - {$prihlasen} </h1>
+  <br >
 
 
-{if ($percent < 100) }
-<div class="progress" style="height: 10px;">
-  <div class="progress-bar" style="width: {$percent}%;" role="progressbar" aria-valuenow="{$mySum}" aria-valuemin="0" aria-valuemax="{$castkaSablony}"></div>
+
+
+  {if ($percent < 100) }
+  <div class="progress" style="height: 10px;">
+    <div class="progress-bar" style="width: {$percent}%;" role="progressbar" aria-valuenow="{$mySum}" aria-valuemin="0" aria-valuemax="{$castkaSablony}"></div>
+  </div>
+
+  {else }
+  <div class="progress" style="height: 10px;">
+    <div class="progress-bar bg-danger"  style="width: {$percent}%;" role="progressbar" aria-valuenow="{$mySum}" aria-valuemin="0" aria-valuemax="{$castkaSablony}"></div>
+  </div>
+
+
+  {/if }
+
 </div>
+<div class="shrnuti-hlavni container">
 
-{else }
-<div class="progress" style="height: 10px;">
-  <div class="progress-bar bg-danger"  style="width: {$percent}%;" role="progressbar" aria-valuenow="{$mySum}" aria-valuemin="0" aria-valuemax="{$castkaSablony}"></div>
-</div>
-
-
-{/if }
-
-<br >
-<table class="table table-borderless" style="width:50%"  >
-  <thead>
-  </thead>
-  <tbody>
-    <tr>
-      <th>  Počet objednávek k Vašemu schválení </th>
-      <td><b> {$objed_ja_sch} </b> </td>
-     </tr>
-      <tr>
-      <th>  Počet objednávek k Vašemu ověření </th>
-      <td><b> {$objed_ja_ov} </b> </td>
-     </tr>
-    <tr>
-      <th > Počet Vašich otevřených objednávek</th>
-      <td><b>{$objed_jiny_sch} </b> </td>
-    </tr>
-    
-<tr>
-      <th > Počet zamítnutých objednávek</th>
-      <td ><b> {$objed_zamitnute} </b> </h3> </td>
-    </tr>
-   
-
-  </tbody>
-</table>
+  <br >
+  <div class="shrnuti-hlavni row" >
+    <div class="shrnuti-blok col">
+      <div class="shrnuti-nadpis container">
+        <h4>Vaše objednávky:</h4>
+      </div>
+      <a href="/moje-objednavky/prehled">
+        <div class="shrnuti-vnitrek row">
+          <div class="col-8">otevřené</div>
+          <div class="col-4 text-right">{$objed_jiny_sch}</div>
+        </div>
+      </a>
+      <a href="/moje-objednavky/prehled#zamitnute">
+        <div class="shrnuti-vnitrek row">
+          <div class="col-8">zamítnuté</div>
+          <div class="col-4 text-right">{$objed_zamitnute}</div>
+        </div>
+      </a>
+    </div>
+    <div class="shrnuti-blok col">
+      <div class="shrnuti-nadpis container">
+        <h4>Cizí objednávky k Vašemu vyřízení:</h4>
+      </div>
+      <a href="#na-schvaleni">
+        <div class="shrnuti-vnitrek row">
+          <div class="col-8">ke schválení</div>
+          <div class="col-4 text-right">{$objed_ja_sch}</div>
+        </div>
+      </a>
+      <a href="#na-overeni">
+        <div class="shrnuti-vnitrek row">
+          <div class="col-8">k ověření</div>
+          <div class="col-4 text-right">{$objed_ja_ov}</div>
+        </div>
+      </a>
+    </div>
+  </div>
 
 
 </div>
@@ -69,17 +83,22 @@
 <br >
 <br >
 <br >
-
-<h4> Hospodáři, tyto objednávky čekají na Vaše schválení </h4>
+{if ($objed_ja_sch>0) }
+<h4 id="na-schvaleni"> Hospodáři, tyto objednávky čekají na Vaše schválení </h4>
 {control schvalitGrid} 
-
+{else}
+<p>Žádné objednávky ke schválení</p>
+{/if}
 <br >
 <br >
 <br >
 <br >
-<h4> Ověřovateli, tyto objednávky čekají na Vaše ověření </h4>
+{if ($objed_ja_ov>0) }
+<h4 id="na-overeni"> Ověřovateli, tyto objednávky čekají na Vaše ověření </h4>
 {control overitGrid} 
-
+{else}
+<p>Žádné objednávky k ověření</p>
+{/if}
 <br >
 <br >
 <br >

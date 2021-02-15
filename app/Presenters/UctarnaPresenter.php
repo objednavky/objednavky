@@ -74,7 +74,7 @@ class UctarnaPresenter extends ObjednavkyBasePresenter
             $item->schvalil = $objednavky->schvalil;
             $item->overovatel = $objednavky->ref('kdo2')->jmeno;
             $item->overil = $objednavky->overil;             
-            $item->nutno_overit = $objednavky->ref('nutno_overit')->popis;
+            $item->nutno_overit = $objednavky->nutno_overit;
             $item->stav = $objednavky->ref('stav')->popis;
             $item->firma = $objednavky->firma;
             $item->popis = $objednavky->popis;
@@ -110,7 +110,7 @@ class UctarnaPresenter extends ObjednavkyBasePresenter
         $item->schvalil = $objednavky->schvalil;
         $item->overovatel = $objednavky->ref('kdo2')->jmeno;
         $item->overil = $objednavky->overil;             
-        $item->nutno_overit = $objednavky->ref('nutno_overit')->popis;
+        $item->nutno_overit = $objednavky->nutno_overit;
         $item->stav = $objednavky->ref('stav')->popis;
         $item->firma = $objednavky->firma;
         $item->popis = '';
@@ -144,7 +144,7 @@ class UctarnaPresenter extends ObjednavkyBasePresenter
         $item->schvalil = $objednavky->schvalil;
         $item->overovatel = $objednavky->ref('kdo2')->jmeno;
         $item->overil = $objednavky->overil;             
-        $item->nutno_overit = $objednavky->ref('nutno_overit')->popis;
+        $item->nutno_overit = $objednavky->nutno_overit;
         $item->stav = $objednavky->ref('stav')->popis;
         $item->firma = $objednavky->firma;
         $item->popis = $objednavky->popis;
@@ -223,6 +223,11 @@ class UctarnaPresenter extends ObjednavkyBasePresenter
         // $grid->addColumnText('schvalovatel','Schvalovatel');
         // $grid->addColumnDateTime('schvalil','Schváleno');
          $grid->addColumnText('nutno_overit','Nutno ověřit');
+         $grid->addColumnCallback('nutno_overit', function($column, $item) {
+            $column->setRenderer(function() use ($item) {
+                return $item->nutno_overit == 1 ? "ANO" : "ne";   
+            });
+        });
         // $grid->addColumnText('overovatel','Ověřovatel');
          $grid->addColumnDateTime('overil','Ověřeno');
          $grid->addColumnText('firma','firma');
