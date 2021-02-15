@@ -1,0 +1,61 @@
+{
+  "name": "contributte/forms-multiplier",
+  "type": "library",
+  "description": "Multiplier for nette forms",
+  "keywords": [
+    "nette",
+    "contributte",
+    "forms",
+    "multiplier"
+  ],
+  "require": {
+    "php": ">= 7.2",
+    "nette/forms": "^3.0"
+  },
+  "require-dev": {
+    "ninjify/qa": "^0.8.0",
+    "ninjify/nunjuck": "^0.2.0",
+    "codeception/codeception": "^2.4",
+    "nette/application": "^3.0",
+    "nette/di": "^3.0",
+    "webchemistry/testing-helpers": "~2.0.0",
+    "latte/latte": "^2.7"
+  },
+  "autoload": {
+    "psr-4": {
+      "Contributte\\FormMultiplier\\": [
+        "src/"
+      ]
+    }
+  },
+  "autoload-dev": {
+    "classmap": [
+      "tests/includes"
+    ]
+  },
+  "minimum-stability": "RC",
+  "scripts": {
+    "qa": [
+      "linter src tests",
+      "codesniffer src tests"
+    ],
+    "tests": [
+      "vendor/bin/codecept run"
+    ],
+    "phpstan-install": [
+      "mkdir -p temp/phpstan",
+      "composer require -d temp/phpstan phpstan/phpstan:^0.10",
+      "composer require -d temp/phpstan phpstan/phpstan-deprecation-rules:^0.10",
+      "composer require -d temp/phpstan phpstan/phpstan-nette:^0.10",
+      "composer require -d temp/phpstan phpstan/phpstan-strict-rules:^0.10"
+    ],
+    "phpstan": [
+      "temp/phpstan/vendor/bin/phpstan analyse -l max src"
+    ]
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-master": "3.1.x-dev"
+    }
+  }
+}
