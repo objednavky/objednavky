@@ -26,11 +26,14 @@
 
 
   <br>
-  <h6>{$jeden->obsah}</h6>
-  <br>
-  <br>
+  <p>{$jeden->obsah}</p>
+
+<a class="btn btn-primary" n:href="Hezky:show" role="button">← zpět na Hezký rozpočet</a>
+<a class="btn btn-primary" n:href="Detail:show" role="button">← zpět na Podrobný rozpočet</a>
+<br>
+<br>
  
-  <h6>Přehled</h6>
+  <h4>Přehled</h4>
   <table class="table table-bordered" style="width:70%" >
     <thead>
      
@@ -84,7 +87,7 @@
   
   <br>
   <br>
-  <h6>Jednotlivé zaúčtované doklady</h6>
+  <h4>Jednotlivé zaúčtované doklady</h4>
 
 </div>  
 
@@ -96,7 +99,7 @@
   <br>
   <br>
 
-<h6>Objednávky - dosud nespárované</h6>
+<h4>Objednávky - dosud nespárované</h4>
 {control simpleGrid2} 
 <br>
 <br>
@@ -108,6 +111,8 @@
 
 <br>
 <a class="btn btn-primary" n:href="Hezky:show" role="button">← zpět na Hezký rozpočet</a>
+<a class="btn btn-primary" n:href="Detail:show" role="button">← zpět na Podrobný rozpočet</a>
+  <br>
   <br>
     <br>
 
