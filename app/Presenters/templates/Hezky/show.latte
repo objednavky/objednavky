@@ -21,7 +21,7 @@
   <div class="progress-bar bg-danger" style="width: {$percentNaklady}%;" role="progressbar" aria-valuenow="{$naklady}" aria-valuemin="0" aria-valuemax="{$plan}"></div>
   {/if}
   {if ($percent < 90)}
-  <div class="progress-bar progress-bar-striped progress-bar-animated bg-info" style="width: {$percentObjednano}%;" role="progressbar" aria-valuenow="{$objednano}" aria-valuemin="0" aria-valuemax="{$plan}"></div>
+  <div class="progress-bar progress-bar-striped bg-success" style="width: {$percentObjednano}%;" role="progressbar" aria-valuenow="{$objednano}" aria-valuemin="0" aria-valuemax="{$plan}"></div>
   {elseif ($percent < 100)}
   <div class="progress-bar progress-bar-striped progress-bar-animated bg-warning" style="width: {$percentObjednano}%;" role="progressbar" aria-valuenow="{$objednano}" aria-valuemin="0" aria-valuemax="{$plan}"></div>
   {else }
