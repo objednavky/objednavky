@@ -20,9 +20,6 @@ abstract class BasePresenter extends Presenter
 	/** @var Nette\Database\Context */
     protected $database;
     
-    /* @var Nette\Http\Session @inject */
-    public $session;
-
     /** @var App\Model\ObjednavkyManager */
     protected $objednavkyManager;
 

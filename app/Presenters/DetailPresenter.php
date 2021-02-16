@@ -7,6 +7,7 @@ declare(strict_types=1);
 namespace App\Presenters;
 
 use Nette;
+use Nette\Utils;
 use Ublaboo\DataGrid\DataGrid;
 use Nette\Application\UI\Form;
 use stdClass;
@@ -16,16 +17,28 @@ use Ublaboo\DataGrid\AggregationFunction\ISingleColumnAggregationFunction;
 class DetailPresenter extends ObjednavkyBasePresenter
 {
 
-    public function renderShow(int $detailId): void
-	{
-        $jeden = $this->database->table('rozpocet')->get($detailId);
-        
-        if (!$jeden) {
-            $this->error('Stránka nebyla nalezena');
+    private $sessionSection;
+
+    protected function startup()
+    {
+        parent::startup();
+        if (!isset($this->sessionSection)) {
+            $this->sessionSection = $this->getSession('DetailPresenter');
         }
-        
-        $this->template->rozpocty = $this->database->table('rozpocet');
-        $source = $this->mapRozpocet(1);
+    }
+
+    public function renderShow(?int $detailId): void
+	{
+        $setup = $this->getSetup(1);
+        if (isset($detailId) && null !== $this->database->table('hezky')->get($detailId) ) {
+            $this->template->hezkyRozpocetNazev = 'Podrobný rozpočet: '.$this->database->table('hezky')->where('id',$detailId)->fetch()->hezky_rozpocet;
+            $source = $this->mapDetailniRozpocet(1, $this->database->table('rozpocet')->where('rok',$setup->rok)->where('verze',$setup->verze)->where('hezky',  $detailId));
+        } else {
+            $this->template->hezkyRozpocetNazev = 'Podrobný rozpočet kompletní';
+            $source = $this->mapDetailniRozpocet(1, $this->database->table('rozpocet')->where('rok',$setup->rok)->where('verze',$setup->verze));
+        }
+        //uloz vysledek databazove query do session pro dalsi pouziti v createComponentXX (setrime databazi)
+        $this->sessionSection->source = $source;
 
         $this->template->mySumV = $this->sumColumn($source, 'mySumV');
         $this->template->mySumN = $this->sumColumn($source, 'mySumN');
@@ -35,20 +48,18 @@ class DetailPresenter extends ObjednavkyBasePresenter
         $this->template->plan = $this->sumColumn($source, 'castka') + $this->sumColumn($source, 'sablony');
         $this->template->castka = $this->sumColumn($source, 'castka');
         $this->template->sablony = $this->sumColumn($source, 'sablony');
-        $this->template->percent = $this->template->naklady == 0 ? 0 : round(($this->template->plan /  $this->template->naklady) * 100, 0);
-        $this->template->zbyva = $this->template->plan - $this->template->naklady;
+        $this->template->objednano = $this->sumColumn($source, 'objednano');
+        $this->template->percentNaklady = $this->template->naklady == 0 ? 0 : round(($this->template->naklady / $this->template->plan) * 100, 0);
+        $this->template->percentObjednano = $this->template->objednano == 0 ? 0 : round(($this->template->objednano / $this->template->plan) * 100, 0);
+        $this->template->percent = $this->template->percentObjednano + $this->template->percentNaklady;
+        $this->template->rozdil = $this->sumColumn($source, 'rozdil');
     }
 
 
-    private function mapRozpocet($argument)
+    private function mapDetailniRozpocet($argument, $rozpocets)
     {
         $setup = $this->getSetup(1);
-        $zasejedenID = $this->getParameter('detailId');
-        $rozpocets =$this->database->table('rozpocet')->where('rok',$setup->rok)->where('verze',$setup->verze)->where('hezky',$zasejedenID);
         
-        // jen vybrané rozpočty podle hezky
-        bdump($rozpocets);
-
         $fetchedRozpocets = [];
         foreach ($rozpocets as $rozpocet) {
             $item = new stdClass;
@@ -103,8 +114,8 @@ class DetailPresenter extends ObjednavkyBasePresenter
     public function createComponentSimpleGrid($name)
     {
         $grid = new DataGrid($this, $name);
-        $source = $this->mapRozpocet(1);
-        $grid->setDataSource($source);
+        $grid->setDataSource($this->sessionSection->source);
+
         $grid->addColumnLink('rozpocet', 'Rozpočet', 'Man:show', 'rozpocet', ['manId' => 'id']);
         // $grid->addColumnText('rozpocet', 'Rozpočet')->setAlign('left');
         $grid->addColumnNumber('castka', 'Plán vlastní Kč')->setAlign('right');

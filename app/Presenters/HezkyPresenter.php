@@ -16,17 +16,24 @@ use Ublaboo\DataGrid\AggregationFunction\ISingleColumnAggregationFunction;
 class HezkyPresenter extends ObjednavkyBasePresenter
 {
 
+    private $sessionSection;
+
     protected function startup()
     {
         parent::startup();
-
-        
+        if (!isset($this->sessionSection)) {
+            $this->sessionSection = $this->getSession('HezkyPresenter');
+        }
     }
 
 
     public function renderShow() 
     {                   //renderShow
-        $source = $this->mapRozpocet(1);
+        $source = $this->mapHezkyRozpocet(1);
+
+        //uloz vysledek databazove query do session pro dalsi pouziti v createComponentXX (setrime databazi)
+        $this->sessionSection->source = $source;
+
         $this->template->mySumV = $this->sumColumn($source, 'mySumV');
         $this->template->mySumN = $this->sumColumn($source, 'mySumN');
         $this->template->mySumD = $this->sumColumn($source, 'mySumD');
@@ -35,13 +42,15 @@ class HezkyPresenter extends ObjednavkyBasePresenter
         $this->template->plan = $this->sumColumn($source, 'castka') + $this->sumColumn($source, 'sablony');
         $this->template->castka = $this->sumColumn($source, 'castka');
         $this->template->sablony = $this->sumColumn($source, 'sablony');
-        $this->template->percent = $this->template->naklady == 0 ? 0 : round(($this->template->plan /  $this->template->naklady) * 100, 0);
-        $this->template->zbyva = $this->template->plan - $this->template->naklady;
-        bdump($source);
+        $this->template->objednano = $this->sumColumn($source, 'objednano');
+        $this->template->percentNaklady = $this->template->naklady == 0 ? 0 : round(($this->template->naklady / $this->template->plan) * 100, 0);
+        $this->template->percentObjednano = $this->template->objednano == 0 ? 0 : round(($this->template->objednano / $this->template->plan) * 100, 0);
+        $this->template->percent = $this->template->percentObjednano + $this->template->percentNaklady;
+        $this->template->rozdil = $this->sumColumn($source, 'rozdil');
     } 
 
  
-    private function mapRozpocet($argument)
+    private function mapHezkyRozpocet($argument)
     {
         $rok=$this->getSetup(1)->rok;      //zjitim rok a verzi;
         $verze=$this->getSetup(1)->verze;
@@ -104,10 +113,7 @@ class HezkyPresenter extends ObjednavkyBasePresenter
     {
         $grid = new DataGrid($this, $name);
         
-        $source = $this->mapRozpocet(1);
-
-        
-        $grid->setDataSource($source);
+        $grid->setDataSource($this->sessionSection->source);
       
         $grid->addColumnLink('hezz', 'Rozpočet', 'Detail:show', 'hezz', ['detailId' => 'id']);
         // $grid->addColumnText('hezz', 'Rozpočet')->setAlign('left');

@@ -155,7 +155,8 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
     {
         $grid = new DataGrid($this, $name);
         $zasejedenID = $this->jedenId;
-        $grid->setDataSource($this->mapCinnost(1,$zasejedenID));
+        $source = $this->mapCinnost(1,$zasejedenID);
+        $grid->setDataSource($source);
         $grid->addColumnText('cinnost', 'Činnost');
         $grid->addColumnText('nazev_cinnosti', 'Název činnosti');
         $grid->addColumnNumber('rozpocetV', 'Plánovaný rozpočet - při více činnostech lze použít na všechny')->addCellAttributes(['class' => 'text-success']);
@@ -174,31 +175,11 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
             'rozpocetS','sablony','sablonyObj','dotace','zbyvaS','dotace','dotaceObj']);
         // $grid->addExportCsvFiltered('Export do csv s filtrem', 'tabulka.csv', 'windows-1250')
         // ->setTitle('Export do csv s filtrem');
-        $grid->addExportCsv('Export do csv', 'tabulka.csv', 'windows-1250')
-            ->setTitle('Export do csv');
-        $grid->setPagination(false);
+        $grid->setPagination(count($source>10));
+        $grid->setItemsPerPageList([10, 30, 50, 100]);
         // ->setSplitWordsSearch(FALSE);     bude to hledat při více slovech jen celý řetězec
 
-        $translator = new \Ublaboo\DataGrid\Localization\SimpleTranslator([
-            'ublaboo_datagrid.no_item_found_reset' => 'Žádné položky nenalezeny. Filtr můžete vynulovat',
-            'ublaboo_datagrid.no_item_found' => 'Žádné položky nenalezeny.',
-            'ublaboo_datagrid.here' => 'zde',
-            'ublaboo_datagrid.items' => 'Položky',
-            'ublaboo_datagrid.all' => 'všechny',
-            'ublaboo_datagrid.from' => 'z',
-            'ublaboo_datagrid.reset_filter' => 'Resetovat filtr',
-            'ublaboo_datagrid.group_actions' => 'Hromadné akce',
-            'ublaboo_datagrid.show_all_columns' => 'Zobrazit všechny sloupce',
-            'ublaboo_datagrid.hide_column' => 'Skrýt sloupec',
-            'ublaboo_datagrid.action' => 'Akce',
-            'ublaboo_datagrid.previous' => 'Předchozí',
-            'ublaboo_datagrid.next' => 'Další',
-            'ublaboo_datagrid.choose' => 'Vyberte',
-            'ublaboo_datagrid.execute' => 'Provést',
-            'Name' => 'Jméno',
-            'Inserted' => 'Vloženo'
-        ]);
-        $grid->setTranslator($translator);
+        $grid->setTranslator($this->getTranslator());
     } 
  
     public function createComponentSimpleGrid($name)
@@ -207,7 +188,8 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
         $zasejedenID = $this->jedenId;
         //     $relevantni = $this->database->table('cinnost')->select('cinnost')->where('id_rozpocet',$zasejedenID);   //seznam cinnosti patrici k vybranemu rozpoctu
         //    $vysledek = $this->database->table('denik')->where('cinnost_d', $relevantni)->where('petky',  1) ;   //polozky deniku dle seznamu cinnosti
-       $grid->setDataSource($this->mapDenik(1,$zasejedenID));
+        $source = $this->mapDenik(1,$zasejedenID);
+        $grid->setDataSource($source);
         $grid->addColumnText('datum', 'Datum');
         $grid->addColumnText('cinnost_d', 'Činnost');
         $grid->addColumnText('doklad', 'Doklad');
@@ -220,36 +202,14 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
         $grid->addColumnNumber('dotace', 'Účelové dotace Kč');
         $grid->addColumnNumber('preuctovani', 'Přeúčtování Kč');
         $grid->addColumnNumber('cisloObjednavky', 'Číslo objednávky');
-        $grid->setPagination(true);
-        $grid->setItemsPerPageList([30, 50, 100]);
+        $grid->setPagination(count($source)>10);
+        $grid->setItemsPerPageList([10, 30, 50, 100]);
         $grid->setColumnsSummary(['vlastni','sablony','dotace', 'preuctovani']);
         // $grid->addFilterRange('vlastni', 'Částka Kč');
         // $grid->addExportCsvFiltered('Export do csv s filtrem', 'tabulka.csv', 'windows-1250')
         // ->setTitle('Export do csv s filtrem');
-        $grid->addExportCsv('Export do csv', 'tabulka.csv', 'windows-1250')
-            ->setTitle('Export do csv');
 
-        $translator = new \Ublaboo\DataGrid\Localization\SimpleTranslator([
-            'ublaboo_datagrid.no_item_found_reset' => 'Žádné položky nenalezeny. Filtr můžete vynulovat',
-            'ublaboo_datagrid.no_item_found' => 'Žádné položky nenalezeny.',
-            'ublaboo_datagrid.here' => 'zde',
-            'ublaboo_datagrid.items' => 'Položky',
-            'ublaboo_datagrid.all' => 'všechny',
-            'ublaboo_datagrid.from' => 'z',
-            'ublaboo_datagrid.reset_filter' => 'Resetovat filtr',
-            'ublaboo_datagrid.group_actions' => 'Hromadné akce',
-            'ublaboo_datagrid.show_all_columns' => 'Zobrazit všechny sloupce',
-            'ublaboo_datagrid.hide_column' => 'Skrýt sloupec',
-            'ublaboo_datagrid.action' => 'Akce',
-            'ublaboo_datagrid.previous' => 'Předchozí',
-            'ublaboo_datagrid.next' => 'Další',
-            'ublaboo_datagrid.choose' => 'Vyberte',
-            'ublaboo_datagrid.execute' => 'Provést',
-    
-            'Name' => 'Jméno',
-            'Inserted' => 'Vloženo'
-        ]);
-        $grid->setTranslator($translator);
+        $grid->setTranslator($this->getTranslator());
     //    $grid->setMultiSortEnabled($enabled = TRUE);
     // $grid->addAggregationFunction('castka', new FunctionSum('castka'));
     } 
@@ -260,7 +220,6 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
         $relevantni =   $this->database->table('cinnost')->select('id')->where('id_rozpocet',  $zasejedenID );
         $source = $this->database->table('objednavky')->where('cinnost', $relevantni)->where('stav', [3,4,9]);
         $grid = new DataGrid($this, $name);
-        $grid->setDataSource($source );        
         $grid->setDataSource($source);
         $grid->addColumnText('id_prehled','Číslo objednávky');
         $grid->addColumnText('prehled_popis','Popis objednávky','prehled.popis:id_prehled');
@@ -274,33 +233,12 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
         $grid->addColumnText('stredisko','Středisko','stredisko.stredisko:stredisko');
         $grid->addColumnText('castka', 'Částka');
         $grid->addColumnText('stav', 'Stav objednávky','lidsky_status.popis:stav');
-        $grid->setPagination(false);
+        $grid->setPagination(count($source)>10);
+        $grid->setItemsPerPageList([10, 30, 50, 100]);
         // $grid->addExportCsvFiltered('Export do csv s filtrem', 'tabulka.csv', 'windows-1250')
         // ->setTitle('Export do csv s filtrem');
-        $grid->addExportCsv('Export do csv', 'tabulka.csv', 'windows-1250')
-        ->setTitle('Export do csv');
-        $grid->setPagination(false);
 
-        $translator = new \Ublaboo\DataGrid\Localization\SimpleTranslator([
-            'ublaboo_datagrid.no_item_found_reset' => 'Žádné položky nenalezeny. Filtr můžete vynulovat',
-            'ublaboo_datagrid.no_item_found' => 'Žádné položky nenalezeny.',
-            'ublaboo_datagrid.here' => 'zde',
-            'ublaboo_datagrid.items' => 'Položky',
-            'ublaboo_datagrid.all' => 'všechny',
-            'ublaboo_datagrid.from' => 'z',
-            'ublaboo_datagrid.reset_filter' => 'Resetovat filtr',
-            'ublaboo_datagrid.group_actions' => 'Hromadné akce',
-            'ublaboo_datagrid.show_all_columns' => 'Zobrazit všechny sloupce',
-            'ublaboo_datagrid.hide_column' => 'Skrýt sloupec',
-            'ublaboo_datagrid.action' => 'Akce',
-            'ublaboo_datagrid.previous' => 'Předchozí',
-            'ublaboo_datagrid.next' => 'Další',
-            'ublaboo_datagrid.choose' => 'Vyberte',
-            'ublaboo_datagrid.execute' => 'Provést',
-            'Name' => 'Jméno',
-            'Inserted' => 'Vloženo'
-        ]);
-        $grid->setTranslator($translator);
+        $grid->setTranslator($this->getTranslator());
     } 
 
     public function createComponentSimpleGrid3($name)
@@ -309,7 +247,6 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
         $relevantni =   $this->database->table('cinnost')->select('id')->where('id_rozpocet',  $zasejedenID );
         $source = $this->database->table('objednavky')->where('cinnost', $relevantni)->where('stav', [0,1]);
         $grid = new DataGrid($this, $name);
-        $grid->setDataSource($source );        
         $grid->setDataSource($source);
         $grid->addColumnText('id_prehled','Číslo objednávky');
         $grid->addColumnText('prehled_popis','Popis objednávky','prehled.popis:id_prehled');
@@ -323,13 +260,23 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
         $grid->addColumnText('stredisko','Středisko','stredisko.stredisko:stredisko');
         $grid->addColumnText('castka', 'Částka');
         $grid->addColumnText('stav', 'Stav objednávky','lidsky_status.popis:stav');
-        $grid->setPagination(false);
+        $grid->setPagination(count($source)>10);
+        $grid->setItemsPerPageList([10, 30, 50, 100]);
         // $grid->addExportCsvFiltered('Export do csv s filtrem', 'tabulka.csv', 'windows-1250')
         // ->setTitle('Export do csv s filtrem');
-        $grid->addExportCsv('Export do csv', 'tabulka.csv', 'windows-1250')
-        ->setTitle('Export do csv');
-        $grid->setPagination(false);
 
+        $grid->setTranslator($this->getTranslator());
+    } 
+ 
+
+/**********************************************************************************************************************
+ * POMOCNÉ FUNKCE
+ **********************************************************************************************************************/
+
+   /**
+     * pomocná funkce na vytvoření translatoru pro grid
+     */
+    private function getTranslator() {
         $translator = new \Ublaboo\DataGrid\Localization\SimpleTranslator([
             'ublaboo_datagrid.no_item_found_reset' => 'Žádné položky nenalezeny. Filtr můžete vynulovat',
             'ublaboo_datagrid.no_item_found' => 'Žádné položky nenalezeny.',
@@ -349,7 +296,7 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
             'Name' => 'Jméno',
             'Inserted' => 'Vloženo'
         ]);
-        $grid->setTranslator($translator);
-    } 
-    
+        return $translator;
+    }
+        
 }

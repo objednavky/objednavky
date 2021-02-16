@@ -13,7 +13,20 @@
 <br>	 
 
 <div class="progress" style="height: 10px;">
-  <div class="progress-bar" style="width: {$percent}%;" role="progressbar" aria-valuenow="{$naklady}" aria-valuemin="0" aria-valuemax="{$plan}"></div>
+  {if ($percentNaklady < 90)}
+  <div class="progress-bar" style="width: {$percentNaklady}%;" role="progressbar" aria-valuenow="{$naklady}" aria-valuemin="0" aria-valuemax="{$plan}"></div>
+  {elseif ($percentNaklady < 100)}
+  <div class="progress-bar bg-warning" style="width: {$percentNaklady}%;" role="progressbar" aria-valuenow="{$naklady}" aria-valuemin="0" aria-valuemax="{$plan}"></div>
+  {else }
+  <div class="progress-bar bg-danger" style="width: {$percentNaklady}%;" role="progressbar" aria-valuenow="{$naklady}" aria-valuemin="0" aria-valuemax="{$plan}"></div>
+  {/if}
+  {if ($percent < 90)}
+  <div class="progress-bar progress-bar-striped" style="width: {$percentObjednano}%;" role="progressbar" aria-valuenow="{$objednano}" aria-valuemin="0" aria-valuemax="{$plan}"></div>
+  {elseif ($percent < 100)}
+  <div class="progress-bar progress-bar-striped bg-warning" style="width: {$percentObjednano}%;" role="progressbar" aria-valuenow="{$objednano}" aria-valuemin="0" aria-valuemax="{$plan}"></div>
+  {else }
+  <div class="progress-bar progress-bar-striped bg-danger" style="width: {$percentObjednano}%;" role="progressbar" aria-valuenow="{$objednano}" aria-valuemin="0" aria-valuemax="{$plan}"></div>
+  {/if}
 </div>
 <br>
 
