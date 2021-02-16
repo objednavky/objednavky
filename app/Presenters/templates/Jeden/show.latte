@@ -25,17 +25,19 @@
   {/if }
 
   <br>
-  <h6>{$jeden->obsah}</h6>
+  <p>{$jeden->obsah}</p>
+  <br>
+  <a class="btn btn-primary" n:href="Homepage:default" role="button">← zpět na hlavní stránku</a>
   <br>
   <br>
  
-  <h6>Přehled</h6>
+  <h4>Přehled</h4>
  
 {control prehledGrid} 
   
   <br>
   <br>
-  <h6>Jednotlivé zaúčtované doklady</h6>
+  <h4>Jednotlivé zaúčtované doklady</h4>
 
 </div>  
 
@@ -47,20 +49,20 @@
   <br>
   <br>
 
-<h6>Schválené a ověřené objednávky - dosud nezaúčtované</h6>
+<h4>Schválené a ověřené objednávky - dosud nezaúčtované</h4>
 {control simpleGrid2} 
 <br>
 <br>
 <br>
-<h6>Objednávky čekající na schválení nebo ověření</h6>
+<h4>Objednávky čekající na schválení nebo ověření</h4>
 {control simpleGrid3} 
 
 <br>
 <br>
 <br>
 <a class="btn btn-primary" n:href="Homepage:default" role="button">← zpět na hlavní stránku</a>
-  <br>
-    <br>
+<br>
+<br>
 
 </div>
 

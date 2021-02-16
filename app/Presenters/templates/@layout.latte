@@ -51,7 +51,7 @@
 					</a>
 					<div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
 					<a class="dropdown-item" n:href="Hezky:show">Hezký rozpočet</a> 
-					<a class="dropdown-item" n:href="Detail:show">Podrobný rozpočet</a> 
+					<a class="dropdown-item" n:href="Detail:show detailId:-1">Podrobný rozpočet</a> 
 					</div>
       </li>
 	  {if in_array('finance', $presenter->getUser()->getRoles()) ||  in_array('admin', $presenter->getUser()->getRoles()) }
