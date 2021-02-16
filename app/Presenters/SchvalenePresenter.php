@@ -138,8 +138,8 @@ class SchvalenePresenter extends ObjednavkyBasePresenter
         // ->setTitle('Export do csv s filtrem');
         $grid->addExportCsv('Export do csv', 'tabulka.csv', 'windows-1250')
             ->setTitle('Export do csv');
-        $grid->setPagination(true);
-        $grid->setItemsPerPageList([10, 20, 50]);
+        $grid->setPagination(count($source)>10);
+        $grid->setItemsPerPageList([10, 30, 100]);
         $grid->setColumnsHideable();
 
         $translator = new \Ublaboo\DataGrid\Localization\SimpleTranslator([

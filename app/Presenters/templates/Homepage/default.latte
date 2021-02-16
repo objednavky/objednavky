@@ -27,18 +27,35 @@
   {/if }
 
 </div>
-<div class="shrnuti-hlavni container">
+<div class="shrnuti-hlavni container-fluid">
 
   <br >
   <div class="shrnuti-hlavni row" >
-    <div class="shrnuti-blok col">
+    <div class="shrnuti-blok col-md">
+      <div class="shrnuti-nadpis container">
+        <h4>Časté akce:</h4>
+      </div>
+      <div class="shrnuti-vnitrek row">
+         <div class="col"><a class="" n:href="NovaObjednavka:default" role="button">Chci zadat novou objednávku</a></div>
+      </div>
+      <div class="shrnuti-vnitrek row">
+         <div class="col"><a class="" n:href="MojeObjednavky:prehled" role="button">Ukaž mi moje objednávky</a></div>
+      </div>
+    </div>
+    <div class="shrnuti-blok col-md">
       <div class="shrnuti-nadpis container">
         <h4>Vaše objednávky:</h4>
       </div>
       <a href="/moje-objednavky/prehled">
         <div class="shrnuti-vnitrek row">
-          <div class="col-8">otevřené</div>
-          <div class="col-4 text-right">{$objed_jiny_sch}</div>
+          <div class="col-8">čekající na schválení</div>
+          <div class="col-4 text-right">{$objed_neschval_jiny_sch}</div>
+        </div>
+      </a>
+      <a href="/moje-objednavky/prehled#schvalene">
+        <div class="shrnuti-vnitrek row">
+          <div class="col-8">schválené</div>
+          <div class="col-4 text-right">{$objed_schval_jiny_sch}</div>
         </div>
       </a>
       <a href="/moje-objednavky/prehled#zamitnute">
@@ -48,9 +65,9 @@
         </div>
       </a>
     </div>
-    <div class="shrnuti-blok col">
+    <div class="shrnuti-blok col-md">
       <div class="shrnuti-nadpis container">
-        <h4>Cizí objednávky k Vašemu vyřízení:</h4>
+        <h4>Cizí objednávky k vyřízení:</h4>
       </div>
       <a href="#na-schvaleni">
         <div class="shrnuti-vnitrek row">

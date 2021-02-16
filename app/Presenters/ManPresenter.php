@@ -15,10 +15,24 @@ use stdClass;
 class ManPresenter extends ObjednavkyBasePresenter
 {
 
-	public function renderShow(int $manId): void
+    private $sessionSection;
+
+    protected function startup()
+    {
+        parent::startup();
+        if (!isset($this->sessionSection)) {
+            $this->sessionSection = $this->getSession('ManPresenter');
+        }
+    }
+
+	public function renderShow(?int $manId): void
 	{
         $jeden = $this->database->table('rozpocet')->get($manId);
-        if (!$jeden) {
+        if (isset($jeden)) {
+            $this->sessionSection->jeden= $jeden;
+        } elseif (isset($this->sessionSection->jeden)) {
+            $jeden = $this->sessionSection->jeden;
+        } else {
             $this->error('Stránka nebyla nalezena');
         }
         $this->template->jeden = $jeden;
@@ -84,7 +98,7 @@ class ManPresenter extends ObjednavkyBasePresenter
         $grid = new DataGrid($this, $name);
         $zasejedenID = $this->getParameter('manId');
         $grid->setDataSource($this->mapRozpocet(1,$zasejedenID));
-        $grid->addColumnText('datum', 'Datum');
+        $grid->addColumnDateTime('datum', 'Datum');
         $grid->addColumnText('cinnost_d', 'Činnost');
         $grid->addColumnText('doklad', 'Doklad');
         $grid->addColumnText('firma', 'Firma');
@@ -166,8 +180,9 @@ class ManPresenter extends ObjednavkyBasePresenter
         $zasejedenID = $this->getParameter('manId');
         $grid = new DataGrid($this, $name);
         $grid->setDataSource($this->mapObjednavky($zasejedenID));        // schválené a OVERENE
-        $grid->addColumnText('id_prehled','Číslo objednávky');
-        $grid->addColumnText('radka','Číslo položky');
+        $grid->addColumnNumber('id_prehled','Č. obj.')->setSortable()->setSortableResetPagination()
+            ->setRenderer(function($item) { return $item['id_prehled'] . '/' .  $item['radka']; });
+        //$grid->addColumnText('radka','Číslo položky');
         $grid->addColumnText('firma','Firma')->setFilterText();
         $grid->addColumnText('popis','Popis')->setFilterText();
         $grid->addColumnNumber('stav', 'Stav');

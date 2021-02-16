@@ -30,7 +30,16 @@ class DetailPresenter extends ObjednavkyBasePresenter
     public function renderShow(?int $detailId): void
 	{
         $setup = $this->getSetup(1);
-        if (isset($detailId) && null !== $this->database->table('hezky')->get($detailId) ) {
+        
+        if (isset($detailId)) {
+            $this->sessionSection->detailId= $detailId;
+        } elseif (isset($this->sessionSection->detailId)) {
+            $detailId = $this->sessionSection->detailId;
+        } else {
+            $detailId = -1;
+        }
+
+        if (($detailId > -1) && null !== $this->database->table('hezky')->get($detailId) ) {
             $this->template->hezkyRozpocetNazev = 'Podrobný rozpočet: '.$this->database->table('hezky')->where('id',$detailId)->fetch()->hezky_rozpocet;
             $source = $this->mapDetailniRozpocet(1, $this->database->table('rozpocet')->where('rok',$setup->rok)->where('verze',$setup->verze)->where('hezky',  $detailId));
         } else {

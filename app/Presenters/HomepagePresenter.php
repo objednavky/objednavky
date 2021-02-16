@@ -43,8 +43,10 @@ class HomepagePresenter extends ObjednavkyBasePresenter
             ->where('stav ', 0)->count('id');    //    počet objednávek čekající na mé schválení
         $this->template->objed_ja_ov = $this->database->table('objednavky')->where('kdo2', $uz)
             ->where('stav ', 1)->count('id');    //    počet objednávek čekající na mé ověření
-        $this->template->objed_jiny_sch = $this->database->table('objednavky')->where('zakladatel', $uz)->where('stav ?', [0,1,3,4,9])
-        ->count('id');    //    počet objednávek, které jsem zadal a ještě nejsou schválené
+        $this->template->objed_neschval_jiny_sch = $this->database->table('objednavky')->where('zakladatel', $uz)->where('stav ?', [0,1])
+            ->count('id');    //    počet objednávek, které jsem zadal a ještě nejsou schválené
+        $this->template->objed_schval_jiny_sch = $this->database->table('objednavky')->where('zakladatel', $uz)->where('stav ?', [3,4,9])
+            ->count('id');    //    počet objednávek, které jsem zadal a ještě nejsou schválené
         $this->template->objed_zamitnute = $this->database->table('objednavky')->where('zakladatel', $uz)->where('stav = ? OR stav = ?', 2,5)
            ->count('id');    //    počet objednávek, které jsem zadal a byly zamítnuté
         $this->template->percent = $this->template->mySum == 0 ? 0: round(($this->template->mySum /  $this->template->castkaSablony) * 100, 0);
@@ -136,12 +138,18 @@ class HomepagePresenter extends ObjednavkyBasePresenter
         $grid->addColumnLink('rozpocet', 'Rozpočet', 'Jeden:show', 'rozpocet', ['jedenId' => 'id']);
         $grid->addColumnText('jmeno', 'Hospodář');
         $grid->addColumnText('jmeno2', 'Zástupce');
-        $grid->addColumnNumber('castkaRozpocet', 'Rozpočet - roční plán')->addCellAttributes(['class' => 'text-success']);
-        $grid->addColumnNumber('mySumV', 'Rozpočet - čerpáno');
-        $grid->addColumnNumber('rozdilV', 'Rozpočet - zbývá');
-        $grid->addColumnNumber('castkaSablony', 'Šablony - roční plán')->addCellAttributes(['class' => 'text-success']);
-        $grid->addColumnNumber('mySumS', 'Šablony - čerpáno');
-        $grid->addColumnNumber('rozdilS', 'Šablony - zbývá');
+        $grid->addColumnNumber('castkaRozpocet', 'Rozpočet - roční plán')->addCellAttributes(['class' => 'text-success'])
+            ->setRenderer(function($item):string { return (number_format($item['castkaRozpocet'],0,","," ") .' Kč'); });
+        $grid->addColumnNumber('mySumV', 'Rozpočet - čerpáno')
+            ->setRenderer(function($item):string { return (number_format($item['mySumV'],0,","," ") .' Kč'); });
+        $grid->addColumnNumber('rozdilV', 'Rozpočet - zbývá')
+            ->setRenderer(function($item):string { return (number_format($item['rozdilV'],0,","," ") .' Kč'); });
+        $grid->addColumnNumber('castkaSablony', 'Šablony - roční plán')->addCellAttributes(['class' => 'text-success'])
+            ->setRenderer(function($item):string { return (number_format($item['castkaSablony'],0,","," ") .' Kč'); });
+        $grid->addColumnNumber('mySumS', 'Šablony - čerpáno')
+            ->setRenderer(function($item):string { return (number_format($item['mySumS'],0,","," ") .' Kč'); });
+        $grid->addColumnNumber('rozdilS', 'Šablony - zbývá')
+            ->setRenderer(function($item):string { return (number_format($item['rozdilS'],0,","," ") .' Kč'); });
         // $grid->addExportCsvFiltered('Export do csv s filtrem', 'tabulka.csv', 'windows-1250')
         // ->setTitle('Export do csv s filtrem');
         $grid->addExportCsv('Export do csv', 'tabulka.csv', 'windows-1250')
@@ -216,27 +224,19 @@ class HomepagePresenter extends ObjednavkyBasePresenter
         $this->grids['schvalovaciGrid'] = $grid;
         $source = $this->database->table('objednavky')->where('kdo', $uz)->where('stav', 0);
         $grid->setDataSource($source);
-        $grid->addColumnText('id_prehled','Č. obj.')->setSortable()->setSortableResetPagination();
-        $grid->addColumnCallback('id_prehled', function($column, $item) {
-            $column->setRenderer(function() use ($item) {
-                return $item['id_prehled'] . '/' .  $item['radka'];
-            });
-        });
+        $grid->addColumnText('id_prehled','Č. obj.')->setSortable()->setSortableResetPagination()
+            ->setRenderer(function($item) { return $item['id_prehled'] . '/' .  $item['radka']; });
 //        $grid->addColumnText('radka','Č. pol.');
+        $grid->addColumnDateTime('zalozil','Založeno')->setFormat('d.m.Y')->setSortable()->setSortableResetPagination();
         $grid->addColumnText('prehled_popis','Popis objednávky','prehled.popis:id_prehled')->setSortable()->setSortableResetPagination();
         $grid->addColumnText('zakladatel','Zadavatel','uzivatel.jmeno:zakladatel' )->setSortable()->setSortableResetPagination();
-        $grid->addColumnDateTime('zalozil','Založeno')->setFormat('d.m.Y H:i:s')->setSortable()->setSortableResetPagination();
         $grid->addColumnText('firma','Firma')->setSortable()->setSortableResetPagination();
         $grid->addColumnText('popis','Popis položky')->setSortable()->setSortableResetPagination();
         $grid->addColumnText('cinnost','Činnost','cinnost.cinnost:cinnost')->setSortable()->setSortableResetPagination();
         $grid->addColumnText('zakazka','Zakázka','zakazky.zakazka:zakazka')->setSortable()->setSortableResetPagination();
         $grid->addColumnText('stredisko','Středisko','stredisko.stredisko:stredisko')->setSortable()->setSortableResetPagination();
-        $grid->addColumnNumber('castka', 'Částka')->setSortable()->setSortableResetPagination();
-        $grid->addColumnCallback('castka', function($column, $item) {
-            $column->setRenderer(function() use ($item):string {
-                return ($item['castka'] .' Kč');   
-            });
-        });
+        $grid->addColumnNumber('castka', 'Částka')->setSortable()->setSortableResetPagination()
+            ->setRenderer(function($item):string { return (number_format($item['castka'],0,","," ") .' Kč'); });
         $grid->addColumnText('nutno_overit', 'Nutné ověřit','nutno_overit')->setAlign('center')->setSortable()->setSortableResetPagination();
         $grid->addColumnCallback('nutno_overit', function($column, $item) {
             $column->setRenderer(function() use ($item) {
@@ -317,9 +317,9 @@ class HomepagePresenter extends ObjednavkyBasePresenter
             });
         });
 //        $grid->addColumnText('radka','Č. pol.');
+        $grid->addColumnDateTime('zalozil','Založeno')->setFormat('d.m.Y')->setSortable()->setSortableResetPagination();
         $grid->addColumnText('prehled_popis','Popis objednávky','prehled.popis:id_prehled')->setSortable()->setSortableResetPagination();
         $grid->addColumnText('zakladatel','Zadavatel','uzivatel.jmeno:zakladatel' )->setSortable()->setSortableResetPagination();
-        $grid->addColumnDateTime('zalozil','Založeno')->setFormat('d.m.Y H:i:s')->setSortable()->setSortableResetPagination();
         $grid->addColumnText('firma','Firma')->setSortable()->setSortableResetPagination();
         $grid->addColumnText('popis','Popis položky')->setSortable()->setSortableResetPagination();
         $grid->addColumnText('cinnost','Činnost','cinnost.cinnost:cinnost')->setSortable()->setSortableResetPagination();

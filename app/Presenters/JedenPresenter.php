@@ -10,6 +10,7 @@ use Ublaboo\DataGrid\AggregationFunction\FunctionSum;
 use Ublaboo\DataGrid\AggregationFunction\ISingleColumnAggregationFunction;
 use stdClass;
 
+use function Symfony\Component\String\b;
 
 class JedenPresenter extends ObjednavkyBasePresenter //změna
 {
@@ -122,7 +123,7 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
     {
         $relevantniV_zak = $this->database->table('zakazky')->select('zakazka')->where('vlastni', 1 );
         $relevantniS_zak = $this->database->table('zakazky')->select('zakazka')->where('sablony', 1 );
-        $deniky =$this->database->table('denik')->where('rozpocet',$zasejedenID)->where('petky', $argument);
+        $deniky =$this->database->table('denik')->where('rozpocet',$zasejedenID)->where('petky', $argument)->order('datum DESC');
         //vypisuji všechny položky daného rozpočtu;
         $fetchedDeniky = [];
         foreach ($deniky as $denik) {
@@ -159,24 +160,37 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
         $grid->setDataSource($source);
         $grid->addColumnText('cinnost', 'Činnost');
         $grid->addColumnText('nazev_cinnosti', 'Název činnosti');
-        $grid->addColumnNumber('rozpocetV', 'Plánovaný rozpočet - při více činnostech lze použít na všechny')->addCellAttributes(['class' => 'text-success']);
-        $grid->addColumnNumber('vlastni', 'Utraceno vlastní Kč');
-        $grid->addColumnNumber('vlastniObj', 'Objednáno vlastní Kč');
-        $grid->addColumnNumber('celkemV', 'Celkem Kč');
-        $grid->addColumnNumber('zbyvaV', 'Zbývá v rozpočtu Kč');
-        $grid->addColumnNumber('rozpocetS', 'Plánované šablony na celý rok Kč')->addCellAttributes(['class' => 'text-success']);
-        $grid->addColumnNumber('sablony', 'Šablony již utraceno Kč');
-        $grid->addColumnNumber('sablonyObj', 'Šablony objednáno Kč');
-        $grid->addColumnNumber('celkemS', 'Celkem Kč');
-        $grid->addColumnNumber('zbyvaS', 'V šablonách zbývá Kč');
-        $grid->addColumnNumber('dotace', 'Účelové dotace již utraceno Kč');
-        $grid->addColumnNumber('dotaceObj', 'Účelové dotace objednáno Kč');
+        $grid->addColumnNumber('rozpocetV', 'Plánovaný rozpočet')->addCellAttributes(['class' => 'text-success'])
+            ->setRenderer(function($item) { return (' - '); });
+        $grid->addColumnNumber('vlastni', 'Utraceno vlastní')
+            ->setRenderer(function($item) { return (number_format($item['vlastni'],0,","," ") .' Kč'); });
+        $grid->addColumnNumber('vlastniObj', 'Objednáno vlastní')
+            ->setRenderer(function($item) { return (number_format($item['vlastniObj'],0,","," ") .' Kč'); });
+        $grid->addColumnNumber('celkemV', 'Celkem vlastní')
+            ->setRenderer(function($item) { return (number_format($item['celkemV'],0,","," ") .' Kč'); });
+        $grid->addColumnNumber('zbyvaV', 'Zbývá z rozpočtu')
+            ->setRenderer(function($item) { return (number_format($item['zbyvaV'],0,","," ") .' Kč'); });
+        $grid->addColumnNumber('rozpocetS', 'Plánované šablony')->addCellAttributes(['class' => 'text-success'])
+            ->setRenderer(function($item) { return (' - '); });
+        $grid->addColumnNumber('sablony', 'Utraceno šablony')
+            ->setRenderer(function($item) { return (number_format($item['sablony'],0,","," ") .' Kč'); });
+        $grid->addColumnNumber('sablonyObj', 'Objednáno šablony')
+            ->setRenderer(function($item) { return (number_format($item['sablonyObj'],0,","," ") .' Kč'); });
+        $grid->addColumnNumber('celkemS', 'Celkem šablony')
+            ->setRenderer(function($item) { return (number_format($item['celkemS'],0,","," ") .' Kč'); });
+        $grid->addColumnNumber('zbyvaS', 'Zbývá z šablon')
+           ->setRenderer(function($item) { return (number_format($item['zbyvaS'],0,","," ") .' Kč'); });
+        $grid->addColumnNumber('dotace', 'Utraceno účelové dotace')
+            ->setRenderer(function($item) { return (number_format($item['dotace'],0,","," ") .' Kč'); });
+        $grid->addColumnNumber('dotaceObj', 'Objednáno účelové dotace')
+            ->setRenderer(function($item) { return (number_format($item['dotaceObj'],0,","," ") .' Kč'); });
         $grid->setColumnsSummary(['rozpocetV','vlastni','vlastniObj','zbyvaV','celkemV','celkemS',
-            'rozpocetS','sablony','sablonyObj','dotace','zbyvaS','dotace','dotaceObj']);
+            'rozpocetS','sablony','sablonyObj','dotace','zbyvaS','dotace','dotaceObj'])
+            ->setRenderer(function($sum, string $column) { return (number_format($sum,0,","," ") .' Kč'); });
         // $grid->addExportCsvFiltered('Export do csv s filtrem', 'tabulka.csv', 'windows-1250')
         // ->setTitle('Export do csv s filtrem');
-        $grid->setPagination(count($source>10));
-        $grid->setItemsPerPageList([10, 30, 50, 100]);
+        $grid->setPagination(count($source)>10);
+        $grid->setItemsPerPageList([10, 30, 100]);
         // ->setSplitWordsSearch(FALSE);     bude to hledat při více slovech jen celý řetězec
 
         $grid->setTranslator($this->getTranslator());
@@ -190,24 +204,31 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
         //    $vysledek = $this->database->table('denik')->where('cinnost_d', $relevantni)->where('petky',  1) ;   //polozky deniku dle seznamu cinnosti
         $source = $this->mapDenik(1,$zasejedenID);
         $grid->setDataSource($source);
-        $grid->addColumnText('datum', 'Datum');
+        $grid->addColumnDateTime('datum', 'Datum')->setFormat('d.m.Y');
         $grid->addColumnText('cinnost_d', 'Činnost');
         $grid->addColumnText('doklad', 'Doklad');
         $grid->addColumnText('firma', 'Firma');
         $grid->addColumnText('popis', 'Popis');
         $grid->addColumnText('stredisko_d', 'Středisko');
         $grid->addColumnText('zakazky', 'Zakázka');
-        $grid->addColumnNumber('vlastni', 'Vlastní Kč');
-        $grid->addColumnNumber('sablony', 'Šablony Kč');
-        $grid->addColumnNumber('dotace', 'Účelové dotace Kč');
-        $grid->addColumnNumber('preuctovani', 'Přeúčtování Kč');
+        $grid->addColumnNumber('vlastni', 'Vlastní Kč')
+            ->setRenderer(function($item) { return (number_format($item['vlastni'],0,","," ") .' Kč'); });
+        $grid->addColumnNumber('sablony', 'Šablony Kč')
+            ->setRenderer(function($item) { return (number_format($item['sablony'],0,","," ") .' Kč'); });
+        $grid->addColumnNumber('dotace', 'Účelové dotace Kč')
+            ->setRenderer(function($item) { return (number_format($item['dotace'],0,","," ") .' Kč'); });
+        $grid->addColumnNumber('preuctovani', 'Přeúčtování Kč')
+            ->setRenderer(function($item) { return (number_format($item['preuctovani'],0,","," ") .' Kč'); });
         $grid->addColumnNumber('cisloObjednavky', 'Číslo objednávky');
         $grid->setPagination(count($source)>10);
-        $grid->setItemsPerPageList([10, 30, 50, 100]);
-        $grid->setColumnsSummary(['vlastni','sablony','dotace', 'preuctovani']);
+        $grid->setItemsPerPageList([10, 30, 100]);
+        $grid->setColumnsSummary(['vlastni','sablony','dotace', 'preuctovani'])
+            ->setRenderer(function($sum, string $column): string { return number_format($sum,0,","," ") . ' Kč'; });
         // $grid->addFilterRange('vlastni', 'Částka Kč');
         // $grid->addExportCsvFiltered('Export do csv s filtrem', 'tabulka.csv', 'windows-1250')
         // ->setTitle('Export do csv s filtrem');
+        $grid->addExportCsv('Export do csv', 'tabulka.csv', 'windows-1250')
+            ->setTitle('Export do csv');
 
         $grid->setTranslator($this->getTranslator());
     //    $grid->setMultiSortEnabled($enabled = TRUE);
@@ -218,12 +239,13 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
     {
         $zasejedenID = $this->jedenId;
         $relevantni =   $this->database->table('cinnost')->select('id')->where('id_rozpocet',  $zasejedenID );
-        $source = $this->database->table('objednavky')->where('cinnost', $relevantni)->where('stav', [3,4,9]);
+        $source = $this->database->table('objednavky')->where('cinnost', $relevantni)->where('stav', [3,4,9])->order('id DESC');
         $grid = new DataGrid($this, $name);
         $grid->setDataSource($source);
-        $grid->addColumnText('id_prehled','Číslo objednávky');
+        $grid->addColumnNumber('id_prehled','Č. obj.')->setSortable()->setSortableResetPagination()
+            ->setRenderer(function($item) { return $item['id_prehled'] . '/' .  $item['radka']; });
         $grid->addColumnText('prehled_popis','Popis objednávky','prehled.popis:id_prehled');
-        $grid->addColumnText('radka','Číslo položky');
+        //$grid->addColumnText('radka','Číslo položky');
         $grid->addColumnText('zakladatel','Zakladatel','uzivatel.jmeno:zakladatel' );
         $grid->addColumnText('firma','Firma');
         $grid->addColumnText('popis','Popis položky');
@@ -231,10 +253,11 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
         $grid->addColumnText('zakazka','Zakázka','zakazky.zakazka:zakazka');
         $grid->addColumnText('zakazkap','Popis zakázky','zakazky.popis:zakazka');
         $grid->addColumnText('stredisko','Středisko','stredisko.stredisko:stredisko');
-        $grid->addColumnText('castka', 'Částka');
+        $grid->addColumnNumber('castka', 'Částka')
+            ->setRenderer(function($item):string { return (number_format($item['castka'],0,","," ") .' Kč'); });
         $grid->addColumnText('stav', 'Stav objednávky','lidsky_status.popis:stav');
         $grid->setPagination(count($source)>10);
-        $grid->setItemsPerPageList([10, 30, 50, 100]);
+        $grid->setItemsPerPageList([10, 30, 100]);
         // $grid->addExportCsvFiltered('Export do csv s filtrem', 'tabulka.csv', 'windows-1250')
         // ->setTitle('Export do csv s filtrem');
 
@@ -245,12 +268,13 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
     {
         $zasejedenID = $this->jedenId;
         $relevantni =   $this->database->table('cinnost')->select('id')->where('id_rozpocet',  $zasejedenID );
-        $source = $this->database->table('objednavky')->where('cinnost', $relevantni)->where('stav', [0,1]);
+        $source = $this->database->table('objednavky')->where('cinnost', $relevantni)->where('stav', [0,1])->order('id DESC');
         $grid = new DataGrid($this, $name);
         $grid->setDataSource($source);
-        $grid->addColumnText('id_prehled','Číslo objednávky');
+        $grid->addColumnNumber('id_prehled','Č. obj.')->setSortable()->setSortableResetPagination()
+            ->setRenderer(function($item) { return $item['id_prehled'] . '/' .  $item['radka']; });
         $grid->addColumnText('prehled_popis','Popis objednávky','prehled.popis:id_prehled');
-        $grid->addColumnText('radka','Číslo položky');
+        //$grid->addColumnText('radka','Číslo položky');
         $grid->addColumnText('zakladatel','Zakladatel','uzivatel.jmeno:zakladatel' );
         $grid->addColumnText('firma','Firma');
         $grid->addColumnText('popis','Popis položky');
@@ -258,10 +282,11 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
         $grid->addColumnText('zakazka','Zakázka','zakazky.zakazka:zakazka');
         $grid->addColumnText('zakazkap','Popis zakázky','zakazky.popis:zakazka');
         $grid->addColumnText('stredisko','Středisko','stredisko.stredisko:stredisko');
-        $grid->addColumnText('castka', 'Částka');
+        $grid->addColumnNumber('castka', 'Částka')
+            ->setRenderer(function($item) { return (number_format($item['castka'],0,","," ") .' Kč'); });
         $grid->addColumnText('stav', 'Stav objednávky','lidsky_status.popis:stav');
         $grid->setPagination(count($source)>10);
-        $grid->setItemsPerPageList([10, 30, 50, 100]);
+        $grid->setItemsPerPageList([10, 30, 100]);
         // $grid->addExportCsvFiltered('Export do csv s filtrem', 'tabulka.csv', 'windows-1250')
         // ->setTitle('Export do csv s filtrem');
 
