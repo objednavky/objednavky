@@ -75,7 +75,7 @@ class ManPresenter extends ObjednavkyBasePresenter
             $item->popis = $denik->popis;
             $item->stredisko_d = $denik->stredisko_d;
             $item->zakazky = $denik->zakazky;
-            $item->cisloObjednavky = "nějaké číslo";
+            $item->cisloObjednavky = $denik->id_prehled;
             $relatedZakazka = $this->database->table('zakazky')->where('zakazka' , $denik->zakazky)->fetch();
             bdump($relatedZakazka);
             $item->vlastni0 = $relatedZakazka->vlastni == 1  ? $denik->castka : 0;      //vlastni 
