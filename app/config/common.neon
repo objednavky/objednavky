@@ -5,7 +5,7 @@ application:
 
 
 session:
-	expiration: 20 minutes
+	expiration: 120 minutes
 
 
 di:
@@ -33,3 +33,9 @@ decorator:
 	App\Presenters\BasePresenter:
 		setup:
 			- setInstanceParam(%instance.name%, %instance.cssClass%, %instance.testing%)
+
+constants:
+	OBJ_DB_ZMENA: 'obj_db_zmena'
+	OBJ_DB_SMAZANI: 'obj_db_smazani'
+	OBJ_DB_IGNORUJ: 'obj_db_ignoruj'
+	OBJ_DB_NOVA: 'obj_db_nova'
