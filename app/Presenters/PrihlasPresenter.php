@@ -86,6 +86,7 @@ class PrihlasPresenter extends BasePresenter
                     $this->flashMessage($e->getMessage());
                     bdump($e);
                 }
+                $this->flashMessage('Uživatel byl úspěšně přihlášen do aplikace. Můžete začít pracovat.', 'success');
                 $this->redirect('Homepage:');
             } catch (\Exception $e) {
                 // Failed to get user details

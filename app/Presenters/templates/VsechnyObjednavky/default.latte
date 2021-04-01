@@ -1,0 +1,40 @@
+{block content}
+
+<div class="container-fluid">
+
+<h1 class="display-4 mt-4">Přehled všech objednávek pro účtárnu</h1>
+
+<h4 class="mt-4" id="nove">Hlavičky objednávek</h4> 
+
+{if $smazane}
+  <a class="btn btn-secondary" n:href="this smazane:0, $prehledId" role="button">Skrýt smazané objednávky</a>
+{else}
+  <a class="btn btn-warning" n:href="this smazane:1, $prehledId" role="button">Zobrazit i smazané objednávky</a>
+{/if}
+{control prehledObjednavekGrid} 
+
+{if $prehledId}
+
+<h4 class="mt-4" id="nove">Detail objednávky {$prehledId}</h4> 
+<a class="btn btn-info" n:href="Uprava:default objId:$prehledId" role="button">Editovat objednávku</a>
+{control detailObjednavkyGrid} 
+
+{/if}
+</div>
+{/block}
+
+{block scripts2}
+<script>
+  $('tr.click-prehled').click(function() {
+      window.location = {link this detail:true}+"&prehledId="+$(this).attr('data-prehled-id');
+  });
+
+  $.nette.ext('ajax', {
+        success: function () {
+          $('tr.click-prehled').click(function() {
+              window.location = {link this detail:true}+"&prehledId="+$(this).attr('data-prehled-id');
+          });
+        }
+  });
+</script>
+{/block}

@@ -57,10 +57,24 @@ a.nav-link {
 .nova-objednavka-label {
     margin-top: 0.9rem;
 }
-.nova-objednavka-input {
+.nova-objednavka-input input:not([type="checkbox"]){
     padding: .3rem;
 }
-.nova-objednavka-input input,
+.nova-objednavka-input input:[type="checkbox"]{
+    width: 25px;
+    height: 25px;
+}
+.form-check {
+    padding-top: 0.6rem;
+    padding-left: 2rem;
+}
+.form-check-input {
+    margin-left: -2rem;
+    margin-top: -0.0rem;
+    width: 25px;
+    height: 25px;
+}
+.nova-objednavka-input input:not([type="checkbox"]),
 .nova-objednavka-input select {
     width: 100%;
 }
@@ -75,6 +89,10 @@ a.nav-link {
     border: 1px solid black;    
     padding: 1rem;
     margin: 1rem;
+}
+
+.right {
+    float: right;
 }
 
 
@@ -110,4 +128,41 @@ a.nav-link {
 }
 .shrnuti-blok a {
     text-decoration: none;
+}
+
+
+.table-striped tbody tr.click-prehled-selected {
+    font-weight: bold;
+    color: #fff;
+    background-color: #17a2b8;
+    border-color: #17a2b8;
+}
+
+.click-prehled {
+    cursor: pointer;
+}
+
+.tr-objednavky-stav-7 {
+    text-decoration: line-through;
+}
+
+.tr-objednavky-stav-2,
+.tr-objednavky-stav-5,
+.tr-objednavky-stav-8 {
+    color: red;
+}
+
+.tr-objednavky-stav-0,
+.tr-objednavky-stav-1 {
+    font-style: italic;
+}
+
+.tr-objednavky-stav-9 {
+    color: blue;
+    font-weight: bold;
+}
+
+.tr-objednavky-stav-6 {
+    color: gray;
+    font-weight: bold;
 }

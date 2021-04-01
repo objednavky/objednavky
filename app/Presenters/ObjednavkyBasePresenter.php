@@ -20,6 +20,7 @@ abstract class ObjednavkyBasePresenter extends BasePresenter
     {
         parent::startup();
         if (!$this->getUser()->isLoggedIn()) {
+            $this->flashMessage($this->name,'info');
             $this->redirect('Prihlas:login');
         }
     }
@@ -43,6 +44,16 @@ abstract class ObjednavkyBasePresenter extends BasePresenter
         }
         return $sum;
     }
+
+    protected final function nactiRoky() {
+        return $this->database->table('rozpocet')->select('DISTINCT rok')->fetchPairs('rok','rok');
+    }
+
+    protected final function nactiVerze($rok) {
+        return $this->database->table('rozpocet')->where('rok', $rok)->select('DISTINCT verze')->fetchPairs('verze','verze');
+    }
+
+
 
 }
 

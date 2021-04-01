@@ -15,7 +15,7 @@ use Tracy\Debugger;
 use Tracy\Dumper;
 
 class FormStylePomocnik{
-    static function makeBootstrap4(Form $form): void
+    static function makeBootstrap4Objednavka(Form $form): void
     {
         $renderer = $form->getRenderer();
         $renderer->wrappers['controls']['container'] = null;
@@ -40,7 +40,7 @@ class FormStylePomocnik{
                 $control->getControlPrototype()->addClass('form-control-file');
 
             } elseif (in_array($type, ['checkbox', 'radio'], true)) {
-                if ($control instanceof Nette\Forms\Controls\Checkbox) {
+                if ($control instanceof \Nette\Forms\Controls\Checkbox) {
                     $control->getLabelPrototype()->addClass('form-check-label');
                 } else {
                     $control->getItemLabelPrototype()->addClass('form-check-label');
@@ -50,4 +50,5 @@ class FormStylePomocnik{
             }
         }
     }
+
 }

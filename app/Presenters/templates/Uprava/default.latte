@@ -1,0 +1,224 @@
+{block content}
+
+
+  {form objednavkyMultipleForm}
+  <h1 class="display-4 mt-4">Úprava uložené objednávky č. {$form->components['id']->value}</h1>
+
+  <p><strong>Upozornění!</strong> Pokud uložíte změny, vrátí se změněné položky objednávky do stavu před schválením!</p>
+
+<div class="nova-objednavka-form container">
+
+    <div class="nova-objednavka-hlavicka">
+      <div class="row" n:if="$form->hasErrors()">
+        <ul class="nova-objednavka-error" n:if="$form->hasErrors()">
+          <li n:foreach="$form->errors as $error">{$error}</li>
+        </ul>
+      </div>
+      <div class="row">
+         <div class="nova-objednavka-label col-2">{label popis}</div>
+        <div class="nova-objednavka-input col-10">{input id}{input popis}</div>
+      </div>
+    </div>
+    <div class="nova-objednavka-polozka" n:multiplier="polozka">
+      <div class="row">
+        <div class="nova-objednavka-label col-4 col-md-2">{label popis_radky}</div>
+        <div class="nova-objednavka-input col-8 col-md-4">{input popis_radky disabled:disabled }<span n:ifcontent>{inputError popis_radky}</span></div>
+        <div class="nova-objednavka-label col-4 col-md-2">{label firma}</div>
+        <div class="nova-objednavka-input col-8 col-md-4">{input firma disabled:disabled}<span n:ifcontent>{inputError firma}</span></div>
+      </div>
+      <div class="row">
+        <div class="nova-objednavka-label col-4 col-md-2">{label strediskoVyber}</div>
+        <div class="nova-objednavka-input col-8 col-md-4">{input strediskoVyber disabled:disabled}<span n:ifcontent>{inputError strediskoVyber}</span></div>
+        <div class="nova-objednavka-label col-4 col-md-2">{label cinnostVyber}</div>
+        <div class="nova-objednavka-input col-8 col-md-4">{input cinnostVyber disabled:disabled}<span n:ifcontent>{inputError cinnostVyber}</span></div>
+      </div>
+      <div class="row">
+      </div>
+      <div class="row">
+        <div class="nova-objednavka-label col-4 col-md-2">{label zakazkaVyber}</div>
+        <div class="nova-objednavka-input col-8 col-md-4">{input zakazkaVyber disabled:disabled}<span n:ifcontent>{inputError zakazkaVyber}</span></div>
+        <div class="nova-objednavka-label col-4 col-md-2">{label castka}</div>
+        <div class="nova-objednavka-input col-8 col-md-4 input-right-align">{input castka disabled:disabled}<span n:ifcontent>{inputError castka}</span></div>
+      </div>
+      {dump $formContainer->components['stav_popis']->value}
+      <div class="multiplier-buttons row">
+        {if end($this->global->formsStack)['ulozenaForm']->getValue()}
+          {input zakazkaVyber_hidden}
+          {input popis_radky_hidden}
+          {input firma_hidden}
+          {input cinnostVyber_hidden}
+          {input zakazkaVyber_hidden}
+          {input strediskoVyber_hidden}
+          {input castka_hidden}
+          {input stav_hidden}
+
+          <div class="col-12 col-md-4">
+            {input removeOld class:"btn btn-danger"}
+            {input editOld class:"btn btn-info"}
+            {input revertOld class:"btn btn-secondary"}
+            {input removeNew class:"btn btn-danger"}
+          </div>
+          <div class="col-12 col-md-8 align-self-center">
+            <span class='novaFormText btn-success right' style='display:none;'>Položka objednávky bude přidána a poslána do schvalování.</span>
+            <span class='smazanaFormText btn-danger right' style='display:none;'>Položka bude označena jako smazána.</span>
+            <span class='zmenenaFormText btn-info right' style='display:none;'>Položka bude změněna a znovu poslána do schvalování.</span>
+            <span class='ponechanaFormText right' style='display:inline-block;'>Položka bude ponechána beze změny ve stavu {$formContainer->components['stav_popis']->value}.</span>
+          </div>
+        {else}
+          <div class="col-8 col-md-4">{btnRemove polozka}</div>
+        {/if}
+        {input smazanaForm}{input zmenenaForm}{input ulozenaForm}{input polozkaId}
+      </div>
+    </div>
+    {input addNew}
+    {input hotovo class:"btn btn-primary"}
+    <a class="btn btn-secondary" n:href="VsechnyObjednavky:default prehledId:$form->components['id']->value" role="button">← Zrušit editaci objednávky</a>
+  {/form}
+  <br>
+    <br>
+
+</div>
+</div>
+{/block}
+
+{block scripts2}
+<script>
+function vratitUlozene(tag) {
+  if ($(tag).hasClass('nova-objednavka-polozka')) {
+    tag = $(tag);
+  } else {
+    tag = $(tag).parents('.nova-objednavka-polozka').first();
+  }
+  disableForm(tag, true);
+  tag.find('input[name$="][removeOld]"]').css("display", "inline-block"); 
+  tag.find('input[name$="][editOld]"]').css("display", "inline-block"); 
+  tag.find('input[name$="][revertOld]"]').css("display", "none"); 
+  tag.find('input[name$="][smazanaForm]"]').val(0);
+  tag.find('input[name$="][zmenenaForm]"]').val(0);
+  tag.find('span.novaFormText').css("display", "none"); 
+  tag.find('span.smazanaFormText').css("display", "none"); 
+  tag.find('span.zmenenaFormText').css("display", "none"); 
+  tag.find('span.ponechanaFormText').css("display", "inline-block"); 
+  vratPuvodniHodnoty(tag);
+}
+
+function editovatUlozene(tag) {
+  if ($(tag).hasClass('nova-objednavka-polozka')) {
+    tag = $(tag);
+  } else {
+    tag = $(tag).parents('.nova-objednavka-polozka').first();
+  }
+  disableForm(tag, false);
+  tag.find('input[name$="][removeOld]"]').css("display", "none"); 
+  tag.find('input[name$="][editOld]"]').css("display", "none"); 
+  tag.find('input[name$="][revertOld]"]').css("display", "inline-block"); 
+  tag.find('input[name$="][smazanaForm]"]').val(0);
+  tag.find('input[name$="][zmenenaForm]"]').val(1)
+  tag.find('span.novaFormText').css("display", "none"); 
+  tag.find('span.smazanaFormText').css("display", "none"); 
+  tag.find('span.zmenenaFormText').css("display", "inline-block"); 
+  tag.find('span.ponechanaFormText').css("display", "none"); 
+}
+
+function smazatNove(tag) {
+  $(tag).parents('.nova-objednavka-polozka').first().remove();
+}
+function smazatUlozene(tag) {
+  if ($(tag).hasClass('nova-objednavka-polozka')) {
+    tag = $(tag);
+  } else {
+    tag = $(tag).parents('.nova-objednavka-polozka').first();
+  }
+  disableForm(tag, true);
+  tag.find('input[name$="][removeOld]"]').css("display", "none"); 
+  tag.find('input[name$="][editOld]"]').css("display", "none"); 
+  tag.find('input[name$="][revertOld]"]').css("display", "inline-block"); 
+  tag.find('input[name$="][smazanaForm]"]').val(1)
+  tag.find('input[name$="][zmenenaForm]"]').val(0);
+  tag.find('span.novaFormText').css("display", "none"); 
+  tag.find('span.smazanaFormText').css("display", "inline-block"); 
+  tag.find('span.zmenenaFormText').css("display", "none"); 
+  tag.find('span.ponechanaFormText').css("display", "none"); 
+}
+
+function disableForm(tag, disable) {
+  tag.find('input[name$="][popis_radky]"]').prop("disabled", disable); 
+  tag.find('input[name$="][firma]"]').prop("disabled", disable); 
+  tag.find('select[name$="][strediskoVyber]"]').prop("disabled", disable); 
+  tag.find('select[name$="][cinnostVyber]"]').prop("disabled", disable); 
+  tag.find('select[name$="][zakazkaVyber]"]').prop("disabled", disable); 
+  tag.find('input[name$="][castka]"]').prop("disabled", disable); 
+}
+
+function copyLast() {
+  var posledni=$('div.nova-objednavka-polozka:last()');
+  var kopie=posledni.clone(true);
+  const regex = /(?<=polozka\[)(\d+)(?=\]\[.*?\])/u;
+  kopie.find('input[name^="polozka["],select[name^="polozka["]').each(function() {
+    var newId = 1 + parseInt(getIdFromTag($(this)));
+    $(this).attr('name', $(this).attr('name').replace(regex, newId));
+
+  });
+  //vratitUlozene(kopie.find('input[name^="polozka["]').first());
+
+  // zkopiruj hodnoty selectu
+  var selects = $(posledni).find("select");
+  $(selects).each(function(i) {
+    var select = this;
+    $(kopie).find("select").eq(i).val($(select).val());
+  });
+  posledni.after(kopie);
+  console.log(kopie);
+  kopie.find('input[name$="][removeOld]"]').css("display", "none"); 
+  kopie.find('input[name$="][editOld]"]').css("display", "none"); 
+  kopie.find('input[name$="][revertOld]"]').css("display", "none"); 
+  kopie.find('input[name$="][removeNew]"]').css("display", "inline-block"); 
+  kopie.find('span.novaFormText').css("display", "inline-block"); 
+  kopie.find('span.smazanaFormText').css("display", "none"); 
+  kopie.find('span.zmenenaFormText').css("display", "none"); 
+  kopie.find('span.ponechanaFormText').css("display", "none"); 
+  kopie.find('input[name$="][smazanaForm]"]').val(0);
+  kopie.find('input[name$="][zmenenaForm]"]').val(0);
+  kopie.find('input[name$="][ulozenaForm]"]').val(0);
+  kopie.find('input[name$="][polozkaId]"]').remove();
+  disableForm(kopie,false);
+
+}
+
+function vratPuvodniHodnoty(tag) {
+  const regex = /(.*?)_hidden\]/u;
+  console.log(tag);
+  tag.find('input[name$="_hidden]"],select[name$="_hidden]"]').each(function() {
+    var fieldName = $(this).attr('name').match(regex)[1]+']';
+    console.log(fieldName);
+    tag.find('[name="'+fieldName+'"]').val($(this).val());
+  });
+}
+
+function getIdFromTag(tag) {
+  var tag = $(tag);
+  var tagname = tag.attr('name');
+  const regex = /polozka\[(\d+)\]\[.*?\]/u;
+  const found = tagname.match(regex);
+  return found[1];
+}
+
+$(function () {
+  $('div.nova-objednavka-polozka').each(function(){
+    console.log(this);
+    if ($(this).find('input[name$="][smazanaForm]"]').val() == 1) {
+      vratitUlozene($(this));
+      smazatUlozene(this);
+    } else if ($(this).find('input[name$="][zmenenaForm]"]').val() == 1) {
+      editovatUlozene($(this));
+    } else if ($(this).find('input[name$="][ulozenaForm]"]').val() == 1) {
+      vratitUlozene(this);
+    } else {
+      editovatUlozene(this);
+    }
+  });
+});
+
+</script>
+
+{/block}

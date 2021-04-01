@@ -52,7 +52,7 @@ class NovaObjednavkaPresenter extends ObjednavkyBasePresenter
         $form = new Form;
         // $row = ['popis_radky' => '', 'cinnostVyber' => '', 'zakazkaVyber' => '','strediskoVyber' => '','castka' => ''];
         // $form->setDefaults($row);
-        $form->onRender[] = '\App\Utils\FormStylePomocnik::makeBootstrap4';
+        $form->onRender[] = '\App\Utils\FormStylePomocnik::makeBootstrap4Objednavka';
         $form->addGroup('Objednávka ');
         $form->addText('popis', 'Název objednávky: ')->setRequired('Napište název objednávky')->setMaxLength(100);
 
@@ -96,7 +96,11 @@ class NovaObjednavkaPresenter extends ObjednavkyBasePresenter
         $this->database->beginTransaction(); // zahájení transakce
 
         // vse OK, uloz do databaze nejdriv hlavicku objednavky ...
-        $novyRadek = $this->database->table('prehled')->insert(['popis' => $data->popis]);
+        $novyRadek = $this->database->table('prehled')->insert([
+            'popis' => $data->popis,
+            'zakladatel' => $this->prihlasenyId(),
+            'zalozil' => new DateTime(),
+        ]);
         // ... pak dopln id hlavicky do polozek objednavky ...
         bdump($novyRadek);
         bdump($novyRadek->id);
@@ -127,65 +131,70 @@ class NovaObjednavkaPresenter extends ObjednavkyBasePresenter
         $limityRozpoctu = [];
         $polozky = [];
 
+        $relevantni = $this->database->table('zakazky')->where('vlastni', 1)->select('zakazka'); 
+        $relevantniId = $this->database->table('zakazky')->where('vlastni', 1)->select('id');
+
+        // prvni iterace - soucet castek pro kontrolu precerpani a pro overovani
+        foreach ($data->polozka as $id => $polozka) {
+            $cinnost = $this->database->table('cinnost')->where('vyber',1)->where('rok',$rok)->where('id',$polozka->cinnostVyber)->fetch();
+            $zakazka = $this->database->table('zakazky')->where('vyber',1)->where('id',$polozka->zakazkaVyber)->fetch();
+
+            $castkaRozpoctu = $cinnost->rozpocet->castka;
+
+            if ($zakazka->vlastni == 1) {
+                $castkaVlastni = $polozka->castka;
+            } else {
+                $castkaVlastni = 0;
+            }
+
+            if (!array_key_exists($cinnost->id_rozpocet, $limityRozpoctu)) {
+                $objednanoV = $this->database->table('objednavky')->where('cinnost.id_rozpocet', $cinnost->id_rozpocet)->where('zakazka',$relevantniId)
+                    ->where('stav',[0,1,3,4,9])->sum('castka');
+                $denikV = $this->database->table('denik')->where('rozpocet', $cinnost->id_rozpocet)->where('zakazky',$relevantni)
+                    ->where('petky',1)->sum('castka');
+                $maxCastka = round($castkaRozpoctu - ($objednanoV + $denikV));
+                
+                $limityRozpoctu[$cinnost->id_rozpocet] = [
+                    'nazevRozpoctu' => $cinnost->rozpocet->rozpocet,
+                    'castkaRozpoctu' => $castkaRozpoctu, 
+                    'objednano' => $objednanoV,
+                    'denik' => $denikV,
+                    'limit' => $maxCastka,
+                    'pozadovanoVlastni' => $castkaVlastni,
+                    'pozadovanoCelkem' => $polozka->castka,
+                    'overeni' => $cinnost->rozpocet->overeni,
+                    'kdoma' => $cinnost->rozpocet->hospodar,
+                    'kdoma2'=> $cinnost->rozpocet->overovatel,
+                ];
+            } else {
+                $limityRozpoctu[$cinnost->id_rozpocet]['pozadovanoVlastni'] += $castkaVlastni;
+                $limityRozpoctu[$cinnost->id_rozpocet]['pozadovanoCelkem'] += $polozka->castka;
+            }
+        }
+        bdump($limityRozpoctu);
+                      
         foreach ($data->polozka as $id => $polozka) {
             $cinnost = $this->database->table('cinnost')->where('vyber',1)->where('rok',$rok)->where('id',$polozka->cinnostVyber)->fetch();
             $stredisko = $this->database->table('stredisko')->where('vyber',1)->where('id',$polozka->strediskoVyber)->fetch();
             $zakazka = $this->database->table('zakazky')->where('vyber',1)->where('id',$polozka->zakazkaVyber)->fetch();
 
-    /*        
-            $radkaRozpoctu = $this->database->table('rozpocet')->where('id',$cinnost->id_rozpocet)->fetch();
-            $kdoma = $radkaRozpoctu->hospodar;
-            $overeni = $radkaRozpoctu->overeni;
-            $kdoma2= $radkaRozpoctu->overovatel;
-    */
-            $kdoma = $cinnost->rozpocet->hospodar;
-            $overeni = $cinnost->rozpocet->overeni;
-            $kdoma2= $cinnost->rozpocet->overovatel;
             $castkaRozpoctu = $cinnost->rozpocet->castka;
 
-            if ($zakazka->vlastni == 1) {
-                if (!array_key_exists($cinnost->id_rozpocet, $limityRozpoctu)) {
-                    $relevantni = $this->database->table('zakazky')->where('vlastni', 1)->select('zakazka'); 
-                    $relevantniId = $this->database->table('zakazky')->where('vlastni', 1)->select('id');
+            $polozka->popis_radky =  $polozka->popis_radky == null ? $data->popis : $polozka->popis_radky;
 
-                    $objednanoV = $this->database->table('objednavky')->where('cinnost', $cinnost)->where('zakazka',$relevantniId)
-                        ->where('stav',[0,1,3,4,9])->sum('castka');
-                    $denikV = $this->database->table('denik')->where('rozpocet', $cinnost->id_rozpocet)->where('zakazky',$relevantni)
-                        ->where('petky',1)->sum('castka');
-                    $maxCastka = round($castkaRozpoctu - ($objednanoV + $denikV));
-                    
-                    $limityRozpoctu[$cinnost->id_rozpocet] = [
-                        'nazevRozpoctu' => $cinnost->rozpocet->rozpocet,
-                        'castkaRozpoctu' => $castkaRozpoctu, 
-                        'objednano' => $objednanoV,
-                        'denik' => $denikV,
-                        'limit' => $maxCastka,
-                        'pozadovano' => $polozka->castka
-                    ];
-                } else {
-                    $limityRozpoctu[$cinnost->id_rozpocet]['pozadovano'] += $polozka->castka;
-                }
-            }
-
-            bdump($limityRozpoctu);
-                      
-            
-            $posledni = $this->database->table('prehled')->max('id');
-            $polozka->popis_radky =  $polozka->popis_radky == NULL ? $data->popis : $polozka->popis_radky;
-
-            if ($overeni <= $polozka->castka)             // např. 10 tis < 450Kč
-            {
+            //  kontrola, zda suma vsech polozek do daneho rozpoctu nepresahuje overovani
+            if ($limityRozpoctu[$cinnost->id_rozpocet]['overeni'] <= $limityRozpoctu[$cinnost->id_rozpocet]['pozadovanoCelkem']) {
                 $nutnoOverit = 1;
-                //  částka převyšuje povolenou velikost bez ověření
             } else {
                 $nutnoOverit = 0;
-                // částka je menší, není nutné ověřovat
             }
-            bdump($nutnoOverit);
 
+            // default stav = 0 (ve schvalovani)
             $stav = 0;        
-            $schvalil = null;     
-            if  ($kdoma == $this->prihlasenyId()) {
+            $schvalil = null;   
+            
+            // pokud je zadavatel schvalovatelem, je objednavka rovnou schvalena
+            if  ($limityRozpoctu[$cinnost->id_rozpocet]['kdoma'] == $this->prihlasenyId()) {
                 $schvalil = new DateTime();
                 if ($nutnoOverit==1) {
                     $stav = 1;
@@ -205,8 +214,8 @@ class NovaObjednavkaPresenter extends ObjednavkyBasePresenter
                 'cinnost' =>  $cinnost->id,
                 'stredisko' => $stredisko->id,
                 'zakazka' => $zakazka->id,
-                'kdo' => $kdoma,
-                'kdo2' => $kdoma2,
+                'kdo' => $limityRozpoctu[$cinnost->id_rozpocet]['kdoma'],
+                'kdo2' => $limityRozpoctu[$cinnost->id_rozpocet]['kdoma2'],
                 'zakladatel' => $this->prihlasenyId(),
                 'nutno_overit' => $nutnoOverit,
                 'presne' => true,
@@ -217,7 +226,7 @@ class NovaObjednavkaPresenter extends ObjednavkyBasePresenter
 
         // hromadna kontrola prekroceni rozpoctu
         foreach ($limityRozpoctu as $limitRozpoctu) {
-            if  ( $limitRozpoctu['pozadovano'] > $limitRozpoctu['limit']) {
+            if  ( $limitRozpoctu['pozadovanoVlastni'] > $limitRozpoctu['limit']) {
                 $this->formHasErrors = true;
                 $form['popis']->addError('Objednávku pro rozpočet '.$limitRozpoctu['nazevRozpoctu'].' nelze zadat, byl by překročen rozpočet. Zbývá částka ' . $limitRozpoctu['limit'] .' Kč.' );
             }
