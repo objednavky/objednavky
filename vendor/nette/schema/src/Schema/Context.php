@@ -12,9 +12,6 @@ namespace Nette\Schema;
 use Nette;
 
 
-/**
- * @internal
- */
 final class Context
 {
 	use Nette\SmartObject;
@@ -25,15 +22,28 @@ final class Context
 	/** @var string[] */
 	public $path = [];
 
-	/** @var \stdClass[] */
+	/** @var bool */
+	public $isKey = false;
+
+	/** @var Message[] */
 	public $errors = [];
+
+	/** @var Message[] */
+	public $warnings = [];
 
 	/** @var array[] */
 	public $dynamics = [];
 
 
-	public function addError($message, $hint = null)
+	public function addError(string $message, string $code, array $variables = []): Message
 	{
-		$this->errors[] = (object) ['message' => $message, 'path' => $this->path, 'hint' => $hint];
+		$variables['isKey'] = $this->isKey;
+		return $this->errors[] = new Message($message, $code, $this->path, $variables);
+	}
+
+
+	public function addWarning(string $message, string $code, array $variables = []): Message
+	{
+		return $this->warnings[] = new Message($message, $code, $this->path, $variables);
 	}
 }

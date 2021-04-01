@@ -1,0 +1,11 @@
+# IDE
+/.idea
+
+# Composer
+/vendor
+/composer.lock
+
+# Tests
+/tests/_output
+/tests/_support
+/coverage.xml

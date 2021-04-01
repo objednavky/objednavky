@@ -25,13 +25,19 @@ final class Type implements Schema
 	private $type;
 
 	/** @var Schema|null for arrays */
-	private $items;
+	private $itemsValue;
 
-	/** @var array */
+	/** @var Schema|null for arrays */
+	private $itemsKey;
+
+	/** @var array{?float, ?float} */
 	private $range = [null, null];
 
 	/** @var string|null */
 	private $pattern;
+
+	/** @var bool */
+	private $merge = true;
 
 
 	public function __construct(string $type)
@@ -44,14 +50,21 @@ final class Type implements Schema
 
 	public function nullable(): self
 	{
-		$this->type .= '|null';
+		$this->type = 'null|' . $this->type;
+		return $this;
+	}
+
+
+	public function mergeDefaults(bool $state = true): self
+	{
+		$this->merge = $state;
 		return $this;
 	}
 
 
 	public function dynamic(): self
 	{
-		$this->type .= '|' . DynamicParameter::class;
+		$this->type = DynamicParameter::class . '|' . $this->type;
 		return $this;
 	}
 
@@ -74,9 +87,14 @@ final class Type implements Schema
 	 * @param  string|Schema  $type
 	 * @internal  use arrayOf() or listOf()
 	 */
-	public function items($type = 'mixed'): self
+	public function items($valueType = 'mixed', $keyType = null): self
 	{
-		$this->items = $type instanceof Schema ? $type : new self($type);
+		$this->itemsValue = $valueType instanceof Schema
+			? $valueType
+			: new self($valueType);
+		$this->itemsKey = $keyType instanceof Schema || $keyType === null
+			? $keyType
+			: new self($keyType);
 		return $this;
 	}
 
@@ -93,13 +111,27 @@ final class Type implements Schema
 
 	public function normalize($value, Context $context)
 	{
+		if ($prevent = (is_array($value) && isset($value[Helpers::PREVENT_MERGING]))) {
+			unset($value[Helpers::PREVENT_MERGING]);
+		}
+
 		$value = $this->doNormalize($value, $context);
-		if (is_array($value) && $this->items) {
+		if (is_array($value) && $this->itemsValue) {
+			$res = [];
 			foreach ($value as $key => $val) {
 				$context->path[] = $key;
-				$value[$key] = $this->items->normalize($val, $context);
+				$context->isKey = true;
+				$key = $this->itemsKey
+					? $this->itemsKey->normalize($key, $context)
+					: $key;
+				$context->isKey = false;
+				$res[$key] = $this->itemsValue->normalize($val, $context);
 				array_pop($context->path);
 			}
+			$value = $res;
+		}
+		if ($prevent && is_array($value)) {
+			$value[Helpers::PREVENT_MERGING] = true;
 		}
 		return $value;
 	}
@@ -111,7 +143,7 @@ final class Type implements Schema
 			unset($value[Helpers::PREVENT_MERGING]);
 			return $value;
 		}
-		if (is_array($value) && is_array($base) && $this->items) {
+		if (is_array($value) && is_array($base) && $this->itemsValue) {
 			$index = 0;
 			foreach ($value as $key => $val) {
 				if ($key === $index) {
@@ -119,7 +151,7 @@ final class Type implements Schema
 					$index++;
 				} else {
 					$base[$key] = array_key_exists($key, $base)
-						? $this->items->merge($val, $base[$key])
+						? $this->itemsValue->merge($val, $base[$key])
 						: $val;
 				}
 			}
@@ -132,36 +164,58 @@ final class Type implements Schema
 
 	public function complete($value, Context $context)
 	{
+		$merge = $this->merge;
+		if (is_array($value) && isset($value[Helpers::PREVENT_MERGING])) {
+			unset($value[Helpers::PREVENT_MERGING]);
+			$merge = false;
+		}
+
 		if ($value === null && is_array($this->default)) {
 			$value = []; // is unable to distinguish null from array in NEON
 		}
 
-		$expected = $this->type . ($this->range === [null, null] ? '' : ':' . implode('..', $this->range));
-		if (!$this->doValidate($value, $expected, $context)) {
+		$this->doDeprecation($context);
+
+		if (!$this->doValidate($value, $this->type, $context)
+			|| !$this->doValidateRange($value, $this->range, $context, $this->type)
+		) {
 			return;
 		}
-		if ($this->pattern !== null && !preg_match("\x01^(?:$this->pattern)$\x01Du", $value)) {
-			$context->addError("The option %path% expects to match pattern '$this->pattern', '$value' given.");
+
+		if ($value !== null && $this->pattern !== null && !preg_match("\x01^(?:$this->pattern)$\x01Du", $value)) {
+			$context->addError(
+				"The %label% %path% expects to match pattern '%pattern%', %value% given.",
+				Nette\Schema\Message::PATTERN_MISMATCH,
+				['value' => $value, 'pattern' => $this->pattern]
+			);
 			return;
 		}
 
 		if ($value instanceof DynamicParameter) {
-			$context->dynamics[] = [$value, str_replace('|' . DynamicParameter::class, '', $expected)];
+			$expected = $this->type . ($this->range === [null, null] ? '' : ':' . implode('..', $this->range));
+			$context->dynamics[] = [$value, str_replace(DynamicParameter::class . '|', '', $expected)];
 		}
 
-		if ($this->items) {
+		if ($this->itemsValue) {
 			$errCount = count($context->errors);
+			$res = [];
 			foreach ($value as $key => $val) {
 				$context->path[] = $key;
-				$value[$key] = $this->items->complete($val, $context);
+				$context->isKey = true;
+				$key = $this->itemsKey ? $this->itemsKey->complete($key, $context) : $key;
+				$context->isKey = false;
+				$res[$key] = $this->itemsValue->complete($val, $context);
 				array_pop($context->path);
 			}
 			if (count($context->errors) > $errCount) {
 				return null;
 			}
+			$value = $res;
 		}
 
-		$value = Helpers::merge($value, $this->default);
+		if ($merge) {
+			$value = Helpers::merge($value, $this->default);
+		}
 		return $this->doFinalize($value, $context);
 	}
 }

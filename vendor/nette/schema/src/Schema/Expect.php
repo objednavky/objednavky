@@ -28,6 +28,7 @@ use Nette\Schema\Elements\Type;
  * @method static Type list($default = [])
  * @method static Type mixed($default = null)
  * @method static Type email($default = null)
+ * @method static Type unicode($default = null)
  */
 final class Expect
 {
@@ -99,9 +100,9 @@ final class Expect
 	/**
 	 * @param  string|Schema  $type
 	 */
-	public static function arrayOf($type): Type
+	public static function arrayOf($valueType, $keyType = null): Type
 	{
-		return (new Type('array'))->items($type);
+		return (new Type('array'))->items($valueType, $keyType);
 	}
 
 

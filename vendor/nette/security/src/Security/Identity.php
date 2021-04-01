@@ -13,8 +13,7 @@ use Nette;
 
 
 /**
- * Default implementation of IIdentity.
- *
+ * @deprecated  use Nette\Security\SimpleIdentity
  * @property   mixed $id
  * @property   array $roles
  * @property   array $data
@@ -49,10 +48,14 @@ class Identity implements IIdentity
 
 	/**
 	 * Sets the ID of user.
+	 * @param  string|int  $id
 	 * @return static
 	 */
 	public function setId($id)
 	{
+		if (!is_string($id) && !is_int($id)) {
+			throw new Nette\InvalidArgumentException('Identity identifier must be string|int, but type "' . gettype($id) . '" given.');
+		}
 		$this->id = is_numeric($id) && !is_float($tmp = $id * 1) ? $tmp : $id;
 		return $this;
 	}

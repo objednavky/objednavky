@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace Nette\Database;
 
 use Nette;
+use Nette\Utils\Arrays;
 use PDO;
 use PDOException;
 
@@ -22,10 +23,10 @@ class Connection
 	use Nette\SmartObject;
 
 	/** @var callable[]&(callable(Connection $connection): void)[]; Occurs after connection is established */
-	public $onConnect;
+	public $onConnect = [];
 
 	/** @var callable[]&(callable(Connection $connection, ResultSet|DriverException $result): void)[]; Occurs after query is executed */
-	public $onQuery;
+	public $onQuery = [];
 
 	/** @var array */
 	private $params;
@@ -33,7 +34,7 @@ class Connection
 	/** @var array */
 	private $options;
 
-	/** @var ISupplementalDriver */
+	/** @var Driver */
 	private $driver;
 
 	/** @var SqlPreprocessor */
@@ -76,7 +77,7 @@ class Connection
 		$this->driver = new $class;
 		$this->preprocessor = new SqlPreprocessor($this);
 		$this->driver->initialize($this, $this->options);
-		$this->onConnect($this);
+		Arrays::invoke($this->onConnect, $this);
 	}
 
 
@@ -106,7 +107,15 @@ class Connection
 	}
 
 
-	public function getSupplementalDriver(): ISupplementalDriver
+	public function getDriver(): Driver
+	{
+		$this->connect();
+		return $this->driver;
+	}
+
+
+	/** @deprecated use getDriver() */
+	public function getSupplementalDriver(): Driver
 	{
 		$this->connect();
 		return $this->driver;
@@ -153,6 +162,23 @@ class Connection
 
 
 	/**
+	 * @return mixed
+	 */
+	public function transaction(callable $callback)
+	{
+		$this->beginTransaction();
+		try {
+			$res = $callback();
+		} catch (\Throwable $e) {
+			$this->rollBack();
+			throw $e;
+		}
+		$this->commit();
+		return $res;
+	}
+
+
+	/**
 	 * Generates and executes SQL query.
 	 */
 	public function query(string $sql, ...$params): ResultSet
@@ -161,10 +187,10 @@ class Connection
 		try {
 			$result = new ResultSet($this, $this->sql, $params);
 		} catch (PDOException $e) {
-			$this->onQuery($this, $e);
+			Arrays::invoke($this->onQuery, $this, $e);
 			throw $e;
 		}
-		$this->onQuery($this, $result);
+		Arrays::invoke($this->onQuery, $this, $result);
 		return $result;
 	}
 
@@ -199,7 +225,7 @@ class Connection
 	/**
 	 * Shortcut for query()->fetch()
 	 */
-	public function fetch(string $sql, ...$params): ?IRow
+	public function fetch(string $sql, ...$params): ?Row
 	{
 		return $this->query($sql, ...$params)->fetch();
 	}

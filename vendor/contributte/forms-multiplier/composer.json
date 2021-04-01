@@ -9,23 +9,28 @@
     "multiplier"
   ],
   "require": {
-    "php": ">= 7.2",
-    "nette/forms": "^3.0"
+    "php": ">=7.2",
+    "nette/forms": "^3.0.0"
   },
   "require-dev": {
-    "ninjify/qa": "^0.8.0",
-    "ninjify/nunjuck": "^0.2.0",
-    "codeception/codeception": "^2.4",
-    "nette/application": "^3.0",
-    "nette/di": "^3.0",
-    "webchemistry/testing-helpers": "~2.0.0",
-    "latte/latte": "^2.7"
+    "codeception/codeception": "^4.0.0",
+    "codeception/module-asserts": "^1.3",
+    "codeception/module-phpbrowser": "^1.0",
+    "latte/latte": "^2.7.0",
+    "nette/application": "^3.0.0",
+    "nette/di": "^3.0.0",
+    "ninjify/qa": "^0.12",
+    "phpstan/phpstan": "^0.12",
+    "phpstan/phpstan-deprecation-rules": "^0.12",
+    "phpstan/phpstan-nette": "^0.12",
+    "webchemistry/testing-helpers": "~2.0.0"
+  },
+  "conflict": {
+    "nette/forms": ">=3.1.0"
   },
   "autoload": {
     "psr-4": {
-      "Contributte\\FormMultiplier\\": [
-        "src/"
-      ]
+      "Contributte\\FormMultiplier\\": "src"
     }
   },
   "autoload-dev": {
@@ -33,25 +38,10 @@
       "tests/includes"
     ]
   },
-  "minimum-stability": "RC",
-  "scripts": {
-    "qa": [
-      "linter src tests",
-      "codesniffer src tests"
-    ],
-    "tests": [
-      "vendor/bin/codecept run"
-    ],
-    "phpstan-install": [
-      "mkdir -p temp/phpstan",
-      "composer require -d temp/phpstan phpstan/phpstan:^0.10",
-      "composer require -d temp/phpstan phpstan/phpstan-deprecation-rules:^0.10",
-      "composer require -d temp/phpstan phpstan/phpstan-nette:^0.10",
-      "composer require -d temp/phpstan phpstan/phpstan-strict-rules:^0.10"
-    ],
-    "phpstan": [
-      "temp/phpstan/vendor/bin/phpstan analyse -l max src"
-    ]
+  "prefer-stable": true,
+  "minimum-stability": "dev",
+  "config": {
+    "sort-packages": true
   },
   "extra": {
     "branch-alias": {
