@@ -5,14 +5,11 @@
 
 <br >
 
-<h2 class="display-4">Editace rozpočtu - rok {$rok}, verze {$verze} </h2>
+<h2 class="display-4">Editace činností k rozpočtu {$rok} v{$verze} </h2>
 
 {form rokVerzeForm}
 {label rok} {input rok} {label verze} {input verze}
 {/form}
-
-<br>
-<a class="btn btn-primary" onclick="return confirm('Chcete založit novou verzi rozpočtu {$rok} kopií z poslední platné verze?');" n:href="EditRozpocet:kopirujVerzi" role="button">Vytvoř novou verzi</a>
 
 <br>	 
 <div>
@@ -20,7 +17,7 @@
 	 <br>
   <br>
 
-  {control editRozpocetGrid} 
+  {control editCinnostiGrid} 
 			 
 	 <br>
   <br>

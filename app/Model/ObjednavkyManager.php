@@ -11,6 +11,7 @@
 
 namespace App\Model;
 
+use Exception;
 use Nette;
 
 class ObjednavkyManager
@@ -29,7 +30,7 @@ class ObjednavkyManager
 	}
 
 	/**
-	 * Načte tabulku pro MojeObjednavkyPresenter
+	 * Načte tabulku pro MojeObjednavkyPresenter podle stavů
 	 */
     public function mapRozpocetMojeObjednavky(int $zadavatel, array $stavy) {
         $source = $this->objednavkyPodleStavu($stavy)
@@ -38,9 +39,26 @@ class ObjednavkyManager
 		return $this->mapRozpocetFromSource($source);
     }
 	
+	/**
+	 * Načte tabulku pro MojeObjednavkyPresenter podle stavů
+	 */
+    public function mapRozpocetVsechnyMojeObjednavky(int $zadavatel) {
+        $source = $this->objednavkyPodleVlastnika($zadavatel)
+						->order('id DESC');
+		return $this->mapRozpocetFromSource($source);
+    }
+	
 	public function mapRozpocetPrehled(array $stavy)
     {
 		$source = $this->objednavkyPodleStavu($stavy)
+						->order('id DESC');
+		return $this->mapRozpocetFromSource($source);
+	}
+    
+	public function mapObjednavkyRozpocetStav(int $rozpocet_id, array $stavy)
+    {
+		$source = $this->objednavkyPodleRozpoctu($rozpocet_id)
+						->where('stav', $stavy)
 						->order('id DESC');
 		return $this->mapRozpocetFromSource($source);
 	}
@@ -110,6 +128,58 @@ class ObjednavkyManager
 		return $this->mapPrehledObjednavekFromSource($source, $smazane);
     }
 
+	/** 
+	 * vytvori novou verzi rozpoctu v zadanem roce kopii ze zadane verze
+	 * @param $rok rok, ve kterem se ma vytvorit nova verze
+	 * @param $verze zdrojova verze, jejiz kopie se vytvori
+	 * @return $novaVerze cislo nove vytvorene verze nebo 0 pokud nastane chyba
+	 */
+	public function vytvorNovouVerziRozpoctu(int $rok): int {
+		$novaVerze = 0;
+		try {
+			$verze = $this->database->table('rozpocet')->where('rok',$rok)->max('verze');
+
+			// kopie rozpoctu a cinnosti v transakci
+			$novaVerze = $this->database->transaction(function() use ($rok, $verze) {
+				$novaVerze = $verze + 1;
+				$rozpocty = $this->database->table('rozpocet')->where('rok',$rok)->where('verze',$verze);
+				foreach ($rozpocty as $rozpocet) {
+					// vytvor kopii rozpoctu
+					$novyRozpocet = $this->database->table('rozpocet')->insert([
+						'rozpocet' => $rozpocet->rozpocet,
+						'hospodar' => $rozpocet->hospodar,
+						'hospodar2' => $rozpocet->hospodar2,
+						'rok' => $rozpocet->rok,
+						'verze' => $novaVerze,
+						'castka' => $rozpocet->castka,
+						'sablony' => $rozpocet->sablony,
+						'overeni' => $rozpocet->overeni,
+						'overovatel' => $rozpocet->overovatel,
+						'hezky' => $rozpocet->hezky,
+						'obsah' => $rozpocet->obsah,
+					]);
+					// preved vsechny cinnosti stareho rozpoctu na novy rozpocet
+					$this->database->table('cinnost')->where('id_rozpocet',$rozpocet->id)->update([
+						'id_rozpocet' => $novyRozpocet,
+					]);
+				}
+
+				// povedlo se zkopirovat rozpocet, nastav novou verzi jako aktualni
+				$this->database->table('setup')->where('id', 1)->update([
+					'verze' => $novaVerze,
+				]);
+
+				return $novaVerze;
+			});
+
+		} catch (Exception $e) {
+			bdump($e);
+			return 0;
+		}
+	}
+
+
+
 	/**
 	 * z připraveného datasource naplní pole rozpočtů pro gridy v prezenteru
 	 */
@@ -149,11 +219,26 @@ class ObjednavkyManager
 
 
 	private function objednavkyPodleStavu(array $stavy) {
+		$rok = $this->database->table('setup')->get(1)->rok; //TODO brat rok ze session
 		return $this->database->table('objednavky')
-						->where('stav', $stavy);
+						->where('stav', $stavy)
+						->where('cinnost.rozpocet.rok', $rok);
+	}
+
+	private function objednavkyPodleVlastnika(int $user_id) {
+		$rok = $this->database->table('setup')->get(1)->rok; //TODO brat rok ze session
+		return $this->database->table('objednavky')
+						->where('zakladatel', $user_id)
+						->where('cinnost.rozpocet.rok', $rok);
+	}
+
+	private function objednavkyPodleRozpoctu(int $rozpocet_id) {
+		return $this->database->table('objednavky')
+						->where('cinnost.id_rozpocet', $rozpocet_id);
 	}
 
 	private function sumaObjednavekPodlePrehleduAStavu(int $prehledId) {
+		$rok = $this->database->table('setup')->get(1)->rok;
 		return $this->database->table('objednavky')
 				->select("SUM(CASE WHEN stav IN (0,1,2,3,4,5,8,9) THEN castka ELSE 0 END) AS castka_celkem, "
 					."COUNT(CASE WHEN stav IN (0,1,2,3,4,5,8,9) THEN objednavky.id ELSE NULL END) AS pocet_celkem, "
@@ -167,6 +252,7 @@ class ObjednavkyManager
 					."COUNT(CASE WHEN stav IN (9) THEN objednavky.id ELSE NULL END) AS pocet_uctarna, "
 					."GROUP_CONCAT(DISTINCT cinnost.cinnost SEPARATOR ', ') AS cinnosti, "
 					."GROUP_CONCAT(DISTINCT objednavky.firma SEPARATOR ', ') AS firma ")
-				->group('id_prehled')->where('id_prehled',$prehledId)->fetch();
-	}
+				->group('id_prehled')->where('id_prehled',$prehledId)
+				->where('cinnost.rozpocet.rok', $rok)->fetch();
+			}
 }

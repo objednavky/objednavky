@@ -4,17 +4,8 @@
 
 <h1 class="display-4 mt-4">Přehled všech objednávek - {$prihlasen}</h1>
 
-<h4 class="mt-4" id="nove">Objednávky v procesu schvalování</h4> <a class="btn btn-primary" n:href="NovaObjednavka:default" role="button">Zadat novou objednávku</a>
-{control neschvaleneObjednavkyGrid} 
-
-<h4 class="mt-5" id="schvalene">Schválené objednávky</h4>
-{control schvaleneObjednavkyGrid} 
-
-<h4 class="mt-5" id="zauctovane">Zaúčtované objednávky</h4>
-{control zauctovaneObjednavkyGrid} 
-
-<h4 class="mt-5" id="zamitnute">Zamítnuté Objednávky</h4>
-{control zamitnuteObjednavkyGrid}
+<a class="btn btn-primary" n:href="NovaObjednavka:default" role="button">Zadat novou objednávku</a>
+{control vsechnyObjednavkyGrid} 
 
 </div>
 {/block}

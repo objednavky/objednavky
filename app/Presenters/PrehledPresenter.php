@@ -94,7 +94,10 @@ class PrehledPresenter extends ObjednavkyBasePresenter
         //$grid->addColumnNumber('radka','Č. pol.');
         $grid->addColumnText('zadavatel','Zadavatel')->setSortable()->setSortableResetPagination()->setDefaultHide()->setFilterText();
         $grid->addColumnDateTime('zalozil','Založeno')->setFormat('d.m.Y H:i:s')->setSortable()->setSortableResetPagination()->setDefaultHide()->setFilterText();
-        $grid->addColumnText('stav','Stav objednávky')->setSortable()->setSortableResetPagination()->setFilterText();
+        $grid->addColumnText('stav_id','Stav', 'stav')->setSortable()->setSortableResetPagination()->setTemplateEscaping(FALSE);
+        $grid->addColumnCallback('stav_id', function($column, $item) {
+            $column->setRenderer(function() use ($item):string { return $this->renderujIkonuStavu($item); });
+        });
         $grid->addColumnText('schvalovatel','Schvalovatel')->setSortable()->setSortableResetPagination()->setFilterText();
         $grid->addColumnDateTime('schvalil','Schváleno')->setSortable()->setSortableResetPagination()->setFilterText();
         $grid->addColumnText('nutno_overit','Nutno ověřit')->setAlign('center')->setSortable()->setSortableResetPagination()->setFilterText();

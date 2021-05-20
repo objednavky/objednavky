@@ -19,7 +19,6 @@ class PrihlasPresenter extends BasePresenter
     
     public function renderLogout()
     {
-        bdump('yes');
         $this->getUser()->logout();
         //$this->getUser()->getIdentity()->jmeno = "nepřihlášený";
         //$this->redirect('Homepage:');

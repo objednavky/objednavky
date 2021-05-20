@@ -60,7 +60,7 @@ a.nav-link {
 .nova-objednavka-input input:not([type="checkbox"]){
     padding: .3rem;
 }
-.nova-objednavka-input input:[type="checkbox"]{
+.nova-objednavka-input input[type="checkbox"]{
     width: 25px;
     height: 25px;
 }
@@ -165,4 +165,33 @@ a.nav-link {
 .tr-objednavky-stav-6 {
     color: gray;
     font-weight: bold;
+}
+
+
+.datagrid-editRozpocetGrid .col-obsah {
+    width: 25%;
+}
+.datagrid table tbody tr .datagrid-inline-edit label {
+    width: 100%;
+    margin: 0;
+}
+.datagrid table tbody tr .datagrid-inline-edit input[type="checkbox"].form-control {
+    width: 22px;
+    margin: -3px auto;
+}
+
+.stav-ikona {
+    text-align: center;
+    vertical-align: middle;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    border: 1px solid transparent;
+    padding: 0.1rem 0.5rem;
+    font-size: 1rem;
+    line-height: 1.2;
+    border-radius: 0.25rem;
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    width: 100%;
 }

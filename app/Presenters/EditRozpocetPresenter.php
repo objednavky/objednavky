@@ -13,6 +13,7 @@ use Nette\Application\UI\Form;
 use stdClass;
 use Ublaboo\DataGrid\AggregationFunction\FunctionSum;
 use Ublaboo\DataGrid\AggregationFunction\ISingleColumnAggregationFunction;
+use App\Model\ObjednavkyManager;
 
 class EditRozpocetPresenter extends ObjednavkyBasePresenter
 {
@@ -57,6 +58,29 @@ class EditRozpocetPresenter extends ObjednavkyBasePresenter
 
     }
 
+    public function actionKopirujVerzi(): void
+	{
+        bdump('actionKopirujVerzi');
+        $setup = $this->getSetup(1);
+
+        $rok = $setup->rok;
+        $verze = $setup->verze;
+
+        bdump($rok);
+        bdump($verze);
+
+        $novaVerze = $this->objednavkyManager->vytvorNovouVerziRozpoctu($rok, $verze);
+
+        if ($novaVerze) {
+            $this->flashMessage('Nová verze rozpočtu roku ' . $rok . ' číslo ' . $novaVerze . ' byla úspěšně založena a aktivována. ','success');
+        } else {
+            $this->flashMessage('Novou verzi rozpočtu roku ' . $rok . ' se nepodařilo založit.','danger');
+        }
+
+        $this->redirect('default');
+
+    }
+
     public function createComponentRokVerzeForm($name) {
         bdump('createComponentRokVerzeForm');
         $form = new Form($this, $name);
@@ -73,38 +97,51 @@ class EditRozpocetPresenter extends ObjednavkyBasePresenter
     public function createComponentEditRozpocetGrid($name) {
         bdump('createComponentEditRozpocetGrid');
         $grid = new DataGrid($this, $name);
-        $source = $this->database->table('rozpocet')->where('rok',$this->sessionSection->rok)->where('verze',$this->sessionSection->verze);
+        $rok = $this->sessionSection->rok;
+        $verze = $this->sessionSection->verze;
+        $source = $this->database->table('rozpocet')->where('rok', $rok)->where('verze',$verze);
         //$this->sessionSection->source = $source;
         $grid->setDataSource($source);
         bdump($grid);
 
 
-        $grid->addColumnNumber('id', 'Id')->setSortable()->setSortableResetPagination()->setDefaultHide()->setFilterText();
-        $grid->addColumnText('rozpocet', 'Rozpočet')->setSortable()->setSortableResetPagination()->setFilterText();
-        $grid->addColumnText('rok', 'Rok')->setAlign('right')->setSortable()->setSortableResetPagination()->setDefaultHide();
-        $grid->addColumnNumber('verze', 'Verze')->setAlign('right')->setSortable()->setSortableResetPagination()->setDefaultHide();
-        $grid->addColumnNumber('castka', 'Plán vlastní Kč')->setAlign('right')->setSortable()->setSortableResetPagination()->setFilterText();
-        $grid->addColumnNumber('sablony', 'Plán šablony Kč')->setAlign('right')->setSortable()->setSortableResetPagination()->setFilterText();
-        $grid->addColumnText('hospodar', 'Hospodář', 'hospodar.jmeno')->setSortable()->setSortableResetPagination()->setFilterText();
-        $grid->addColumnText('hospodar2', 'Zástupce', 'hospodar2.jmeno')->setSortable()->setSortableResetPagination()->setFilterText();
+        $grid->addColumnNumber('id', 'Id')->setSortable()->setSortableResetPagination();
+        $grid->addColumnText('rozpocet', 'Rozpočet')->setSortable()->setSortableResetPagination();
+        $grid->addColumnText('obsah', 'Popis')->setSortable()->setSortableResetPagination();
+        $grid->addColumnNumber('castka', 'Plán vlastní Kč')->setAlign('right')->setSortable()->setSortableResetPagination();
+        $grid->addColumnNumber('sablony', 'Plán šablony Kč')->setAlign('right')->setSortable()->setSortableResetPagination();
+        $grid->addColumnText('hospodar', 'Hospodář', 'hospodar.jmeno')->setSortable()->setSortableResetPagination();
+        $grid->addColumnText('hospodar2', 'Zástupce', 'hospodar2.jmeno')->setSortable()->setSortableResetPagination();
+        $grid->addColumnNumber('overeni', 'Ověření Kč')->setAlign('right')->setSortable()->setSortableResetPagination();
+        $grid->addColumnText('overovatel', 'Ověřovatel', 'overovatel.jmeno')->setSortable()->setSortableResetPagination();
+        $grid->addColumnText('hezky', 'Hezký rozpočet', 'hezky.hezky_rozpocet')->setSortable()->setSortableResetPagination();
         $grid->setColumnsSummary(['castka','sablony']);
         $grid->addExportCsv('Export do csv', 'rozpocet.csv', 'Windows-1250')->setTitle('Export do csv');
-        $grid->setColumnsHideable();
 
         $grid->addInlineEdit()
         ->onControlAdd[] = function(Nette\Forms\Container $container): void {
-            $container->addText('castka', '');
-            $container->addText('sablony', '');
-            $container->addSelect('hospodar','Hospodář:',$this->database->table('uzivatel')->select('id, jmeno')->order('jmeno')->fetchPairs('id','jmeno'));
-            $container->addSelect('hospodar2','Zástupce:',$this->database->table('uzivatel')->select('id, jmeno')->order('jmeno')->fetchPairs('id','jmeno'));
+            $container->addText('rozpocet', '')->setRequired('Uveďte název rozpočtu');
+            $container->addText('obsah', '')->setRequired('Uveďte popis rozpočtu.');
+            $container->addInteger('castka', '')->setRequired('Zadejte částku rozpočtu pro vlastní' );
+            $container->addInteger('sablony', '')->setRequired('Zadejte částku rozpočtu pro šablony' );
+            $container->addSelect('hospodar','Hospodář:',$this->database->table('uzivatel')->select('id, jmeno')->order('jmeno')->fetchPairs('id','jmeno'))->setRequired('Uveďte hospodáře rozpočtu.');
+            $container->addSelect('hospodar2','Zástupce:',$this->database->table('uzivatel')->select('id, jmeno')->order('jmeno')->fetchPairs('id','jmeno'))->setRequired('Uveďte zástupce hospodáře rozpočtu.');
+            $container->addInteger('overeni', '')->setRequired('Zadejte limit pro ověření' );
+            $container->addSelect('overovatel','Ověrovatel:',$this->database->table('uzivatel')->select('id, jmeno')->order('jmeno')->fetchPairs('id','jmeno'))->setRequired('Uveďte ověřovatele rozpočtu.');
+            $container->addSelect('hezky','Hezký rozpočet:',$this->database->table('hezky')->select('id, hezky_rozpocet')->order('id')->fetchPairs('id','hezky_rozpocet'))->setRequired('Přiřaďte hezký rozpočet.');
         };
     
         $grid->getInlineEdit()->onSetDefaults[] = function(Nette\Forms\Container $container, $item): void {
             $container->setDefaults([
+                'rozpocet' => $item->rozpocet,
+                'obsah' => $item->obsah,
                 'castka' => $item->castka,
                 'sablony' => $item->sablony,
                 'hospodar' => $item->hospodar,
                 'hospodar2' => $item->hospodar2,
+                'overeni' => $item->overeni,
+                'overovatel' => $item->overovatel,
+                'hezky' => $item->hezky,
             ]);
         };
         
@@ -115,8 +152,31 @@ class EditRozpocetPresenter extends ObjednavkyBasePresenter
         };
         $grid->getInlineEdit()->setShowNonEditingColumns();
         
-        $grid->setPagination(true);
-        $grid->setItemsPerPageList([10, 30, 100]);
+        $grid->addInlineAdd()
+        ->onControlAdd[] = function(Nette\Forms\Container $container) use ($rok, $verze) : void {
+            $container->addText('rozpocet', '')->setRequired('Uveďte název rozpočtu');
+            $container->addText('obsah', '')->setRequired('Uveďte popis rozpočtu.');
+            $container->addInteger('castka', '')->setRequired('Zadejte částku rozpočtu pro vlastní' );
+            $container->addInteger('sablony', '')->setRequired('Zadejte částku rozpočtu pro šablony' );
+            $container->addSelect('hospodar','Hospodář:',$this->database->table('uzivatel')->select('id, jmeno')->order('jmeno')->fetchPairs('id','jmeno'))->setRequired('Uveďte hospodáře rozpočtu.');
+            $container->addSelect('hospodar2','Zástupce:',$this->database->table('uzivatel')->select('id, jmeno')->order('jmeno')->fetchPairs('id','jmeno'))->setRequired('Uveďte zástupce hospodáře rozpočtu.');
+            $container->addInteger('overeni', '')->setRequired('Zadejte limit pro ověření' );
+            $container->addSelect('overovatel','Ověrovatel:',$this->database->table('uzivatel')->select('id, jmeno')->order('jmeno')->fetchPairs('id','jmeno'))->setRequired('Uveďte ověřovatele rozpočtu.');
+            $container->addSelect('hezky','Hezký rozpočet:',$this->database->table('hezky')->select('id, hezky_rozpocet')->order('id')->fetchPairs('id','hezky_rozpocet'))->setRequired('Přiřaďte hezký rozpočet.');
+        };
+
+        $grid->getInlineAdd()->onSubmit[] = function(Nette\Utils\ArrayHash $values) use ($rok, $verze) : void {
+            unset($values['id']);
+            $values['rok'] = $rok;
+            $values['verze'] = $verze;
+            $this->database->table('rozpocet')->insert($values);
+            $this->flashMessage('Nový rozpočet úspěšně založen (zatím bez činností).', 'success');
+            $this->redrawControl('flashes');
+        };
+
+        $grid->setPagination(false);
+        //$grid->setPagination(true);
+        //$grid->setItemsPerPageList([10, 30, 100]);
 
         $translator = new \Ublaboo\DataGrid\Localization\SimpleTranslator([
             'ublaboo_datagrid.no_item_found_reset' => 'Žádné položky nenalezeny. Filtr můžete vynulovat',

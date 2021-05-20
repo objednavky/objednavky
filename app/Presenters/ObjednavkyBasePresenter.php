@@ -53,7 +53,31 @@ abstract class ObjednavkyBasePresenter extends BasePresenter
         return $this->database->table('rozpocet')->where('rok', $rok)->select('DISTINCT verze')->fetchPairs('verze','verze');
     }
 
+    protected final function renderujIkonuStavu($item) {
+        switch ($item['stav_id']) {
+            case 0: 
+               return "<i class='fa fa-user stav-ikona btn-warning' data-toggle='tooltip' data-placement='right' title='".$item['stav']."'/>";
+            case 1: 
+                return "<i class='fa fa-user-friends stav-ikona btn-warning' data-toggle='tooltip' data-placement='right' title='".$item['stav']."'/>";
+            case 2: 
+                return "<i class='fa fa-user stav-ikona btn-danger' data-toggle='tooltip' data-placement='right' title='".$item['stav']."'/>";
+            case 3: 
+                return "<i class='fa fa-user stav-ikona btn-success' data-toggle='tooltip' data-placement='right' title='".$item['stav']."'/>";
+            case 4: 
+                return "<i class='fa fa-user-friends stav-ikona btn-success' data-toggle='tooltip' data-placement='right' title='".$item['stav']."'/>";
+            case 5: 
+                return "<i class='fa fa-user-friends stav-ikona btn-danger' data-toggle='tooltip' data-placement='right' title='".$item['stav']."'/>";
+            case 6: 
+                return "<i class='fa fa-file-invoice-dollar stav-ikona btn-secondary' data-toggle='tooltip' data-placement='right' title='".$item['stav']."'/>";
+            case 7: 
+                return "<i class='fa fa-trash stav-ikona btn-light' data-toggle='tooltip' data-placement='right' title='".$item['stav']."'/>";
+            case 8: 
+                return "<i class='fa fa-file-invoice-dollar stav-ikona btn-danger' data-toggle='tooltip' data-placement='right' title='".$item['stav']."'/>";
+            case 9: 
+                return "<i class='fa fa-file-invoice-dollar stav-ikona btn-primary' data-toggle='tooltip' data-placement='right' title='".$item['stav']."'/>";
+        }
 
+    }
 
 }
 
