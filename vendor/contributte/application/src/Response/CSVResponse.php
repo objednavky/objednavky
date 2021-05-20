@@ -93,8 +93,10 @@ class CSVResponse implements IResponse
 
 			if (strtolower($this->outputEncoding) === 'utf-8') {
 				echo $csvRow;
+			} elseif (strtolower($this->outputEncoding) === 'windows-1250') {
+				echo iconv('utf-8', $this->outputEncoding, $csvRow);
 			} else {
-				echo mb_convert_encoding($csvRow, $this->outputEncoding);  //TK toto jsem upravil, aby fungovala konverze do windows-1250
+				echo mb_convert_encoding($csvRow, $this->outputEncoding);
 			}
 		}
 

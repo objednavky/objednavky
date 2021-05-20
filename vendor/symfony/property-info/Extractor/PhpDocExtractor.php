@@ -142,11 +142,31 @@ class PhpDocExtractor implements PropertyDescriptionExtractorInterface, Property
                 break;
         }
 
+        $parentClass = null;
         $types = [];
         /** @var DocBlock\Tags\Var_|DocBlock\Tags\Return_|DocBlock\Tags\Param $tag */
         foreach ($docBlock->getTagsByName($tag) as $tag) {
             if ($tag && !$tag instanceof InvalidTag && null !== $tag->getType()) {
-                $types = array_merge($types, $this->phpDocTypeHelper->getTypes($tag->getType()));
+                foreach ($this->phpDocTypeHelper->getTypes($tag->getType()) as $type) {
+                    switch ($type->getClassName()) {
+                        case 'self':
+                        case 'static':
+                            $resolvedClass = $class;
+                            break;
+
+                        case 'parent':
+                            if (false !== $resolvedClass = $parentClass ?? $parentClass = get_parent_class($class)) {
+                                break;
+                            }
+                            // no break
+
+                        default:
+                            $types[] = $type;
+                            continue 2;
+                    }
+
+                    $types[] = new Type(Type::BUILTIN_TYPE_OBJECT, $type->isNullable(), $resolvedClass, $type->isCollection(), $type->getCollectionKeyType(), $type->getCollectionValueType());
+                }
             }
         }
 
@@ -257,8 +277,16 @@ class PhpDocExtractor implements PropertyDescriptionExtractorInterface, Property
             return null;
         }
 
+        $reflector = $reflectionProperty->getDeclaringClass();
+
+        foreach ($reflector->getTraits() as $trait) {
+            if ($trait->hasProperty($property)) {
+                return $this->getDocBlockFromProperty($trait->getName(), $property);
+            }
+        }
+
         try {
-            return $this->docBlockFactory->create($reflectionProperty, $this->createFromReflector($reflectionProperty->getDeclaringClass()));
+            return $this->docBlockFactory->create($reflectionProperty, $this->createFromReflector($reflector));
         } catch (\InvalidArgumentException $e) {
             return null;
         } catch (\RuntimeException $e) {
@@ -295,8 +323,16 @@ class PhpDocExtractor implements PropertyDescriptionExtractorInterface, Property
             return null;
         }
 
+        $reflector = $reflectionMethod->getDeclaringClass();
+
+        foreach ($reflector->getTraits() as $trait) {
+            if ($trait->hasMethod($methodName)) {
+                return $this->getDocBlockFromMethod($trait->getName(), $ucFirstProperty, $type);
+            }
+        }
+
         try {
-            return [$this->docBlockFactory->create($reflectionMethod, $this->createFromReflector($reflectionMethod->getDeclaringClass())), $prefix];
+            return [$this->docBlockFactory->create($reflectionMethod, $this->createFromReflector($reflector)), $prefix];
         } catch (\InvalidArgumentException $e) {
             return null;
         } catch (\RuntimeException $e) {
