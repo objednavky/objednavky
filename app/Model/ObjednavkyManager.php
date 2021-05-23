@@ -32,7 +32,7 @@ class ObjednavkyManager
 	/**
 	 * Načte tabulku pro MojeObjednavkyPresenter podle stavů
 	 */
-    public function mapRozpocetMojeObjednavky(int $zadavatel, array $stavy) {
+    public function mapRozpocetMojeObjednavky(int $zadavatel, array $stavy) : array {
         $source = $this->objednavkyPodleStavu($stavy)
 						->where('zakladatel', $zadavatel)
 						->order('id DESC');
@@ -42,21 +42,19 @@ class ObjednavkyManager
 	/**
 	 * Načte tabulku pro MojeObjednavkyPresenter podle stavů
 	 */
-    public function mapRozpocetVsechnyMojeObjednavky(int $zadavatel) {
+    public function mapRozpocetVsechnyMojeObjednavky(int $zadavatel) : array {
         $source = $this->objednavkyPodleVlastnika($zadavatel)
 						->order('id DESC');
 		return $this->mapRozpocetFromSource($source);
     }
 	
-	public function mapRozpocetPrehled(array $stavy)
-    {
+	public function mapRozpocetPrehled(array $stavy) : array {
 		$source = $this->objednavkyPodleStavu($stavy)
 						->order('id DESC');
 		return $this->mapRozpocetFromSource($source);
 	}
     
-	public function mapObjednavkyRozpocetStav(int $rozpocet_id, array $stavy)
-    {
+	public function mapObjednavkyRozpocetStav(int $rozpocet_id, array $stavy) : array {
 		$source = $this->objednavkyPodleRozpoctu($rozpocet_id)
 						->where('stav', $stavy)
 						->order('id DESC');
@@ -67,7 +65,7 @@ class ObjednavkyManager
 	/**
 	 * z připraveného datasource naplní pole rozpočtů pro gridy v prezenteru
 	 */
-    private function mapRozpocetFromSource($source) {
+    private function mapRozpocetFromSource($source) : array {
         $fetchedRozpocets = [];
         foreach ($source as $objednavky) {
             $item = [
@@ -101,8 +99,7 @@ class ObjednavkyManager
 	}
 
 
-	public function mapObjednavka(int $prehledId)
-    {
+	public function mapObjednavka(int $prehledId) : array {
 		$source = $this->database->table('objednavky')
 					->where('id_prehled', $prehledId);
 		return $this->mapRozpocetFromSource($source);
@@ -112,8 +109,7 @@ class ObjednavkyManager
 	/**
 	 * Smaže objednávky, resp. změní jejich stav v databázi na smazané
 	 */
-	public function smazObjednavkyDb(array $ids): void
-    {
+	public function smazObjednavkyDb(array $ids): void {
         // TODO: tady je nutne doplnit kod kontrolujici, zda ma uzivatel pravo objednavku smazat
 
         $this->database->table('objednavky')->where('id',$ids)->update([
@@ -122,7 +118,7 @@ class ObjednavkyManager
 	}
 	
 	
-    public function mapPrehledObjednavek(bool $smazane) {
+    public function mapPrehledObjednavek(bool $smazane) : array{
         $source = $this->database->table('prehled')
 						->order('id DESC');
 		return $this->mapPrehledObjednavekFromSource($source, $smazane);
@@ -183,7 +179,7 @@ class ObjednavkyManager
 	/**
 	 * z připraveného datasource naplní pole rozpočtů pro gridy v prezenteru
 	 */
-    private function mapPrehledObjednavekFromSource($source, bool $smazane) {
+    private function mapPrehledObjednavekFromSource($source, bool $smazane) : array {
         $fetchedPrehled = [];
         foreach ($source as $prehled) {
 			$item = [

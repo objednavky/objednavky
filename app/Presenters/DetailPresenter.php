@@ -57,7 +57,7 @@ class DetailPresenter extends ObjednavkyBasePresenter
         $this->template->plan = $this->sumColumn($source, 'castka') + $this->sumColumn($source, 'sablony');
         $this->template->castka = $this->sumColumn($source, 'castka');
         $this->template->sablony = $this->sumColumn($source, 'sablony');
-        $this->template->objednano = $this->sumColumn($source, 'objednano');
+        $this->template->objednano = $this->sumColumn($source, 'objednanoVS');
         $this->template->percentNaklady = $this->template->naklady == 0 ? 0 : round(($this->template->naklady / $this->template->plan) * 100, 0);
         $this->template->percentObjednano = $this->template->objednano == 0 ? 0 : round(($this->template->objednano / $this->template->plan) * 100, 0);
         $this->template->percent = $this->template->percentObjednano + $this->template->percentNaklady;
@@ -83,37 +83,44 @@ class DetailPresenter extends ObjednavkyBasePresenter
             //                 ->sum('sablony');
             
             $item->plan = $item->castka+$item->sablony;
+
+            // denik vlastni mimo normativ
             $relevantni = $this->database->table('zakazky')->select('zakazka')->where('vlastni', 1)->where('normativ', 0);
-            $item->mySumV = $this->database->table('denik')->where('rozpocet', $item->id)->where('petky', $argument)->where('zakazky',$relevantni)
+            $item->mySumV = $this->database->table('denik')->where('rozpocet', $rozpocet->id)->where('petky', $argument)->where('zakazky',$relevantni)
                                 ->sum('castka');
             $item->mySumV = \round($item->mySumV, 0);
 
-            // vlastni 
+            // denik vlastni v normativu
             $relevantniN = $this->database->table('zakazky')->select('zakazka')->where('normativ', 1);
-            $item->mySumN = $this->database->table('denik')->where('rozpocet', $item->id)->where('petky', $argument)->where('zakazky',$relevantniN)
+            $item->mySumN = $this->database->table('denik')->where('rozpocet', $rozpocet->id)->where('petky', $argument)->where('zakazky',$relevantniN)
                                 ->sum('castka');
             $item->mySumN = \round($item->mySumN, 0);
 
+            // denik sablony
             $relevantniS = $this->database->table('zakazky')->select('zakazka')->where('sablony', 1);
-            $item->mySumS = $this->database->table('denik')->where('rozpocet', $item->id)->where('petky', $argument)->where('zakazky',$relevantniS)
+            $item->mySumS = $this->database->table('denik')->where('rozpocet', $rozpocet->id)->where('petky', $argument)->where('zakazky',$relevantniS)
                                 ->sum('castka');
             $item->mySumS = \round($item->mySumS, 0);            
             
+            // denik dotace
             $relevantni = $this->database->table('zakazky')->select('zakazka')->where('dotace', 1);
-            $item->mySumD = $this->database->table('denik')->where('rozpocet', $item->id)->where('petky', $argument)
+            $item->mySumD = $this->database->table('denik')->where('rozpocet', $rozpocet->id)->where('petky', $argument)
                         ->where('zakazky',$relevantni)->sum('castka');
             $item->mySumD = \round($item->mySumD, 0);
 
-            $relevantni_cin = $this->database->table('cinnost')->where('id_rozpocet', $rozpocet->id);
-            $item->objednanoVS = $this->database->table('objednavky')->where('cinnost', $relevantni_cin)->where('stav', [0,1,3,4,9])
-                                ->where('zakazka.vlastni = ? OR zakazka.sablony = ?', 1,1)->sum('castka');
-            $item->objednanoD = $this->database->table('objednavky')->where('cinnost', $relevantni_cin)->where('stav', [0,1,3,4,9])
-                                    ->where('zakazka.dotace = 1')->sum('castka');
-            $item->objednano = $item->objednanoD + $item->objednanoVS;
-            
-            $item->soucetV =  ( $item->mySumV)+ ($item->mySumS) +  ($item->mySumN) ;
+            $item->soucetVNS =  $item->mySumV + $item->mySumN + $item->mySumS;
 
-            $item->rozdil = $item->castka -  $item->mySumV  - $item->mySumN - $item->mySumS - $item->objednanoVS;
+
+            $item->objednanoV = $this->database->table('objednavky')->where('cinnost.id_rozpocet', $rozpocet->id)->where('stav', [0,1,3,4,9])
+                                ->where('zakazka.vlastni', 1)->sum('castka');
+            $item->objednanoS = $this->database->table('objednavky')->where('cinnost.id_rozpocet', $rozpocet->id)->where('stav', [0,1,3,4,9])
+                                ->where('zakazka.sablony', 1)->sum('castka');
+            $item->objednanoD = $this->database->table('objednavky')->where('cinnost.id_rozpocet', $rozpocet->id)->where('stav', [0,1,3,4,9])
+                                    ->where('zakazka.dotace', 1)->sum('castka');
+            
+            $item->objednanoVS = $item->objednanoV + $item->objednanoS;
+            $item->rozdil = $item->castka + $item->sablony - $item->mySumV - $item->mySumN - $item->mySumS - $item->objednanoV - $item->objednanoS;
+            
             $fetchedRozpocets[] = json_decode(json_encode($item), true);
         }
 
@@ -127,18 +134,20 @@ class DetailPresenter extends ObjednavkyBasePresenter
 
         $grid->addColumnLink('rozpocet', 'Rozpočet', 'Man:show', 'rozpocet', ['manId' => 'id']);
         // $grid->addColumnText('rozpocet', 'Rozpočet')->setAlign('left');
-        $grid->addColumnNumber('castka', 'Plán vlastní Kč')->setAlign('right');
-        $grid->addColumnNumber('sablony', 'Plán šablony Kč')->setAlign('right');
-        $grid->addColumnNumber('plan', 'Celkem plán rozpočet  vlastní + šablony Kč')->setAlign('right');
-        $grid->addColumnNumber('mySumV', 'Náklady vlastní Kč')->setAlign('right');
-        $grid->addColumnNumber('mySumN', 'Náklady normativ Kč')->setAlign('right');
-        $grid->addColumnNumber('mySumS', 'Náklady šablony')->setAlign('right');
-        $grid->addColumnNumber('soucetV', 'Součet nákladů vlastní+normativ+šablony')->setAlign('right');
-        $grid->addColumnNumber('objednanoVS', 'Objednávky z rozpočtu')->setAlign('right');
-        $grid->addColumnNumber('mySumD', 'Jiné účelové dotace')->setAlign('right');
-        $grid->addColumnNumber('objednanoD', 'Objednávky dotace')->setAlign('right');
-        $grid->addColumnNumber('rozdil', 'Zbývá z rozpočtu')->setAlign('right');
-        $grid->setColumnsSummary(['castka','sablony','mySumV', 'mySumN', 'mySumS','mySumD', 'rozdil','objednanoVS','objednanoD','plan','soucetV']);
+        $grid->addColumnNumber('castka', 'Plán vlastní')->setAlign('right')->setRenderer(function($item):string { return ($item['castka'] === null ? '' : number_format($item['castka'],0,","," ") .' Kč'); })->getElementPrototype('td')->setClass('nowrap');
+        $grid->addColumnNumber('sablony', 'Plán šablony')->setAlign('right')->setRenderer(function($item):string { return ($item['sablony'] === null ? '' : number_format($item['sablony'],0,","," ") .' Kč'); })->getElementPrototype('td')->setClass('nowrap');
+        $grid->addColumnNumber('plan', 'Plán CELKEM (vlastní+šablony)')->setAlign('right')->setRenderer(function($item):string { return ($item['plan'] === null ? '' : number_format($item['plan'],0,","," ") .' Kč'); })->getElementPrototype('td')->setClass('nowrap');
+        $grid->addColumnNumber('mySumV', 'Náklady vlastní')->setAlign('right')->setRenderer(function($item):string { return ($item['mySumV'] === null ? '' : number_format($item['mySumV'],0,","," ") .' Kč'); })->getElementPrototype('td')->setClass('nowrap');
+        $grid->addColumnNumber('mySumN', 'Náklady vlastní (normativ)')->setAlign('right')->setRenderer(function($item):string { return ($item['mySumN'] === null ? '' : number_format($item['mySumN'],0,","," ") .' Kč'); })->getElementPrototype('td')->setClass('nowrap');
+        $grid->addColumnNumber('mySumS', 'Náklady šablony')->setAlign('right')->setRenderer(function($item):string { return ($item['mySumS'] === null ? '' : number_format($item['mySumS'],0,","," ") .' Kč'); })->getElementPrototype('td')->setClass('nowrap');
+        $grid->addColumnNumber('mySumD', 'Náklady dotace (mimo rozpočet)')->setAlign('right')->setRenderer(function($item):string { return ($item['mySumD'] === null ? '' : number_format($item['mySumD'],0,","," ") .' Kč'); })->getElementPrototype('td')->setClass('nowrap');
+        $grid->addColumnNumber('soucetVNS', 'Náklady CELKEM (vlastní+šablony)')->setAlign('right')->setRenderer(function($item):string { return ($item['soucetVNS'] === null ? '' : number_format($item['soucetVNS'],0,","," ") .' Kč'); })->getElementPrototype('td')->setClass('nowrap');
+        $grid->addColumnNumber('objednanoV', 'Objednávky vlastní')->setAlign('right')->setRenderer(function($item):string { return ($item['objednanoV'] === null ? '' : number_format($item['objednanoV'],0,","," ") .' Kč'); })->getElementPrototype('td')->setClass('nowrap');
+        $grid->addColumnNumber('objednanoS', 'Objednávky šablony')->setAlign('right')->setRenderer(function($item):string { return ($item['objednanoS'] === null ? '' : number_format($item['objednanoS'],0,","," ") .' Kč'); })->getElementPrototype('td')->setClass('nowrap');
+        $grid->addColumnNumber('objednanoD', 'Objednávky dotace (mimo rozpočet)')->setAlign('right')->setRenderer(function($item):string { return ($item['objednanoD'] === null ? '' : number_format($item['objednanoD'],0,","," ") .' Kč'); })->getElementPrototype('td')->setClass('nowrap');
+        $grid->addColumnNumber('rozdil', 'Zbývá z rozpočtu')->setAlign('right')->setRenderer(function($item):string { return ($item['rozdil'] === null ? '' : number_format($item['rozdil'],0,","," ") .' Kč'); })->getElementPrototype('td')->setClass('nowrap');
+        $grid->setColumnsSummary(['castka','sablony','mySumV', 'mySumN', 'mySumS','mySumD', 'rozdil','objednanoV','objednanoS','objednanoD','soucetVNS','plan'])
+                ->setRenderer(function($sum, $column):string { return ($sum === null ? '' : number_format($sum,0,","," ") .' Kč'); });
         $grid->setPagination(false);
         $grid->addExportCsv('Export do csv', 'tabulka.csv', 'windows-1250')
         ->setTitle('Export do csv');

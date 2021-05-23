@@ -78,24 +78,27 @@ class EditCinnostiPresenter extends ObjednavkyBasePresenter
         $rok = $this->sessionSection->rok;
         $verze = $this->sessionSection->verze;
         $rozpocty = $this->database->table('rozpocet')->where('rozpocet.rok', $rok)->where('rozpocet.verze',$verze)->fetchPairs('id','id');
+
         $source = $this->database->table('cinnost')
-            ->select('cinnost.id AS id, cinnost.cinnost AS cinnost, nazev_cinnosti, id_rozpocet, vyber, COUNT(:objednavky.id) AS pocet_objednavek')
             ->where('id_rozpocet',$rozpocty)
+            ->select('cinnost.id, cinnost.cinnost AS cinnost, nazev_cinnosti, id_rozpocet, vyber')
             ->group('cinnost.id, cinnost.cinnost, nazev_cinnosti, id_rozpocet, vyber')
             ->order('cinnost.cinnost ASC');
+        //$source->select('COUNT(:objednavky.id) AS pocet_objednavek');
         //$this->sessionSection->source = $source;
         //$grid->setPrimaryKey('cinnost.id');
+        //$grid->setPrimaryKey('cid');
         $grid->setDataSource($source);
         bdump($grid);
         bdump($source);
 
 
-        $grid->addColumnNumber('id', 'Id')->setSortable()->setSortableResetPagination();
+        $grid->addColumnNumber('cinnost.id', 'Id', 'cinnost.id')->setSortable()->setSortableResetPagination();
         $grid->addColumnText('cinnost', 'Činnost')->setSortable()->setSortableResetPagination();
         $grid->addColumnText('nazev_cinnosti', 'Název')->setSortable()->setSortableResetPagination();
-        $grid->addColumnText('rozpocet.rozpocet', 'Rozpočet')->setSortable()->setSortableResetPagination();
+        $grid->addColumnText('id_rozpocet', 'Rozpočet', 'rozpocet.rozpocet')->setSortable()->setSortableResetPagination();
         $grid->addColumnNumber('vyber', 'Nabízet uživatelům?')->setSortable()->setSortableResetPagination();
-        $grid->addColumnNumber('pocet_objednavek', 'Počet objednávek')->setSortable()->setSortableResetPagination();
+        //$grid->addColumnNumber('pocet_objednavek', 'Počet objednávek')->setSortable()->setSortableResetPagination();
         $grid->addExportCsv('Export do csv', 'rozpocet.csv', 'Windows-1250')->setTitle('Export do csv');
 
         $grid->addInlineEdit()
@@ -104,7 +107,6 @@ class EditCinnostiPresenter extends ObjednavkyBasePresenter
             $container->addText('nazev_cinnosti', '')->setRequired('Uveďte název činnosti.');
             $container->addSelect('id_rozpocet','Rozpočet:',$this->database->table('rozpocet')->select('rozpocet.id, rozpocet')->where('rok', $rok)->where('verze',$verze)->order('rozpocet')->fetchPairs('id','rozpocet'))->setRequired('Přidělte činnosti rozpočet.');
             $container->addCheckbox('vyber', '');
-            $container->addHidden('cinnost_old','');
         };
     
         $grid->getInlineEdit()->onSetDefaults[] = function(Nette\Forms\Container $container, $item): void {
@@ -114,7 +116,6 @@ class EditCinnostiPresenter extends ObjednavkyBasePresenter
                 'nazev_cinnosti' => $item->nazev_cinnosti,
                 'id_rozpocet' => $item->id_rozpocet,
                 'vyber' => $item->vyber,
-                'cinnost_old' => $item->cinnost,
             ]);
         };
         
@@ -165,7 +166,7 @@ class EditCinnostiPresenter extends ObjednavkyBasePresenter
         };
 
         $grid->addAction('delete', '', 'deleteCinnost!')
-            ->setClass(function($item) { return 'btn btn-xs ajax btn-secondary' . ($item->pocet_objednavek > 0 ? ' disabled' : ''); })
+            ->setClass('btn btn-xs ajax btn-secondary')
             ->setIcon('trash')
             ->setTitle('Smazat činnost')
             ->setConfirmation(
@@ -224,7 +225,7 @@ class EditCinnostiPresenter extends ObjednavkyBasePresenter
         try {
             // nenexistuje pro mazanou cinnost objednavka?
             $cinnost = $this->database->table('cinnost')->get($id);
-            if ($this->database->table('objednavky')->where('cinnost', $id)->count('id') == 0) {
+            if ($this->database->table('objednavky')->where('cinnost', $id)->count() == 0) {
                 $this->database->table('cinnost')->where('id = ?', $id)->delete();
                 $this->flashMessage('Činnost ' . $cinnost->cinnost . ' byla smazána.', 'success');
             } else {
