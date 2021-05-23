@@ -14,10 +14,8 @@ class Bootstrap
 		$configurator = new Configurator;
 
 		// enable debug if there is .debug file in application root dir
-		if (file_exists(__DIR__ . '/../.debug')) {  	
-			$configurator->setDebugMode(true); 
-			$configurator->enableTracy(__DIR__ . '/../log');
-		}
+		$configurator->setDebugMode(file_exists(__DIR__ . '/../.debug')); 
+		$configurator->enableTracy(__DIR__ . '/../log');
 
 		$configurator->setTimeZone('Europe/Prague');
 		$configurator->setTempDirectory(__DIR__ . '/../temp');
