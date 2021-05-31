@@ -29,8 +29,13 @@ class VsechnyObjednavkyPresenter extends ObjednavkyBasePresenter
         $this->template->prihlasen = $uz->jmeno;
         $this->template->prehledId = $prehledId;
         $this->template->mojeObjednavka = (isset($prehledId) ? ($this->database->table('prehled')->where('zakladatel',$uz)->where('id', $prehledId)->count() > 0) : false); 
+<<<<<<< HEAD
         $this->template->smazane = isset($smazane) ? boolval($smazane) : false;
         $this->smazane = isset($smazane) ? boolval($smazane) : false;
+=======
+        $this->template->smazane = isset($smazane) ? $smazane : false;
+        $this->smazane = isset($smazane) ? $smazane : false;
+>>>>>>> bfe35ee40bf80f52d24dce7243b6414f84f18953
     }
 
 
