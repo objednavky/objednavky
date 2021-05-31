@@ -24,11 +24,13 @@ class VsechnyObjednavkyPresenter extends ObjednavkyBasePresenter
 
 
     public function actionDefault(?int $prehledId = null, ?string $smazane): void {
-        $uz = $this->prihlasenyId();
-        $this->template->prihlasen = ($this->database->table('uzivatel')->where('id',$uz)->fetch())->jmeno;
+        $uzId = $this->prihlasenyId();
+        $uz = $this->database->table('uzivatel')->where('id',$uzId)->fetch();
+        $this->template->prihlasen = $uz->jmeno;
         $this->template->prehledId = $prehledId;
-        $this->template->smazane = isset($smazane) ? $smazane : false;
-        $this->smazane = isset($smazane) ? $smazane : false;
+        $this->template->mojeObjednavka = (isset($prehledId) ? ($this->database->table('prehled')->where('zakladatel',$uz)->where('id', $prehledId)->count() > 0) : false); 
+        $this->template->smazane = isset($smazane) ? boolval($smazane) : false;
+        $this->smazane = isset($smazane) ? boolval($smazane) : false;
     }
 
 
@@ -109,16 +111,19 @@ class VsechnyObjednavkyPresenter extends ObjednavkyBasePresenter
 //        $grid->addColumnNumber('radka','Č. pol.');
         $grid->addColumnText('zadavatel','Zadavatel')->setSortable()->setSortableResetPagination()->setDefaultHide();
         $grid->addColumnDateTime('zalozil','Založeno')->setFormat('d.m.Y H:i:s')->setSortable()->setSortableResetPagination()->setDefaultHide();
-        $grid->addColumnText('stav','Stav objednávky')->setSortable()->setSortableResetPagination();
-        $grid->addColumnNumber('stav_id','Stav č.')->setSortable()->setSortableResetPagination()->setDefaultHide();
+        $grid->addColumnText('stav','Stav objednávky')->setSortable()->setSortableResetPagination()->setDefaultHide();
+        $grid->addColumnText('stav_id','Stav')->setSortable()->setSortableResetPagination()->setTemplateEscaping(FALSE);
+        $grid->addColumnCallback('stav_id', function($column, $item) {
+            $column->setRenderer(function() use ($item):string { return $this->renderujIkonuStavu($item); });
+        });
         $grid->addColumnText('schvalovatel','Schvalovatel')->setSortable()->setSortableResetPagination();
         $grid->addColumnDateTime('schvalil','Schváleno')->setSortable()->setSortableResetPagination();
         $grid->addColumnText('nutno_overit','Nutno ověřit')->setAlign('center')->setSortable()->setSortableResetPagination()
             ->setRenderer(function($item) { return $item['nutno_overit'] == 1 ? "ANO" : "ne"; });
         $grid->addColumnText('overovatel','Ověřovatel')->setSortable()->setSortableResetPagination();
         $grid->addColumnDateTime('overil','Ověřeno')->setSortable()->setSortableResetPagination();
-        $grid->addColumnText('firma','firma')->setSortable()->setSortableResetPagination();
-        $grid->addColumnText('popis','popis')->setSortable()->setSortableResetPagination();
+        $grid->addColumnText('firma','Firma')->setSortable()->setSortableResetPagination();
+        $grid->addColumnText('popis','Popis')->setSortable()->setSortableResetPagination();
         $grid->addColumnText('cinnost','Činnost')->setSortable()->setSortableResetPagination();
         $grid->addColumnText('cinnostP','Popis činnosti')->setSortable()->setSortableResetPagination()->setDefaultHide();
         $grid->addColumnText('zakazka','Zakázka')->setSortable()->setSortableResetPagination();
@@ -127,7 +132,7 @@ class VsechnyObjednavkyPresenter extends ObjednavkyBasePresenter
             ->setRenderer(function($item):string { return (number_format($item['castka'],0,","," ") .' Kč'); });
 
         $grid->setRowCallback(function($item, $tr) {
-            $tr->addClass('tr-objednavky-stav-'.$item['stav_id']);
+            //$tr->addClass('tr-objednavky-stav-'.$item['stav_id']);
         });
     
         $grid->addExportCsv('Export do csv', 'tabulka.csv', 'windows-1250')

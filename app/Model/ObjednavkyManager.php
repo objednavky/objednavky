@@ -190,23 +190,26 @@ class ObjednavkyManager
 			];
 			$objednavky = $this->sumaObjednavekPodlePrehleduAStavu($prehled->id);
 			if (isset($objednavky)) {
-				bdump($objednavky);
 				$item = array_merge($item, $objednavky->toArray());
 			} else {
-				$item['castka_celkem'] = 0;
-				$item['pocet_celkem'] = 0;
-				$item['cinnosti'] = '';
-				$item['castka_neschvalene'] = 0;
-				$item['pocet_neschvalene'] = 0;
-				$item['castka_schvalene'] = 0;
-				$item['pocet_schvalene'] = 0;
-				$item['castka_zamitnute'] = 0;
-				$item['pocet_zamitnute'] = 0;
-				$item['castka_uctarna'] = 0;
-				$item['pocet_uctarna'] = 0;
+				// k objednavce se nena
+				$item = array_merge($item, [
+					'cinnosti' => '',
+					'firma' => '',
+					'castka_neschvalene' => 0,
+					'pocet_neschvalene' => 0,
+					'castka_schvalene' => 0,
+					'pocet_schvalene' => 0,
+					'castka_zamitnute' => 0,
+					'pocet_zamitnute' => 0,
+					'castka_uctarna' => 0,
+					'pocet_uctarna' => 0,
+					'castka_celkem' => 0,
+					'pocet_celkem' => 0,
+				]);
 			}
 			if ($item['pocet_celkem']>0 || $smazane) {
-				//uloz jen pokud je nenulovy pocet polozek (krome stavu 7 = archiv)
+				//uloz jen pokud je nenulovy pocet polozek (krome stavu 6 = archiv)
 				$fetchedPrehled[] = $item;
 			}
 		}
@@ -236,19 +239,20 @@ class ObjednavkyManager
 	private function sumaObjednavekPodlePrehleduAStavu(int $prehledId) {
 		$rok = $this->database->table('setup')->get(1)->rok;
 		return $this->database->table('objednavky')
-				->select("SUM(CASE WHEN stav IN (0,1,2,3,4,5,8,9) THEN castka ELSE 0 END) AS castka_celkem, "
+				->select("SUM(CASE WHEN stav IN (0,1,2,3,4,5,8,9) THEN objednavky.castka ELSE 0 END) AS castka_celkem, "
 					."COUNT(CASE WHEN stav IN (0,1,2,3,4,5,8,9) THEN objednavky.id ELSE NULL END) AS pocet_celkem, "
-					."SUM(CASE WHEN stav IN (0,1) THEN castka ELSE 0 END) AS castka_neschvalene, "
+					."SUM(CASE WHEN stav IN (0,1) THEN objednavky.castka ELSE 0 END) AS castka_neschvalene, "
 					."COUNT(CASE WHEN stav IN (0,1) THEN objednavky.id ELSE NULL END) AS pocet_neschvalene, "
-					."SUM(CASE WHEN stav IN (3,4) THEN castka ELSE 0 END) AS castka_schvalene, "
+					."SUM(CASE WHEN stav IN (3,4) THEN objednavky.castka ELSE 0 END) AS castka_schvalene, "
 					."COUNT(CASE WHEN stav IN (3,4) THEN objednavky.id ELSE NULL END) AS pocet_schvalene, "
-					."SUM(CASE WHEN stav IN (2,5,8) THEN castka ELSE 0 END) AS castka_zamitnute, "
+					."SUM(CASE WHEN stav IN (2,5,8) THEN objednavky.castka ELSE 0 END) AS castka_zamitnute, "
 					."COUNT(CASE WHEN stav IN (2,5,8) THEN objednavky.id ELSE NULL END) AS pocet_zamitnute, "
-					."SUM(CASE WHEN stav IN (9) THEN castka ELSE 0 END) AS castka_uctarna, "
+					."SUM(CASE WHEN stav IN (9) THEN objednavky.castka ELSE 0 END) AS castka_uctarna, "
 					."COUNT(CASE WHEN stav IN (9) THEN objednavky.id ELSE NULL END) AS pocet_uctarna, "
 					."GROUP_CONCAT(DISTINCT cinnost.cinnost SEPARATOR ', ') AS cinnosti, "
 					."GROUP_CONCAT(DISTINCT objednavky.firma SEPARATOR ', ') AS firma ")
 				->group('id_prehled')->where('id_prehled',$prehledId)
-				->where('cinnost.rozpocet.rok', $rok)->fetch();
+//				->where('cinnost.rozpocet.rok', $rok)   //TK: neni potreba, navic hazi chybu v testovaci DB kde se obcas objednavka odkazuje na cinnosti z jineho roku
+				->fetch();
 			}
 }
