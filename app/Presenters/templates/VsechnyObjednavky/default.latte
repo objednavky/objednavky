@@ -16,7 +16,9 @@
 {if $prehledId}
 
 <h4 class="mt-4" id="nove">Detail objednávky {$prehledId}</h4> 
-<a class="btn btn-info" n:href="Uprava:default objId:$prehledId" role="button">Editovat objednávku</a>
+{if in_array('finance', $presenter->getUser()->getRoles()) ||  in_array('admin', $presenter->getUser()->getRoles()) || $mojeObjednavka }
+  <a class="btn btn-info" n:href="Uprava:default objId:$prehledId" role="button">Editovat objednávku</a>
+{/if}
 {control detailObjednavkyGrid} 
 
 {/if}

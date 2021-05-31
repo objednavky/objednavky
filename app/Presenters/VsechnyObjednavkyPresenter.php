@@ -24,9 +24,11 @@ class VsechnyObjednavkyPresenter extends ObjednavkyBasePresenter
 
 
     public function actionDefault(?int $prehledId = null, ?string $smazane): void {
-        $uz = $this->prihlasenyId();
-        $this->template->prihlasen = ($this->database->table('uzivatel')->where('id',$uz)->fetch())->jmeno;
+        $uzId = $this->prihlasenyId();
+        $uz = $this->database->table('uzivatel')->where('id',$uzId)->fetch();
+        $this->template->prihlasen = $uz->jmeno;
         $this->template->prehledId = $prehledId;
+        $this->template->mojeObjednavka = (isset($prehledId) ? ($this->database->table('prehled')->where('zakladatel',$uz)->where('id', $prehledId)->count() > 0) : false); 
         $this->template->smazane = isset($smazane) ? $smazane : false;
         $this->smazane = isset($smazane) ? $smazane : false;
     }

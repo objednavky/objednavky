@@ -236,15 +236,15 @@ class ObjednavkyManager
 	private function sumaObjednavekPodlePrehleduAStavu(int $prehledId) {
 		$rok = $this->database->table('setup')->get(1)->rok;
 		return $this->database->table('objednavky')
-				->select("SUM(CASE WHEN stav IN (0,1,2,3,4,5,8,9) THEN castka ELSE 0 END) AS castka_celkem, "
+				->select("SUM(CASE WHEN stav IN (0,1,2,3,4,5,8,9) THEN objednavky.castka ELSE 0 END) AS castka_celkem, "
 					."COUNT(CASE WHEN stav IN (0,1,2,3,4,5,8,9) THEN objednavky.id ELSE NULL END) AS pocet_celkem, "
-					."SUM(CASE WHEN stav IN (0,1) THEN castka ELSE 0 END) AS castka_neschvalene, "
+					."SUM(CASE WHEN stav IN (0,1) THEN objednavky.castka ELSE 0 END) AS castka_neschvalene, "
 					."COUNT(CASE WHEN stav IN (0,1) THEN objednavky.id ELSE NULL END) AS pocet_neschvalene, "
-					."SUM(CASE WHEN stav IN (3,4) THEN castka ELSE 0 END) AS castka_schvalene, "
+					."SUM(CASE WHEN stav IN (3,4) THEN objednavky.castka ELSE 0 END) AS castka_schvalene, "
 					."COUNT(CASE WHEN stav IN (3,4) THEN objednavky.id ELSE NULL END) AS pocet_schvalene, "
-					."SUM(CASE WHEN stav IN (2,5,8) THEN castka ELSE 0 END) AS castka_zamitnute, "
+					."SUM(CASE WHEN stav IN (2,5,8) THEN objednavky.castka ELSE 0 END) AS castka_zamitnute, "
 					."COUNT(CASE WHEN stav IN (2,5,8) THEN objednavky.id ELSE NULL END) AS pocet_zamitnute, "
-					."SUM(CASE WHEN stav IN (9) THEN castka ELSE 0 END) AS castka_uctarna, "
+					."SUM(CASE WHEN stav IN (9) THEN objednavky.castka ELSE 0 END) AS castka_uctarna, "
 					."COUNT(CASE WHEN stav IN (9) THEN objednavky.id ELSE NULL END) AS pocet_uctarna, "
 					."GROUP_CONCAT(DISTINCT cinnost.cinnost SEPARATOR ', ') AS cinnosti, "
 					."GROUP_CONCAT(DISTINCT objednavky.firma SEPARATOR ', ') AS firma ")
