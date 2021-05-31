@@ -200,6 +200,9 @@ class ManPresenter extends ObjednavkyBasePresenter
         $grid->addColumnText('stredisko','Středisko')->setSortable()->setSortableResetPagination()->setFilterText();
         $grid->addColumnNumber('castka', 'Částka')->setSortable()->setSortableResetPagination()
             ->setRenderer(function($item):string { return (number_format($item['castka'],0,","," ") .' Kč'); })->setFilterText();
+        $grid->setRowCallback(function($item, $tr) {
+            $tr->addClass('tr-objednavky-stav-'.$item['stav_id']);
+        });
         $grid->addExportCsv('Export do csv', 'tabulka.csv', 'windows-1250')
             ->setTitle('Export do csv');
         $grid->setPagination(count($source)>10);

@@ -132,7 +132,7 @@ class VsechnyObjednavkyPresenter extends ObjednavkyBasePresenter
             ->setRenderer(function($item):string { return (number_format($item['castka'],0,","," ") .' Kč'); });
 
         $grid->setRowCallback(function($item, $tr) {
-            //$tr->addClass('tr-objednavky-stav-'.$item['stav_id']);
+            $tr->addClass('tr-objednavky-stav-'.$item['stav_id']);
         });
     
         $grid->addExportCsv('Export do csv', 'tabulka.csv', 'windows-1250')

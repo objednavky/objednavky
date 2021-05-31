@@ -120,6 +120,9 @@ class PrehledPresenter extends ObjednavkyBasePresenter
                 return ($item['castka'] .' Kč');   
             });
         });
+        $grid->setRowCallback(function($item, $tr) {
+            $tr->addClass('tr-objednavky-stav-'.$item['stav_id']);
+        });
         $grid->setPagination(false);
         $grid->addExportCsv('Export do csv', 'tabulka.csv', 'windows-1250')
             ->setTitle('Export do csv');
