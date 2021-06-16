@@ -57,6 +57,10 @@ class ManPresenter extends ObjednavkyBasePresenter
         $source2 = $this->database->table('objednavky')->where('cinnost', $relevantni)->where('zakazka.dotace',1)->where('stav', [0,1,3,4,9]); 
         $this->template->objednanoV = $this->sumColumn($source, 'castka');
         $this->template->objednanoD =  $this->sumColumn($source2, 'castka'); 
+        
+        //zda sleduji tento rozpocet na uvodni strance
+        $sleduji = $this->database->table('skupiny')->where('uzivatel', $this->prihlasenyId())->where('rozpocet', $manId)->count() > 0;
+        $this->template->sleduji = $sleduji;
     } 
     
     private function mapRozpocet($argument,$zasejedenID)
@@ -115,26 +119,8 @@ class ManPresenter extends ObjednavkyBasePresenter
         $grid->addExportCsv('Export do csv', 'tabulka.csv', 'windows-1250')
         ->setTitle('Export do csv');
 
-        $translator = new \Ublaboo\DataGrid\Localization\SimpleTranslator([
-            'ublaboo_datagrid.no_item_found_reset' => 'Žádné položky nenalezeny. Filtr můžete vynulovat',
-            'ublaboo_datagrid.no_item_found' => 'Žádné položky nenalezeny.',
-            'ublaboo_datagrid.here' => 'zde',
-            'ublaboo_datagrid.items' => 'Položky',
-            'ublaboo_datagrid.all' => 'všechny',
-            'ublaboo_datagrid.from' => 'z',
-            'ublaboo_datagrid.reset_filter' => 'Resetovat filtr',
-            'ublaboo_datagrid.group_actions' => 'Hromadné akce',
-            'ublaboo_datagrid.show_all_columns' => 'Zobrazit všechny sloupce',
-            'ublaboo_datagrid.hide_column' => 'Skrýt sloupec',
-            'ublaboo_datagrid.action' => 'Akce',
-            'ublaboo_datagrid.previous' => 'Předchozí',
-            'ublaboo_datagrid.next' => 'Další',
-            'ublaboo_datagrid.choose' => 'Vyberte',
-            'ublaboo_datagrid.execute' => 'Provést',
-            'Name' => 'Jméno',
-            'Inserted' => 'Vloženo'
-        ]);
-        $grid->setTranslator($translator);
+        $grid->setTranslator($this->getTranslator());        
+
     //    $grid->setMultiSortEnabled($enabled = TRUE);
     //    $grid->addAggregationFunction('castka', new FunctionSum('castka'));
     } 
@@ -251,5 +237,22 @@ class ManPresenter extends ObjednavkyBasePresenter
         return $translator;
     }
 
+    public function handleZacniSledovat()
+    {
+        $this->database->table('skupiny')->insert([
+            'uzivatel' => $this->prihlasenyId(),
+            'rozpocet' => $this->sessionSection->manId,
+        ]);
+        $this->redrawControl();
+    }
+
+    public function handlePrestanSledovat()
+    {
+        $this->database->table('skupiny')->where([
+            'uzivatel' => $this->prihlasenyId(),
+            'rozpocet' => $this->sessionSection->manId,
+        ])->delete();
+        $this->redrawControl();
+    }
 
 }

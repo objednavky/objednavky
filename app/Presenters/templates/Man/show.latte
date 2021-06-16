@@ -5,7 +5,14 @@
 {block content}
 <br>
 <div class="container-fluid">
-<h2 class="display-4">{$jeden->rozpocet} - manažerský report</h2>
+<h2 class="display-4">{$jeden->rozpocet} - manažerský report</h2> 
+<span style="float:right; margin-top:-50px;">
+{if $sleduji}
+<a class="btn btn-success" n:href="prestanSledovat!" role="button" title="Tento rozpočet sleduji"><i class='fa fa-eye'></i></a>
+{else}
+<a class="btn btn-secondary" n:href="zacniSledovat!" role="button" title="Tento rozpočet nesleduji"><i class='fa fa-eye-slash'></i></a>
+{/if}
+</span>
 
 
 

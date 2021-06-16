@@ -14,28 +14,36 @@ use function Symfony\Component\String\b;
 
 class JedenPresenter extends ObjednavkyBasePresenter //změna
 {
-    private int $jedenId;
+    private $sessionSection;
 
     protected function startup()
     {
         parent::startup();
-    }
+        if (!isset($this->sessionSection)) {
+            $this->sessionSection = $this->getSession('JedenPresenter');
+        }    }
     
-    public function actionShow(int $jedenId = null): void
+    public function actionShow(?int $jedenId): void
 	{
-        if (null == $jedenId) {
-            // když není nastaven jedenId, zkus ho vytáhnout ze session
-            $jedenId = $this->getSession('JedenPresenter')->jedenId;
-        } else {
+        if (isset($jedenId)) {
             // když je nastaven jedenId, ulož ho do session pro příště
-            $this->getSession('JedenPresenter')->jedenId = $jedenId;
+            $this->sessionSection->jedenId = $jedenId;
+        } elseif (isset($this->sessionSection->jedenId)) {
+            // když není nastaven jedenId, zkus ho vytáhnout ze session
+            $jedenId = $this->sessionSection->jedenId;
+        } else {
+            $this->error('Rozpočet nebyl nalezen');
         }
-        $this->jedenId = $jedenId;
+
     }
 
     public function renderShow(): void
     {
-        $jeden = $this->database->table('rozpocet')->get($this->jedenId);
+        //zda sleduji tento rozpocet na uvodni strance
+        $sleduji = $this->database->table('skupiny')->where('uzivatel', $this->prihlasenyId())->where('rozpocet', $this->sessionSection->jedenId)->count() > 0;
+        $this->template->sleduji = $sleduji;
+
+        $jeden = $this->database->table('rozpocet')->get($this->sessionSection->jedenId);
         if (!$jeden) {
             $this->error('Stránka nebyla nalezena');
         }
@@ -43,12 +51,12 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
         $this->template->hospodar = $jeden->ref('hospodar')->jmeno;
         $this->template->hospodar2 = $jeden->ref('hospodar2')->jmeno;
 
-        $source = $this->mapDenik(1,$this->jedenId);
+        $source = $this->mapDenik(1,$this->sessionSection->jedenId);
         $this->template->vlastni = $this->sumColumn($source, 'vlastni');
         $this->template->dotace = $this->sumColumn($source, 'dotace');
         $this->template->sablony = $this->sumColumn($source, 'sablony');
 
-        $nacti = $this->database->table('rozpocet')->where('id',$this->jedenId)->fetch();;
+        $nacti = $this->database->table('rozpocet')->where('id',$this->sessionSection->jedenId)->fetch();;
         $this->template->castka = $jeden->castka;      //ziskam castku vlastni;
         $this->template->sablonyplan = $nacti->sablony;    //ziskam castku sablony;
         $this->template->zbyva = $this->template->castka - ($this->template->vlastni) ;
@@ -58,7 +66,7 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
         $this->template->percent = $utraceno == 0 ? 0: round(($utraceno / $plan ) * 100, 0);
 
         //vypocet procent a kontrola deleni nulou
-        $relevantni =$this->database->table('cinnost')->select('id')->where('id_rozpocet',$this->jedenId);
+        $relevantni =$this->database->table('cinnost')->select('id')->where('id_rozpocet',$this->sessionSection->jedenId);
         $source = $this->database->table('objednavky')->where('cinnost', $relevantni)->where('zakazka.vlastni',1);
         $source2 = $this->database->table('objednavky')->where('cinnost', $relevantni)->where('zakazka.dotace',1); 
         $this->template->objednanoV = $this->sumColumn($source, 'castka');
@@ -155,7 +163,7 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
     public function createComponentPrehledGrid($name)      
     {
         $grid = new DataGrid($this, $name);
-        $zasejedenID = $this->jedenId;
+        $zasejedenID = $this->sessionSection->jedenId;
         $source = $this->mapCinnost(1,$zasejedenID);
         $grid->setDataSource($source);
         $grid->addColumnText('cinnost', 'Činnost');
@@ -199,7 +207,7 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
     public function createComponentSimpleGrid($name)
     {
         $grid = new DataGrid($this, $name);
-        $zasejedenID = $this->jedenId;
+        $zasejedenID = $this->sessionSection->jedenId;
         //     $relevantni = $this->database->table('cinnost')->select('cinnost')->where('id_rozpocet',$zasejedenID);   //seznam cinnosti patrici k vybranemu rozpoctu
         //    $vysledek = $this->database->table('denik')->where('cinnost_d', $relevantni)->where('petky',  1) ;   //polozky deniku dle seznamu cinnosti
         $source = $this->mapDenik(1,$zasejedenID);
@@ -237,7 +245,7 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
 
     public function createComponentSimpleGrid2($name)
     {
-        $zasejedenID = $this->jedenId;
+        $zasejedenID = $this->sessionSection->jedenId;
         $relevantni =   $this->database->table('cinnost')->select('id')->where('id_rozpocet',  $zasejedenID );
         $source = $this->database->table('objednavky')->where('cinnost', $relevantni)->where('stav', [3,4,9])->order('id DESC');
         $grid = new DataGrid($this, $name);
@@ -266,7 +274,7 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
 
     public function createComponentSimpleGrid3($name)
     {
-        $zasejedenID = $this->jedenId;
+        $zasejedenID = $this->sessionSection->jedenId;
         $relevantni =   $this->database->table('cinnost')->select('id')->where('id_rozpocet',  $zasejedenID );
         $source = $this->database->table('objednavky')->where('cinnost', $relevantni)->where('stav', [0,1])->order('id DESC');
         $grid = new DataGrid($this, $name);
@@ -324,4 +332,22 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
         return $translator;
     }
         
+    public function handleZacniSledovat()
+    {
+        $this->database->table('skupiny')->insert([
+            'uzivatel' => $this->prihlasenyId(),
+            'rozpocet' => $this->sessionSection->jedenId,
+        ]);
+        $this->redrawControl();
+    }
+
+    public function handlePrestanSledovat()
+    {
+        $this->database->table('skupiny')->where([
+            'uzivatel' => $this->prihlasenyId(),
+            'rozpocet' => $this->sessionSection->jedenId,
+        ])->delete();
+        $this->redrawControl();
+    }
+
 }
