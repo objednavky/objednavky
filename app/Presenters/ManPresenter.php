@@ -27,14 +27,14 @@ class ManPresenter extends ObjednavkyBasePresenter
 
 	public function renderShow(?int $manId): void
 	{
-        $jeden = $this->database->table('rozpocet')->get($manId);
-        if (isset($jeden)) {
-            $this->sessionSection->jeden= $jeden;
-        } elseif (isset($this->sessionSection->jeden)) {
-            $jeden = $this->sessionSection->jeden;
+        if (isset($manId)) {
+            $this->sessionSection->manId = $manId;
+        } elseif (isset($this->sessionSection->manId)) {
+            $manId = $this->sessionSection->manId;
         } else {
-            $this->error('Stránka nebyla nalezena');
+            $this->error('Rozpočet nebyl nalezen');
         }
+        $jeden = $this->database->table('rozpocet')->get($manId);
         $this->template->jeden = $jeden;
         $this->template->hospodar = $jeden->ref('hospodar')->jmeno;
         $this->template->hospodar2 = $jeden->ref('hospodar2')->jmeno;
@@ -96,7 +96,7 @@ class ManPresenter extends ObjednavkyBasePresenter
     public function createComponentSimpleGrid($name)
     {
         $grid = new DataGrid($this, $name);
-        $zasejedenID = $this->getParameter('manId');
+        $zasejedenID = $this->sessionSection->manId;
         $grid->setDataSource($this->mapRozpocet(1,$zasejedenID));
         $grid->addColumnDateTime('datum', 'Datum');
         $grid->addColumnText('cinnost_d', 'Činnost');
@@ -174,7 +174,7 @@ class ManPresenter extends ObjednavkyBasePresenter
 
     public function createComponentSimpleGrid2($name)
     {
-        $zasejedenID = $this->getParameter('manId');
+        $zasejedenID = $this->sessionSection->manId;
         $grid = new DataGrid($this, $name);
         $source = $this->mapObjednavky($zasejedenID);
         $grid->setDataSource($source);        // schválené a OVERENE
@@ -213,7 +213,7 @@ class ManPresenter extends ObjednavkyBasePresenter
 
     public function createComponentSimpleGrid3($name)
     {
-        $zasejedenID = $this->getParameter('manId');
+    $zasejedenID = $this->sessionSection->manId;
         $grid = new DataGrid($this, $name);
         $obsah = $this->database->table('cinnost')->where('id_rozpocet',$zasejedenID);
         $grid->setDataSource($obsah);        // seznam činností zahrnutých rozpočtem
