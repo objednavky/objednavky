@@ -158,6 +158,10 @@ class ObjednavkyManager
 					$this->database->table('cinnost')->where('id_rozpocet',$rozpocet->id)->update([
 						'id_rozpocet' => $novyRozpocet,
 					]);
+					// preved vsechna sledovani tohoto rozpoctu na novy
+					$this->database->table('skupiny')->where('rozpocet',$rozpocet->id)->update([
+						'rozpocet' => $novyRozpocet,
+					]);
 				}
 
 				// povedlo se zkopirovat rozpocet, nastav novou verzi jako aktualni
@@ -172,6 +176,7 @@ class ObjednavkyManager
 			bdump($e);
 			return 0;
 		}
+		return $novaVerze;
 	}
 
 
