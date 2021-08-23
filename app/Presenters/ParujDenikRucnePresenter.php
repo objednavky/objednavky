@@ -71,7 +71,7 @@ class ParujDenikRucnePresenter extends ObjednavkyBasePresenter
         $source = $this->parovaniDenikuService->vratNoveZaznamyDeniku();
         $grid->setPrimaryKey('uuid');
         $grid->setDataSource($source);
-        $grid->addColumnText('uuid','ID záznamu');
+        $grid->addColumnText('uuid','ID záznamu')->setSortable()->setSortableResetPagination();
         $grid->addColumnText('madati','MD')->setSortable()->setSortableResetPagination();
         $grid->addColumnText('dal','Dal')->setSortable()->setSortableResetPagination();
 /*      
@@ -108,7 +108,7 @@ class ParujDenikRucnePresenter extends ObjednavkyBasePresenter
         $source = $this->parovaniDenikuService->vratSmazaneZaznamyDeniku();
         $grid->setPrimaryKey('uuid');
         $grid->setDataSource($source);
-        $grid->addColumnText('uuid','ID záznamu');
+        $grid->addColumnText('uuid','ID záznamu')->setSortable()->setSortableResetPagination();
         $grid->addColumnText('madati','MD')->setSortable()->setSortableResetPagination();
         $grid->addColumnText('dal','Dal')->setSortable()->setSortableResetPagination();
 /*      
