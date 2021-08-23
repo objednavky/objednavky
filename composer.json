@@ -22,7 +22,8 @@
 		"tracy/tracy": "^2.6",
 		"ublaboo/datagrid": "^6.8",
 		"thenetworg/oauth2-azure": "^2.0",
-		"contributte/forms-multiplier": "^3.2"
+		"contributte/forms-multiplier": "^3.2",
+		"ublaboo/datagrid-nette-database-data-source": "^2.1"
 	},
 	"require-dev": {
 		"nette/tester": "^2.0"

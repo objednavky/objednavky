@@ -19,7 +19,7 @@ extensions:
 
 services:
 	router: App\Router\RouterFactory::createRouter
-	- MyAuthenticator
+	- App\MojeServices\MyAuthenticator
 	-
 		class: App\Presenters\PrihlasPresenter
 		setup:
@@ -27,6 +27,7 @@ services:
 			- setClientSecret(%oauth.clientSecret%)
 			- setRedirectUri(%oauth.redirectUri%)
 	- App\Model\ObjednavkyManager
+	- App\MojeServices\ParovaniDenikuService
 
 decorator:
 	# u všech služeb, co jsou instancí této třídy nebo rozhraní

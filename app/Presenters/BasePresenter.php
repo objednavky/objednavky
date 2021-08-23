@@ -7,6 +7,7 @@ declare(strict_types=1);
 namespace App\Presenters;
 
 use App\Model\ObjednavkyManager;
+use App\MojeServices\ParovaniDenikuService;
 use Nette;
 use Ublaboo\DataGrid\DataGrid;
 use Nette\Application\UI\Form;
@@ -23,14 +24,18 @@ abstract class BasePresenter extends Presenter
     /** @var App\Model\ObjednavkyManager */
     protected $objednavkyManager;
 
+    /** @var App\MojeServices\ParovaniDenikuService */
+    protected $parovaniDenikuService;
+
     private $instanceName;
     private $cssClass;
     private $testing;
 
-	public final function __construct(Nette\Database\Context $databaseparam, ObjednavkyManager $objednavkyManager)
+	public final function __construct(Nette\Database\Context $databaseparam, ObjednavkyManager $objednavkyManager, ParovaniDenikuService $parovaniDenikuService)
 	{
 		$this->database = $databaseparam;
         $this->objednavkyManager = $objednavkyManager;
+        $this->parovaniDenikuService = $parovaniDenikuService;
 	}
 
     protected function startup()

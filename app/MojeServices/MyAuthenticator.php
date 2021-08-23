@@ -1,16 +1,18 @@
 <?php
 
-class MyAuthenticator implements Nette\Security\IAuthenticator
+namespace App\MojeServices;
+
+class MyAuthenticator implements \Nette\Security\IAuthenticator
 {
 	private $database;
 
-	public function __construct(Nette\Database\Context $database, Nette\Security\Passwords $passwords)
+	public function __construct(\Nette\Database\Context $database, \Nette\Security\Passwords $passwords)
 	{
 		$this->database = $database;
 		$this->passwords = $passwords;
 	}
 
-	public function authenticate(array $credentials): Nette\Security\IIdentity
+	public function authenticate(array $credentials): \Nette\Security\IIdentity
 	{
 		bdump('start authenticate');
 		[$identita, $password] = $credentials;
