@@ -17,7 +17,7 @@ use ErrorException;
  */
 class Debugger
 {
-	public const VERSION = '2.8.5';
+	public const VERSION = '2.8.6';
 
 	/** server modes for Debugger::enable() */
 	public const
@@ -208,7 +208,18 @@ class Debugger
 		});
 		set_error_handler([self::class, 'errorHandler']);
 
-		foreach (['Bar/Bar', 'Bar/DefaultBarPanel', 'BlueScreen/BlueScreen', 'Dumper/Dumper', 'Logger/Logger', 'Helpers'] as $path) {
+		foreach ([
+			'Bar/Bar',
+			'Bar/DefaultBarPanel',
+			'BlueScreen/BlueScreen',
+			'Dumper/Describer',
+			'Dumper/Dumper',
+			'Dumper/Exposer',
+			'Dumper/Renderer',
+			'Dumper/Value',
+			'Logger/Logger',
+			'Helpers',
+		] as $path) {
 			require_once dirname(__DIR__) . "/$path.php";
 		}
 
@@ -337,12 +348,15 @@ class Debugger
 				if ($file && !headers_sent()) {
 					header("X-Tracy-Error-Log: $file", false);
 				}
-				echo "$exception\n" . ($file ? "(stored in $file)\n" : '');
+				if (Helpers::detectColors()) {
+					echo "\n\n" . BlueScreen::highlightPhpCli($exception->getFile(), $exception->getLine()) . "\n";
+				}
+				echo "$exception\n" . ($file ? "\n(stored in $file)\n" : '');
 				if ($file && self::$browser) {
 					exec(self::$browser . ' ' . escapeshellarg(strtr($file, self::$editorMapping)));
 				}
 			} catch (\Throwable $e) {
-				echo "$exception\nUnable to log error: {$e->getMessage()}\n";
+				echo "$exception\nTracy is unable to log error: {$e->getMessage()}\n";
 			}
 		}
 
