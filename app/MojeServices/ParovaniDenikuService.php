@@ -32,11 +32,11 @@ class ParovaniDenikuService
 
 
 	public function vratNoveZaznamyDeniku() {
-		return new NetteDatabaseDataSource($this->database, 'SELECT denik_view.*, denik.uuid AS duuid FROM denik_view  LEFT JOIN denik ON denik_view.uuid = denik.uuid WHERE denik.uuid IS NULL');
+		return new NetteDatabaseDataSource($this->database, 'SELECT dv.*, d.uuid AS duuid FROM denik_view dv LEFT JOIN denik d ON dv.uuid = d.uuid WHERE d.uuid IS NULL AND dv.petky=1 AND dv.deleted=0');
 	}
 
 	public function vratSmazaneZaznamyDeniku() {
-		return new NetteDatabaseDataSource($this->database, 'SELECT denik.*, denik_view.uuid AS dvuuid FROM denik LEFT JOIN denik_view ON denik_view.uuid = denik.uuid WHERE denik_view.uuid IS NULL');
+		return new NetteDatabaseDataSource($this->database, 'SELECT d.*, dv.uuid AS dvuuid FROM denik d LEFT JOIN denik_view dv ON dv.uuid = d.uuid WHERE d.petky=1 AND dv.deleted=1');
 	}
 
 
