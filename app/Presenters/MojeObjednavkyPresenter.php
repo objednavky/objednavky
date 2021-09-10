@@ -53,21 +53,21 @@ class MojeObjednavkyPresenter extends ObjednavkyBasePresenter
 
 
     public function createComponentAktivniObjednavkyMazaniGrid($name) {
-        $source = $this->objednavkyManager->mapRozpocetMojeObjednavky($this->prihlasenyId(), [0,1,3,4]);
+        $source = $this->objednavkyManager->mapRozpocetMojeObjednavky($this->prihlasenyId(), [0,1,3,4], $this->getUser()->getIdentity()->rok);
         $grid = $this->vytvorDataGridObjednavky($name, $source);
         $this->grids['aktivniObjednavkyGrid'] = $grid;
         $grid->addGroupAction('Ano - smazat!')->onSelect[] = [$this, 'smazAktivniObjednavky'];
     } 
 
     public function createComponentZamitnuteObjednavkyMazaniGrid($name) {
-        $source = $this->objednavkyManager->mapRozpocetMojeObjednavky($this->prihlasenyId(), [2,5,8]);
+        $source = $this->objednavkyManager->mapRozpocetMojeObjednavky($this->prihlasenyId(), [2,5,8], $this->getUser()->getIdentity()->rok);
         $grid = $this->vytvorDataGridObjednavky($name, $source);
         $this->grids['zamitnuteObjednavkyGrid'] = $grid;
         $grid->addGroupAction('Ano - smazat!')->onSelect[] = [$this, 'smazZamitnuteObjednavky'];
     } 
 
     public function createComponentVsechnyObjednavkyGrid($name) {
-        $source = $this->objednavkyManager->mapRozpocetVsechnyMojeObjednavky($this->prihlasenyId());
+        $source = $this->objednavkyManager->mapRozpocetVsechnyMojeObjednavky($this->prihlasenyId(), $this->getUser()->getIdentity()->rok);
         $grid = $this->vytvorDataGridObjednavky($name, $source);
         $this->grids['archivGrid'] = $grid;
     } 
@@ -92,9 +92,9 @@ class MojeObjednavkyPresenter extends ObjednavkyBasePresenter
             ->setRenderer(function($item) {
                 return $item['id_prehled'] . '/' .  $item['radka'];
         });
-        $grid->addColumnText('stav_id','Stav')->setSortable()->setSortableResetPagination()->setTemplateEscaping(FALSE)
+        $grid->addColumnText('stav','Stav')->setSortable()->setSortableResetPagination()->setTemplateEscaping(FALSE)
             ->setFilterMultiSelect($this->database->table('lidsky_status')->fetchPairs('id', 'popis'))->setTranslateOptions();
-        $grid->addColumnCallback('stav_id', function($column, $item) {
+        $grid->addColumnCallback('stav', function($column, $item) {
             $column->setRenderer(function() use ($item):string { return $this->renderujIkonuStavu($item); });
         });
         $grid->addColumnText('zadavatel','Zadavatel')->setSortable()->setSortableResetPagination()->setDefaultHide();
@@ -116,7 +116,7 @@ class MojeObjednavkyPresenter extends ObjednavkyBasePresenter
         $grid->addFilterRange('castka', 'Částka od-do');
 
         $grid->setRowCallback(function($item, $tr) {
-            $tr->addClass('tr-objednavky-stav-'.$item['stav_id']);
+            $tr->addClass('tr-objednavky-stav-'.$item['stav']);
         });
         $grid->addExportCsv('Export do csv', 'tabulka.csv', 'windows-1250')
             ->setTitle('Export do csv');

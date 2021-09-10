@@ -25,9 +25,13 @@ abstract class ObjednavkyBasePresenter extends BasePresenter
         }
     }
 
-    public final function getSetup($id)
+    public final function getSetup($id = 1)
     {
-         return $this->database->table('setup')->where('id',$id)->fetch();
+        //return $this->database->table('setup')->where('id',$id)->fetch();
+        $setup = new stdClass;
+        $setup->rok = $this->getUser()->getIdentity()->rok; 
+        $setup->verze = $this->getUser()->getIdentity()->verze; 
+        return $setup;
     }
 
     public final function prihlasenyId()
@@ -54,7 +58,7 @@ abstract class ObjednavkyBasePresenter extends BasePresenter
     }
 
     protected final function renderujIkonuStavu($item) {
-        switch ($item['stav_id']) {
+        switch ($item['stav']) {
             case 0: 
                return "<i class='fa fa-user stav-ikona btn-warning' data-toggle='tooltip' data-placement='right' title='".$item['stav']."'/>";
             case 1: 

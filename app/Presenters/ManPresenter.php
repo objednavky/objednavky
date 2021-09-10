@@ -130,7 +130,7 @@ class ManPresenter extends ObjednavkyBasePresenter
 //        $relevantni =   $this->database->table('cinnost')->select('id')->where('id_rozpocet',  $zasejedenID );
 //        $uz = 8 ;       // tady bude nacteny uzivatel
 //        $source = $this->database->table('objednavky')->where('cinnost', $relevantni)->where('stav', [0,1,3,4,9]);
-        return $this->objednavkyManager->mapObjednavkyRozpocetStav($zasejedenID, [0,1,3,4,9]);
+        return $this->objednavkyManager->mapObjednavkyRozpocetStav($zasejedenID, [0,1,3,4,9], $this->getUser()->getIdentity()->rok);
 /*
         $fetchedSource = [];
         foreach ($source as $objednavky) 
@@ -147,8 +147,7 @@ class ManPresenter extends ObjednavkyBasePresenter
             $item->stredisko = $objednavky->ref('stredisko')->stredisko;
             $item->schvalovatel = $objednavky->ref('kdo')->jmeno;
             $item->castka = $objednavky->castka;
-            $item->stav_id = $objednavky->stav;
-            $item->stav = $objednavky->ref('stav')->popis;
+            $item->stav = $objednavky->stav;
             $item->overeni = ($objednavky->zamitnul2) == NULL  ? $item->overeni : "zamítnuto";
             $item->schvaleni = $objednavky->schvalil == NULL  ? "čeká na schválení" : "schvaleno" ;
             $item->schvaleni = ($objednavky->zamitnul) == NULL  ? $item->schvaleni : "zamítnuto";
@@ -166,8 +165,8 @@ class ManPresenter extends ObjednavkyBasePresenter
         $grid->setDataSource($source);        // schválené a OVERENE
         $grid->addColumnNumber('id_prehled','Č. obj.')->setSortable()->setSortableResetPagination()
             ->setRenderer(function($item) { return $item['id_prehled'] . '/' .  $item['radka']; });
-        $grid->addColumnText('stav_id','Stav')->setSortable()->setSortableResetPagination()->setTemplateEscaping(FALSE);
-        $grid->addColumnCallback('stav_id', function($column, $item) {
+        $grid->addColumnText('stav','Stav')->setSortable()->setSortableResetPagination()->setTemplateEscaping(FALSE);
+        $grid->addColumnCallback('stav', function($column, $item) {
             $column->setRenderer(function() use ($item):string { return $this->renderujIkonuStavu($item); });
         });
         $grid->addColumnText('zadavatel','Zadavatel')->setSortable()->setSortableResetPagination()->setDefaultHide()->setFilterText();
@@ -187,7 +186,7 @@ class ManPresenter extends ObjednavkyBasePresenter
         $grid->addColumnNumber('castka', 'Částka')->setSortable()->setSortableResetPagination()
             ->setRenderer(function($item):string { return (number_format($item['castka'],0,","," ") .' Kč'); })->setFilterText();
         $grid->setRowCallback(function($item, $tr) {
-            $tr->addClass('tr-objednavky-stav-'.$item['stav_id']);
+            $tr->addClass('tr-objednavky-stav-'.$item['stav']);
         });
         $grid->addExportCsv('Export do csv', 'tabulka.csv', 'windows-1250')
             ->setTitle('Export do csv');

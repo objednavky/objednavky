@@ -55,7 +55,9 @@ class SchvalenePresenter extends ObjednavkyBasePresenter
     {
         $uz = $this->prihlasenyId();   // přihlášený uživatel
         $source = $this->database->table('objednavky')
-           ->where('stav', [3,4])->order('id DESC');
+           ->where('stav', [3,4])
+           ->where('cinnost.rok', $this->getUser()->getIdentity()->rok)
+           ->order('id DESC');
         // $source = $this->database->table('objednavky')->where('stav', [3,4])->select('DISTINCT id_prehled');
 
         $fetchedRozpocets = []; //iniciace promene pred blokem cyklu

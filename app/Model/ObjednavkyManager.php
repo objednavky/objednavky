@@ -32,8 +32,8 @@ class ObjednavkyManager
 	/**
 	 * Načte tabulku pro MojeObjednavkyPresenter podle stavů
 	 */
-    public function mapRozpocetMojeObjednavky(int $zadavatel, array $stavy) : array {
-        $source = $this->objednavkyPodleStavu($stavy)
+    public function mapRozpocetMojeObjednavky(int $zadavatel, array $stavy, $rok) : array {
+        $source = $this->objednavkyPodleStavu($stavy, $rok)
 						->where('zakladatel', $zadavatel)
 						->order('id DESC');
 		return $this->mapRozpocetFromSource($source);
@@ -42,20 +42,20 @@ class ObjednavkyManager
 	/**
 	 * Načte tabulku pro MojeObjednavkyPresenter podle stavů
 	 */
-    public function mapRozpocetVsechnyMojeObjednavky(int $zadavatel) : array {
-        $source = $this->objednavkyPodleVlastnika($zadavatel)
+    public function mapRozpocetVsechnyMojeObjednavky(int $zadavatel, $rok) : array {
+        $source = $this->objednavkyPodleVlastnika($zadavatel, $rok)
 						->order('id DESC');
 		return $this->mapRozpocetFromSource($source);
     }
 	
-	public function mapRozpocetPrehled(array $stavy) : array {
-		$source = $this->objednavkyPodleStavu($stavy)
+	public function mapRozpocetPrehled(array $stavy, $rok) : array {
+		$source = $this->objednavkyPodleStavu($stavy, $rok)
 						->order('id DESC');
 		return $this->mapRozpocetFromSource($source);
 	}
     
-	public function mapObjednavkyRozpocetStav(int $rozpocet_id, array $stavy) : array {
-		$source = $this->objednavkyPodleRozpoctu($rozpocet_id)
+	public function mapObjednavkyRozpocetStav(int $rozpocet_id, array $stavy, $rok) : array {
+		$source = $this->objednavkyPodleRozpoctu($rozpocet_id, $rok)
 						->where('stav', $stavy)
 						->order('id DESC');
 		return $this->mapRozpocetFromSource($source);
@@ -83,8 +83,7 @@ class ObjednavkyManager
             	'overovatel' => $objednavky->ref('kdo2')->jmeno,
             	'overil' => $objednavky->overil,
             	'nutno_overit' => $objednavky->nutno_overit,
-            	'stav' => $objednavky->ref('stav')->popis,
-            	'stav_id' => $objednavky->stav,
+            	'stav' => $objednavky->stav,
             	'firma' => $objednavky->firma,
             	'popis' => $objednavky->popis,
             	'cinnost' => $objednavky->ref('cinnost')->cinnost,
@@ -118,22 +117,24 @@ class ObjednavkyManager
 	}
 	
 	
-    public function mapPrehledObjednavek(bool $smazane) : array{
+    public function mapPrehledObjednavek(bool $smazane, int $rok) : array{
         $source = $this->database->table('prehled')
 						->order('id DESC');
-		return $this->mapPrehledObjednavekFromSource($source, $smazane);
+		return $this->mapPrehledObjednavekFromSource($source, $smazane, $rok);
     }
 
 	/** 
 	 * vytvori novou verzi rozpoctu v zadanem roce kopii ze zadane verze
 	 * @param $rok rok, ve kterem se ma vytvorit nova verze
-	 * @param $verze zdrojova verze, jejiz kopie se vytvori
+	 * @param $verze zdrojova verze, jejiz kopie se vytvori; neni-li zadana, pouzije se posledni v danem roce
 	 * @return $novaVerze cislo nove vytvorene verze nebo 0 pokud nastane chyba
 	 */
-	public function vytvorNovouVerziRozpoctu(int $rok): int {
+	public function vytvorNovouVerziRozpoctu(int $rok, int $verze = null): int {
 		$novaVerze = 0;
 		try {
-			$verze = $this->database->table('rozpocet')->where('rok',$rok)->max('verze');
+			if (empty($verze)) {
+				$verze = $this->database->table('rozpocet')->where('rok',$rok)->max('verze');
+			}
 
 			// kopie rozpoctu a cinnosti v transakci
 			$novaVerze = $this->database->transaction(function() use ($rok, $verze) {
@@ -179,12 +180,74 @@ class ObjednavkyManager
 		return $novaVerze;
 	}
 
+	
+	/** 
+	 * vytvori rozpocet pro novy rok kopii ze zadaneho roku a verze; novy rok ma vzdy o 1 vyssi cislo nez posledni existujici rok
+	 * @param $rok rok, ze ktereho se ma vytvorit nova verze
+	 * @param $verze zdrojova verze, jejiz kopie se vytvori; neni-li zadana, pouzije se posledni v danem roce
+	 * @return $novaVerze cislo nove vytvorene verze nebo 0 pokud nastane chyba
+	 */
+	public function vytvorNovyRokRozpoctu(int $rok, int $verze = null): int {
+		$novyRok = 0;
+		try {
+			if (empty($verze)) {
+				$verze = $this->database->table('rozpocet')->where('rok',$rok)->max('verze');
+			}
+				$novyRok = $this->database->table('rozpocet')->max('rok') + 1;
+			// kopie rozpoctu a cinnosti v transakci
+			$novaVerze = $this->database->transaction(function() use ($rok, $verze, $novyRok) {
+				
+				$rozpocty = $this->database->table('rozpocet')->where('rok',$rok)->where('verze',$verze);
+				foreach ($rozpocty as $rozpocet) {
+					// vytvor kopii rozpoctu
+					$novyRozpocet = $this->database->table('rozpocet')->insert([
+						'rozpocet' => $rozpocet->rozpocet,
+						'hospodar' => $rozpocet->hospodar,
+						'hospodar2' => $rozpocet->hospodar2,
+						'rok' => $novyRok,
+						'verze' => 1,
+						'castka' => $rozpocet->castka,
+						'sablony' => $rozpocet->sablony,
+						'overeni' => $rozpocet->overeni,
+						'overovatel' => $rozpocet->overovatel,
+						'hezky' => $rozpocet->hezky,
+						'obsah' => $rozpocet->obsah,
+					]);
+					// kopie cinnosti stareho roku do noveho
+					$cinnosti = $this->database->table('cinnost')->where('id_rozpocet',$rozpocet->id);
+					foreach ($cinnosti as $cinnost) {
+						$novaCinnost = $this->database->table('cinnost')->insert([
+							'cinnost' => $cinnost->cinnost,
+							'nazev_cinnosti' => $cinnost->nazev_cinnosti,
+							'rok' => $novyRok,
+							'vyber' => $cinnost->vyber,
+							'id_rozpocet' => $novyRozpocet,
+						]);
+					}
+					// kopie skupin sledovani stareho roku do noveho
+					$skupiny = $this->database->table('skupiny')->where('rozpocet',$rozpocet->id);
+					foreach ($skupiny as $skupina) {
+						$novaCinnost = $this->database->table('skupiny')->insert([
+							'uzivatel' => $skupina->uzivatel,
+							'rozpocet' => $novyRozpocet,
+						]);
+					}
+				}
 
+				return $novyRok;
+			});
+
+		} catch (Exception $e) {
+			bdump($e);
+			return 0;
+		}
+		return $novaVerze;
+	}
 
 	/**
 	 * z připraveného datasource naplní pole rozpočtů pro gridy v prezenteru
 	 */
-    private function mapPrehledObjednavekFromSource($source, bool $smazane) : array {
+    private function mapPrehledObjednavekFromSource($source, bool $smazane, int $rok) : array {
         $fetchedPrehled = [];
         foreach ($source as $prehled) {
 			$item = [
@@ -193,7 +256,7 @@ class ObjednavkyManager
 				'zalozil' => $prehled->zalozil,
 				'popis' => $prehled->popis,
 			];
-			$objednavky = $this->sumaObjednavekPodlePrehleduAStavu($prehled->id);
+			$objednavky = $this->sumaObjednavekPodlePrehleduAStavu($prehled->id, $rok);
 			if (isset($objednavky)) {
 				$item = array_merge($item, $objednavky->toArray());
 			} else {
@@ -222,15 +285,15 @@ class ObjednavkyManager
 	}
 
 
-	private function objednavkyPodleStavu(array $stavy) {
-		$rok = $this->database->table('setup')->get(1)->rok; //TODO brat rok ze session
+	private function objednavkyPodleStavu(array $stavy, int $rok) {
+		//$rok = $this->database->table('setup')->get(1)->rok; //TODO brat rok ze session
 		return $this->database->table('objednavky')
 						->where('stav', $stavy)
 						->where('cinnost.rozpocet.rok', $rok);
 	}
 
-	private function objednavkyPodleVlastnika(int $user_id) {
-		$rok = $this->database->table('setup')->get(1)->rok; //TODO brat rok ze session
+	private function objednavkyPodleVlastnika(int $user_id, int $rok) {
+		//$rok = $this->database->table('setup')->get(1)->rok; //TODO brat rok ze session
 		return $this->database->table('objednavky')
 						->where('zakladatel', $user_id)
 						->where('cinnost.rozpocet.rok', $rok);
@@ -241,8 +304,8 @@ class ObjednavkyManager
 						->where('cinnost.id_rozpocet', $rozpocet_id);
 	}
 
-	private function sumaObjednavekPodlePrehleduAStavu(int $prehledId) {
-		$rok = $this->database->table('setup')->get(1)->rok;
+	private function sumaObjednavekPodlePrehleduAStavu(int $prehledId, int $rok) {
+		//$rok = $this->database->table('setup')->get(1)->rok;
 		return $this->database->table('objednavky')
 				->select("SUM(CASE WHEN stav IN (0,1,2,3,4,5,8,9) THEN objednavky.castka ELSE 0 END) AS castka_celkem, "
 					."COUNT(CASE WHEN stav IN (0,1,2,3,4,5,8,9) THEN objednavky.id ELSE NULL END) AS pocet_celkem, "

@@ -14,6 +14,7 @@ use stdClass;
 use Ublaboo\DataGrid\AggregationFunction\FunctionSum;
 use Ublaboo\DataGrid\AggregationFunction\ISingleColumnAggregationFunction;
 use App\Model\ObjednavkyManager;
+use Exception;
 
 class EditRozpocetPresenter extends ObjednavkyBasePresenter
 {
@@ -46,9 +47,12 @@ class EditRozpocetPresenter extends ObjednavkyBasePresenter
             $this->sessionSection->verze = $verze;
         } elseif (isset($this->sessionSection->verze) && in_array($verze, $this->nactiVerze($rok))) {
             $verze = $this->sessionSection->verze;
-        } else {
+        } elseif (in_array($setup->verze, $this->nactiVerze($rok))) {
             $verze = $setup->verze;
             $this->sessionSection->verze = $setup->verze;
+        } else {
+            $verze = 1;
+            $this->sessionSection->verze = 1;
         }
         $this->template->rok = $rok;
         $this->template->verze = $verze;
@@ -69,12 +73,35 @@ class EditRozpocetPresenter extends ObjednavkyBasePresenter
         bdump($rok);
         bdump($verze);
 
-        $novaVerze = $this->objednavkyManager->vytvorNovouVerziRozpoctu($rok, $verze);
+        $novaVerze = $this->objednavkyManager->vytvorNovouVerziRozpoctu($rok);
 
         if ($novaVerze) {
             $this->flashMessage('Nová verze rozpočtu roku ' . $rok . ' číslo ' . $novaVerze . ' byla úspěšně založena a aktivována. ','success');
         } else {
             $this->flashMessage('Novou verzi rozpočtu roku ' . $rok . ' se nepodařilo založit.','danger');
+        }
+
+        $this->redirect('default');
+
+    }
+
+    public function actionKopirujRok(): void
+	{
+        bdump('actionKopirujRok');
+        $setup = $this->getSetup(1);
+
+        $rok = $setup->rok;
+        $verze = $setup->verze;
+
+        bdump($rok);
+        bdump($verze);
+
+        $novyRok = $this->objednavkyManager->vytvorNovyRokRozpoctu($rok);
+
+        if ($novyRok) {
+            $this->flashMessage('Nový rok rozpočtu ' . $novyRok . ' byl úspěšně založen a byl do něj zkopírován aktuální rozpočet. Zatím nebyl aktivován, to je nutné provést ručně. ','success');
+        } else {
+            $this->flashMessage('Nový rok rozpočtu ' . $novyRok . ' se nepodařilo založit.','danger');
         }
 
         $this->redirect('default');
@@ -89,8 +116,8 @@ class EditRozpocetPresenter extends ObjednavkyBasePresenter
             ->setDefaultValue($this->sessionSection->rok)
             ->setHtmlAttribute('class','rform-control');
         $form->addSelect('verze', 'Verze:',$this->nactiVerze($this->sessionSection->rok))
-            ->setDefaultValue($this->sessionSection->verze)
-            ->setHtmlAttribute('class','rform-control');
+            ->setHtmlAttribute('class','rform-control')
+            ->setDefaultValue($this->sessionSection->verze);
         $form->onSuccess[] = [$this, 'zmenRokyVerzeOnSubmit'];
     }
 

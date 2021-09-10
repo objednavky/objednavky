@@ -66,6 +66,35 @@ class HomepagePresenter extends ObjednavkyBasePresenter
         $this->template->prihlasen = ($this->database->table('uzivatel')->where('id',$uz)->fetch())->jmeno;
     }
 
+
+    public function actionZmenRok($rok = null)
+    {
+        if (!empty($rok) && $this->database->table('rozpocet')->where('rok',$rok)->count()>0) {
+            $this->getUser()->getIdentity()->rok = $rok;
+            $verze = $this->database->table('rozpocet')->where('rok',$rok)->max('verze');
+            $this->getUser()->getIdentity()->verze = $verze;
+            $this->flashMessage('Změnil se aktivní rok na ' . ($rok-1).'/'. $rok . ' a poslední verzi č. ' . $verze, 'success');
+        } else {
+            //error - rok neexistuje
+            $this->flashMessage('Nepovedlo se změnit rok - daný rok neexistuje.', 'danger');
+        }
+        $this->redirect('Homepage:default');
+    }
+
+    public function actionZmenVerzi($verze = null)
+    {
+        if (!empty($verze) && $this->database->table('rozpocet')->where('rok',$this->getUser()->getIdentity()->rok)->where('verze', $verze)->count()>0) {
+            $this->getUser()->getIdentity()->verze = $verze;
+            $this->flashMessage('Změnila se aktivní verze na ' . $verze, 'success');
+        } else {
+            //error - rok neexistuje
+            $this->flashMessage('Nepovedlo se změnit verzi - daná verze neexistuje.', 'danger');
+        }
+        $this->redirect('Homepage:default');
+    }
+
+
+
     private function mapRozpocet($argument)
     {
         $rok=$this->getSetup(1)->rok;      //zjitim rok a verzi;

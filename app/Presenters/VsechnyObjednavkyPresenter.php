@@ -36,7 +36,7 @@ class VsechnyObjednavkyPresenter extends ObjednavkyBasePresenter
 
     public function createComponentPrehledObjednavekGrid($name) {
         bdump($this->smazane);
-        $source = $this->objednavkyManager->mapPrehledObjednavek($this->smazane);
+        $source = $this->objednavkyManager->mapPrehledObjednavek($this->smazane, $this->getUser()->getIdentity()->rok);
         $grid = $this->vytvorDataGridPrehledObjednavek($name, $source);
         $this->grids['prehledObjednavekGrid'] = $grid;
     } 
@@ -111,9 +111,8 @@ class VsechnyObjednavkyPresenter extends ObjednavkyBasePresenter
 //        $grid->addColumnNumber('radka','Č. pol.');
         $grid->addColumnText('zadavatel','Zadavatel')->setSortable()->setSortableResetPagination()->setDefaultHide();
         $grid->addColumnDateTime('zalozil','Založeno')->setFormat('d.m.Y H:i:s')->setSortable()->setSortableResetPagination()->setDefaultHide();
-        $grid->addColumnText('stav','Stav objednávky')->setSortable()->setSortableResetPagination()->setDefaultHide();
-        $grid->addColumnText('stav_id','Stav')->setSortable()->setSortableResetPagination()->setTemplateEscaping(FALSE);
-        $grid->addColumnCallback('stav_id', function($column, $item) {
+        $grid->addColumnText('stav','Stav')->setSortable()->setSortableResetPagination()->setTemplateEscaping(FALSE);
+        $grid->addColumnCallback('stav', function($column, $item) {
             $column->setRenderer(function() use ($item):string { return $this->renderujIkonuStavu($item); });
         });
         $grid->addColumnText('schvalovatel','Schvalovatel')->setSortable()->setSortableResetPagination();
@@ -132,7 +131,7 @@ class VsechnyObjednavkyPresenter extends ObjednavkyBasePresenter
             ->setRenderer(function($item):string { return (number_format($item['castka'],0,","," ") .' Kč'); });
 
         $grid->setRowCallback(function($item, $tr) {
-            $tr->addClass('tr-objednavky-stav-'.$item['stav_id']);
+            $tr->addClass('tr-objednavky-stav-'.$item['stav']);
         });
     
         $grid->addExportCsv('Export do csv', 'tabulka.csv', 'windows-1250')

@@ -80,12 +80,14 @@ class PrihlasPresenter extends BasePresenter
                     bdump($this->getUser());
                     bdump($this->getUser()->getAuthenticator());
                     $identita = $this->getUser()->getAuthenticator()->authenticate([$identita, null]);
+                    $identita->rok = $this->database->table('setup')->get(1)->rok;
+                    $identita->verze = $this->database->table('setup')->get(1)->verze;
                     $this->getUser()->login($identita, null);
                 } catch (Nette\Security\AuthenticationException $e) {
                     $this->flashMessage($e->getMessage());
                     bdump($e);
                 }
-                $this->flashMessage('Uživatel byl úspěšně přihlášen do aplikace. Můžete začít pracovat.', 'success');
+                $this->flashMessage('Uživatel byl úspěšně přihlášen do aplikace do roku '.($identita->rok-1).'/'.$identita->rok.' a verze rozpočtu '.$identita->verze.'. Můžete začít pracovat.', 'success');
                 $this->redirect('Homepage:');
             } catch (\Exception $e) {
                 // Failed to get user details

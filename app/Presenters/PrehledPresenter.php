@@ -55,7 +55,7 @@ class PrehledPresenter extends ObjednavkyBasePresenter
     
     public function createComponentSimpleGrid2($name)
     {
-        $source = $this->objednavkyManager->mapRozpocetPrehled([0,1]);
+        $source = $this->objednavkyManager->mapRozpocetPrehled([0,1], $this->getUser()->getIdentity()->rok);
         $grid = $this->vytvorDataGridObjednavky($name, $source);
         // $grid->addGroupAction('Odložit ze seznamu - již zpracované')->onSelect[] = [$this, 'deleteOdl'];
         $grid->addGroupAction('Smazat - nebude se realizovat')->onSelect[] = [$this, 'deleteObj2'];
@@ -64,7 +64,7 @@ class PrehledPresenter extends ObjednavkyBasePresenter
 
     public function createComponentSimpleGrid3($name)
     {
-        $source = $this->objednavkyManager->mapRozpocetPrehled([9]);
+        $source = $this->objednavkyManager->mapRozpocetPrehled([9], $this->getUser()->getIdentity()->rok);
         $grid = $this->vytvorDataGridObjednavky($name, $source);
         $grid->addGroupAction('Zpět odznačit objednávky - vrátit do seznamu')->onSelect[] = [$this, 'deleteOdl'];
         $grid->addGroupAction('Smazat - nebude se realizovat')->onSelect[] = [$this, 'deleteObj2'];
@@ -94,8 +94,8 @@ class PrehledPresenter extends ObjednavkyBasePresenter
         //$grid->addColumnNumber('radka','Č. pol.');
         $grid->addColumnText('zadavatel','Zadavatel')->setSortable()->setSortableResetPagination()->setDefaultHide()->setFilterText();
         $grid->addColumnDateTime('zalozil','Založeno')->setFormat('d.m.Y H:i:s')->setSortable()->setSortableResetPagination()->setDefaultHide()->setFilterText();
-        $grid->addColumnText('stav_id','Stav', 'stav')->setSortable()->setSortableResetPagination()->setTemplateEscaping(FALSE);
-        $grid->addColumnCallback('stav_id', function($column, $item) {
+        $grid->addColumnText('stav','Stav', 'stav')->setSortable()->setSortableResetPagination()->setTemplateEscaping(FALSE);
+        $grid->addColumnCallback('stav', function($column, $item) {
             $column->setRenderer(function() use ($item):string { return $this->renderujIkonuStavu($item); });
         });
         $grid->addColumnText('schvalovatel','Schvalovatel')->setSortable()->setSortableResetPagination()->setFilterText();
@@ -121,7 +121,7 @@ class PrehledPresenter extends ObjednavkyBasePresenter
             });
         });
         $grid->setRowCallback(function($item, $tr) {
-            $tr->addClass('tr-objednavky-stav-'.$item['stav_id']);
+            $tr->addClass('tr-objednavky-stav-'.$item['stav']);
         });
         $grid->setPagination(false);
         $grid->addExportCsv('Export do csv', 'tabulka.csv', 'windows-1250')
