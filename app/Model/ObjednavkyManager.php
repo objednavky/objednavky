@@ -118,8 +118,15 @@ class ObjednavkyManager
 	
 	
     public function mapPrehledObjednavek(bool $smazane, int $rok) : array{
-        $source = $this->database->table('prehled')
-						->order('id DESC');
+		if (isset($rok)) {
+			$letosni = $this->database->table('objednavky')->select('MAX(id_prehled) AS pr')->where('cinnost.rok',$rok)->group('id_prehled')->fetchPairs('pr','pr');
+			$source = $this->database->table('prehled')
+							->where('id IN ?',$letosni)
+							->order('id DESC');
+		} else {
+			$source = $this->database->table('prehled')
+							->order('id DESC');
+		}
 		return $this->mapPrehledObjednavekFromSource($source, $smazane, $rok);
     }
 

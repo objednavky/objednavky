@@ -134,23 +134,66 @@ class DetailPresenter extends ObjednavkyBasePresenter
 
         $grid->addColumnLink('rozpocet', 'Rozpočet', 'Man:show', 'rozpocet', ['manId' => 'id']);
         // $grid->addColumnText('rozpocet', 'Rozpočet')->setAlign('left');
-        $grid->addColumnNumber('castka', 'Plán vlastní')->setAlign('right')->setRenderer(function($item):string { return ($item['castka'] === null ? '' : number_format($item['castka'],0,","," ") .' Kč'); })->getElementPrototype('td')->setClass('nowrap');
-        $grid->addColumnNumber('sablony', 'Plán šablony')->setAlign('right')->setRenderer(function($item):string { return ($item['sablony'] === null ? '' : number_format($item['sablony'],0,","," ") .' Kč'); })->getElementPrototype('td')->setClass('nowrap');
-        $grid->addColumnNumber('plan', 'Plán CELKEM (vlastní+šablony)')->setAlign('right')->setRenderer(function($item):string { return ($item['plan'] === null ? '' : number_format($item['plan'],0,","," ") .' Kč'); })->getElementPrototype('td')->setClass('nowrap');
-        $grid->addColumnNumber('mySumV', 'Náklady vlastní')->setAlign('right')->setRenderer(function($item):string { return ($item['mySumV'] === null ? '' : number_format($item['mySumV'],0,","," ") .' Kč'); })->getElementPrototype('td')->setClass('nowrap');
-        $grid->addColumnNumber('mySumN', 'Náklady vlastní (normativ)')->setAlign('right')->setRenderer(function($item):string { return ($item['mySumN'] === null ? '' : number_format($item['mySumN'],0,","," ") .' Kč'); })->getElementPrototype('td')->setClass('nowrap');
-        $grid->addColumnNumber('mySumS', 'Náklady šablony')->setAlign('right')->setRenderer(function($item):string { return ($item['mySumS'] === null ? '' : number_format($item['mySumS'],0,","," ") .' Kč'); })->getElementPrototype('td')->setClass('nowrap');
-        $grid->addColumnNumber('mySumD', 'Náklady dotace (mimo rozpočet)')->setAlign('right')->setRenderer(function($item):string { return ($item['mySumD'] === null ? '' : number_format($item['mySumD'],0,","," ") .' Kč'); })->getElementPrototype('td')->setClass('nowrap');
-        $grid->addColumnNumber('soucetVNS', 'Náklady CELKEM (vlastní+šablony)')->setAlign('right')->setRenderer(function($item):string { return ($item['soucetVNS'] === null ? '' : number_format($item['soucetVNS'],0,","," ") .' Kč'); })->getElementPrototype('td')->setClass('nowrap');
-        $grid->addColumnNumber('objednanoV', 'Objednávky vlastní')->setAlign('right')->setRenderer(function($item):string { return ($item['objednanoV'] === null ? '' : number_format($item['objednanoV'],0,","," ") .' Kč'); })->getElementPrototype('td')->setClass('nowrap');
-        $grid->addColumnNumber('objednanoS', 'Objednávky šablony')->setAlign('right')->setRenderer(function($item):string { return ($item['objednanoS'] === null ? '' : number_format($item['objednanoS'],0,","," ") .' Kč'); })->getElementPrototype('td')->setClass('nowrap');
-        $grid->addColumnNumber('objednanoD', 'Objednávky dotace (mimo rozpočet)')->setAlign('right')->setRenderer(function($item):string { return ($item['objednanoD'] === null ? '' : number_format($item['objednanoD'],0,","," ") .' Kč'); })->getElementPrototype('td')->setClass('nowrap');
-        $grid->addColumnNumber('rozdil', 'Zbývá z rozpočtu')->setAlign('right')->setRenderer(function($item):string { return ($item['rozdil'] === null ? '' : number_format($item['rozdil'],0,","," ") .' Kč'); })->getElementPrototype('td')->setClass('nowrap');
+        $grid->addColumnNumber('castka', 'Plán vlastní')
+            ->setAlign('right')
+            ->setRenderer(function($item):string { return ($item['castka'] === null ? '' : number_format($item['castka'],0,","," ") .' Kč'); })
+            
+            
+            
+            
+            //TODO dodělat řazení
+
+
+
+            
+            ->getElementPrototype('td')->setClass('nowrap');
+        $grid->addColumnNumber('sablony', 'Plán šablony')
+            ->setAlign('right')
+            ->setRenderer(function($item):string { return ($item['sablony'] === null ? '' : number_format($item['sablony'],0,","," ") .' Kč'); })
+            ->getElementPrototype('td')->setClass('nowrap');
+        $grid->addColumnNumber('plan', 'Plán CELKEM (vlastní+šablony)')->setAlign('right')->setRenderer(function($item):string { return ($item['plan'] === null ? '' : number_format($item['plan'],0,","," ") .' Kč'); })
+            ->getElementPrototype('td')->setClass('nowrap');
+        $grid->addColumnNumber('mySumV', 'Náklady vlastní')
+            ->setAlign('right')
+            ->setRenderer(function($item):string { return ($item['mySumV'] === null ? '' : number_format($item['mySumV'],0,","," ") .' Kč'); })
+            ->getElementPrototype('td')->setClass('nowrap');
+        $grid->addColumnNumber('mySumN', 'Náklady vlastní (normativ)')
+            ->setAlign('right')
+            ->setRenderer(function($item):string { return ($item['mySumN'] === null ? '' : number_format($item['mySumN'],0,","," ") .' Kč'); })
+            ->getElementPrototype('td')->setClass('nowrap');
+        $grid->addColumnNumber('mySumS', 'Náklady šablony')
+            ->setAlign('right')
+            ->setRenderer(function($item):string { return ($item['mySumS'] === null ? '' : number_format($item['mySumS'],0,","," ") .' Kč'); })
+            ->getElementPrototype('td')->setClass('nowrap');
+        $grid->addColumnNumber('mySumD', 'Náklady dotace (mimo rozpočet)')
+            ->setAlign('right')
+            ->setRenderer(function($item):string { return ($item['mySumD'] === null ? '' : number_format($item['mySumD'],0,","," ") .' Kč'); })
+            ->getElementPrototype('td')->setClass('nowrap');
+        $grid->addColumnNumber('soucetVNS', 'Náklady CELKEM (vlastní+šablony)')
+            ->setAlign('right')
+            ->setRenderer(function($item):string { return ($item['soucetVNS'] === null ? '' : number_format($item['soucetVNS'],0,","," ") .' Kč'); })
+            ->getElementPrototype('td')->setClass('nowrap');
+        $grid->addColumnNumber('objednanoV', 'Objednávky vlastní')
+            ->setAlign('right')
+            ->setRenderer(function($item):string { return ($item['objednanoV'] === null ? '' : number_format($item['objednanoV'],0,","," ") .' Kč'); })
+            ->getElementPrototype('td')->setClass('nowrap');
+        $grid->addColumnNumber('objednanoS', 'Objednávky šablony')
+            ->setAlign('right')
+            ->setRenderer(function($item):string { return ($item['objednanoS'] === null ? '' : number_format($item['objednanoS'],0,","," ") .' Kč'); })
+            ->getElementPrototype('td')->setClass('nowrap');
+        $grid->addColumnNumber('objednanoD', 'Objednávky dotace (mimo rozpočet)')
+            ->setAlign('right')
+            ->setRenderer(function($item):string { return ($item['objednanoD'] === null ? '' : number_format($item['objednanoD'],0,","," ") .' Kč'); })
+            ->getElementPrototype('td')->setClass('nowrap');
+        $grid->addColumnNumber('rozdil', 'Zbývá z rozpočtu')
+            ->setAlign('right')
+            ->setRenderer(function($item):string { return ($item['rozdil'] === null ? '' : number_format($item['rozdil'],0,","," ") .' Kč'); })
+            ->getElementPrototype('td')->setClass('nowrap');
         $grid->setColumnsSummary(['castka','sablony','mySumV', 'mySumN', 'mySumS','mySumD', 'rozdil','objednanoV','objednanoS','objednanoD','soucetVNS','plan'])
-                ->setRenderer(function($sum, $column):string { return ($sum === null ? '' : number_format($sum,0,","," ") .' Kč'); });
+            ->setRenderer(function($sum, $column):string { return ($sum === null ? '' : number_format($sum,0,","," ") .' Kč'); });
         $grid->setPagination(false);
         $grid->addExportCsv('Export do csv', 'tabulka.csv', 'windows-1250')
-        ->setTitle('Export do csv');
+            ->setTitle('Export do csv');
 
         $translator = new \Ublaboo\DataGrid\Localization\SimpleTranslator([
             'ublaboo_datagrid.no_item_found_reset' => 'Žádné položky nenalezeny. Filtr můžete vynulovat',
