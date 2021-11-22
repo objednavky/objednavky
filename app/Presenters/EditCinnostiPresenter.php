@@ -103,7 +103,7 @@ class EditCinnostiPresenter extends ObjednavkyBasePresenter
 
         $grid->addInlineEdit()
         ->onControlAdd[] = function(Nette\Forms\Container $container) use ($rok, $verze): void {
-            $container->addText('cinnost', '')->setRequired('Uveďte zkratku činnosti.');
+            $container->addText('cinnost', '')->setRequired('Uveďte zkratku činnosti.')->setMaxLength(8);
             $container->addText('nazev_cinnosti', '')->setRequired('Uveďte název činnosti.');
             $container->addSelect('id_rozpocet','Rozpočet:',$this->database->table('rozpocet')->select('rozpocet.id, rozpocet')->where('rok', $rok)->where('verze',$verze)->order('rozpocet')->fetchPairs('id','rozpocet'))->setRequired('Přidělte činnosti rozpočet.');
             $container->addCheckbox('vyber', '');
