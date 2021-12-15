@@ -22,7 +22,7 @@ use function is_array, is_string, count, strlen;
 class Filters
 {
 	/** @deprecated */
-	public static $dateFormat = '%x';
+	public static $dateFormat = 'j. n. Y';
 
 	/** @internal @var bool  use XHTML syntax? */
 	public static $xhtml = false;
@@ -50,7 +50,7 @@ class Filters
 			return $s->__toString(true);
 		}
 		$s = htmlspecialchars((string) $s, ENT_NOQUOTES | ENT_SUBSTITUTE, 'UTF-8');
-		$s = str_replace('{{', '{<!-- -->{', $s);
+		$s = strtr($s, ['{{' => '{<!-- -->{', '{' => '&#123;']);
 		return $s;
 	}
 
@@ -67,7 +67,9 @@ class Filters
 		if (strpos($s, '`') !== false && strpbrk($s, ' <>"\'') === false) {
 			$s .= ' '; // protection against innerHTML mXSS vulnerability nette/nette#1496
 		}
-		return htmlspecialchars($s, ENT_QUOTES | ENT_HTML5 | ENT_SUBSTITUTE, 'UTF-8', $double);
+		$s = htmlspecialchars($s, ENT_QUOTES | ENT_HTML5 | ENT_SUBSTITUTE, 'UTF-8', $double);
+		$s = str_replace('{', '&#123;', $s);
+		return $s;
 	}
 
 
@@ -754,9 +756,9 @@ class Filters
 	 */
 	public static function query($data): string
 	{
-		return is_string($data)
-			? urlencode($data)
-			: http_build_query($data, '', '&');
+		return is_array($data)
+			? http_build_query($data, '', '&')
+			: urlencode((string) $data);
 	}
 
 
@@ -794,9 +796,9 @@ class Filters
 	 */
 	public static function first($value)
 	{
-		return is_string($value)
-			? self::substring($value, 0, 1)
-			: (count($value) ? reset($value) : null);
+		return is_array($value)
+			? (count($value) ? reset($value) : null)
+			: self::substring($value, 0, 1);
 	}
 
 
@@ -807,9 +809,9 @@ class Filters
 	 */
 	public static function last($value)
 	{
-		return is_string($value)
-			? self::substring($value, -1)
-			: (count($value) ? end($value) : null);
+		return is_array($value)
+			? (count($value) ? end($value) : null)
+			: self::substring($value, -1);
 	}
 
 
@@ -820,9 +822,9 @@ class Filters
 	 */
 	public static function slice($value, int $start, int $length = null, bool $preserveKeys = false)
 	{
-		return is_string($value)
-			? self::substring($value, $start, $length)
-			: array_slice($value, $start, $length, $preserveKeys);
+		return is_array($value)
+			? array_slice($value, $start, $length, $preserveKeys)
+			: self::substring($value, $start, $length);
 	}
 
 

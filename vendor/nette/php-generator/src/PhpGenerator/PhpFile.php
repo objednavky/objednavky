@@ -32,6 +32,12 @@ final class PhpFile
 	private $strictTypes = false;
 
 
+	public static function fromCode(string $code): self
+	{
+		return (new Factory)->fromCode($code);
+	}
+
+
 	public function addClass(string $name): ClassType
 	{
 		return $this
@@ -56,6 +62,14 @@ final class PhpFile
 	}
 
 
+	public function addEnum(string $name): ClassType
+	{
+		return $this
+			->addNamespace(Helpers::extractNamespace($name))
+			->addEnum(Helpers::extractShortName($name));
+	}
+
+
 	/** @param  string|PhpNamespace  $namespace */
 	public function addNamespace($namespace): PhpNamespace
 	{
@@ -76,6 +90,14 @@ final class PhpFile
 	}
 
 
+	public function addFunction(string $name): GlobalFunction
+	{
+		return $this
+			->addNamespace(Helpers::extractNamespace($name))
+			->addFunction(Helpers::extractShortName($name));
+	}
+
+
 	/** @return PhpNamespace[] */
 	public function getNamespaces(): array
 	{
@@ -83,10 +105,38 @@ final class PhpFile
 	}
 
 
-	/** @return static */
-	public function addUse(string $name, string $alias = null): self
+	/** @return ClassType[] */
+	public function getClasses(): array
 	{
-		$this->addNamespace('')->addUse($name, $alias);
+		$classes = [];
+		foreach ($this->namespaces as $n => $namespace) {
+			$n .= $n ? '\\' : '';
+			foreach ($namespace->getClasses() as $c => $class) {
+				$classes[$n . $c] = $class;
+			}
+		}
+		return $classes;
+	}
+
+
+	/** @return GlobalFunction[] */
+	public function getFunctions(): array
+	{
+		$functions = [];
+		foreach ($this->namespaces as $n => $namespace) {
+			$n .= $n ? '\\' : '';
+			foreach ($namespace->getFunctions() as $c => $class) {
+				$functions[$n . $c] = $class;
+			}
+		}
+		return $functions;
+	}
+
+
+	/** @return static */
+	public function addUse(string $name, string $alias = null, string $of = PhpNamespace::NAME_NORMAL): self
+	{
+		$this->addNamespace('')->addUse($name, $alias, $of);
 		return $this;
 	}
 

@@ -58,7 +58,7 @@ class Blueprint
 
 		$res = '';
 		foreach ($vars as $name => $value) {
-			if (Latte\Helpers::startsWith($name, 'ʟ_')) {
+			if (Latte\Helpers::startsWith($name, 'ʟ_') || $name === '_l' || $name === '_g') {
 				continue;
 			}
 			$type = Php\Type::getType($value) ?: 'mixed';
@@ -67,7 +67,7 @@ class Blueprint
 
 		$end = $this->printCanvas();
 		$this->printHeader('varPrint');
-		$this->printCode($res ?: 'No variables');
+		$this->printCode($res ?: 'No variables', 'latte');
 		echo $end;
 	}
 
@@ -85,7 +85,7 @@ class Blueprint
 			if ($native) {
 				$prop->setType($type);
 			} else {
-				$doctype = $printer->printType($type, false, $class->getNamespace()) ?: 'mixed';
+				$doctype = $this->printType($type, false, $class->getNamespace()) ?: 'mixed';
 				$prop->setComment("@var $doctype");
 			}
 		}
@@ -100,14 +100,52 @@ class Blueprint
 		$printer = new Php\Printer;
 		foreach ($funcs as $name => $func) {
 			$method = (new Php\Factory)->fromCallable($func);
-			$type = $printer->printType($method->getReturnType(), $method->isReturnNullable(), $class->getNamespace()) ?: 'mixed';
-			$class->addComment("@method $type $name" . $printer->printParameters($method, $class->getNamespace()));
+			$type = $this->printType($method->getReturnType(), $method->isReturnNullable(), $class->getNamespace()) ?: 'mixed';
+			$class->addComment("@method $type $name" . $this->printParameters($method, $class->getNamespace()));
 		}
+	}
+
+
+	private function printType(?string $type, bool $nullable, ?Php\PhpNamespace $namespace): string
+	{
+		if ($type === null) {
+			return '';
+		}
+		if ($namespace) {
+			$type = $namespace->unresolveName($type);
+		}
+		if ($nullable && strcasecmp($type, 'mixed')) {
+			$type = strpos($type, '|') !== false
+				? $type . '|null'
+				: '?' . $type;
+		}
+		return $type;
+	}
+
+
+	/**
+	 * @param Closure|GlobalFunction|Method  $function
+	 */
+	public function printParameters($function, Php\PhpNamespace $namespace = null): string
+	{
+		$params = [];
+		$list = $function->getParameters();
+		foreach ($list as $param) {
+			$variadic = $function->isVariadic() && $param === end($list);
+			$params[] = ltrim($this->printType($param->getType(), $param->isNullable(), $namespace) . ' ')
+				. ($param->isReference() ? '&' : '')
+				. ($variadic ? '...' : '')
+				. '$' . $param->getName()
+				. ($param->hasDefaultValue() && !$variadic ? ' = ' . var_export($param->getDefaultValue(), true) : '');
+		}
+		return '(' . implode(', ', $params) . ')';
 	}
 
 
 	public function printCanvas(): string
 	{
+		echo '<script src="https://nette.github.io/resources/prism/prism.js"></script>';
+		echo '<link rel="stylesheet" href="https://nette.github.io/resources/prism/prism.css">';
 		echo "<div style='all:initial;position:fixed;overflow:auto;z-index:1000;left:0;right:0;top:0;bottom:0;color:black;background:white;padding:1em'>\n";
 		return "</div>\n";
 	}
@@ -115,12 +153,16 @@ class Blueprint
 
 	public function printHeader(string $string): void
 	{
-		echo "<h1 style='all:initial;display:block;font-size:2em;margin:1em 0'>", htmlspecialchars($string), "</h1>\n";
+		echo "<h1 style='all:initial;display:block;font-size:2em;margin:1em 0'>",
+			htmlspecialchars($string),
+			"</h1>\n";
 	}
 
 
-	public function printCode(string $code): void
+	public function printCode(string $code, string $lang = 'php'): void
 	{
-		echo "<xmp style='margin:0;user-select:all'>", $code, "</xmp>\n";
+		echo '<pre><code class="language-', htmlspecialchars($lang), '">',
+			htmlspecialchars($code),
+			"</code></pre>\n";
 	}
 }

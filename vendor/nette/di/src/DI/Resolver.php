@@ -14,6 +14,7 @@ use Nette\DI\Definitions\Definition;
 use Nette\DI\Definitions\Reference;
 use Nette\DI\Definitions\Statement;
 use Nette\PhpGenerator\Helpers as PhpHelpers;
+use Nette\Utils\Callback;
 use Nette\Utils\Reflection;
 use Nette\Utils\Strings;
 use Nette\Utils\Validators;
@@ -110,7 +111,7 @@ class Resolver
 
 			try {
 				/** @var \ReflectionMethod|\ReflectionFunction $reflection */
-				$reflection = Nette\Utils\Callback::toReflection($entity[0] === '' ? $entity[1] : $entity);
+				$reflection = Callback::toReflection($entity[0] === '' ? $entity[1] : $entity);
 				$refClass = $reflection instanceof \ReflectionMethod
 					? $reflection->getDeclaringClass()
 					: null;
@@ -121,26 +122,27 @@ class Resolver
 			if (isset($e) || ($refClass && (!$reflection->isPublic()
 				|| ($refClass->isTrait() && !$reflection->isStatic())
 			))) {
-				throw new ServiceCreationException(sprintf('Method %s() is not callable.', Nette\Utils\Callback::toString($entity)), 0, $e ?? null);
+				throw new ServiceCreationException(sprintf('Method %s() is not callable.', Callback::toString($entity)), 0, $e ?? null);
 			}
 			$this->addDependency($reflection);
 
-			$type = Helpers::getReturnType($reflection);
-			if ($type && !class_exists($type) && !interface_exists($type)) {
-				throw new ServiceCreationException(sprintf("Class or interface '%s' not found. Is return type of %s() correct?", $type, Nette\Utils\Callback::toString($entity)));
+			$type = Nette\Utils\Type::fromReflection($reflection) ?? Helpers::getReturnTypeAnnotation($reflection);
+			if ($type) {
+				return Helpers::ensureClassType($type, sprintf('return type of %s()', Callback::toString($entity)));
 			}
-			return $type;
+			return null;
 
 		} elseif ($entity instanceof Reference) { // alias or factory
 			return $this->resolveReferenceType($entity);
 
 		} elseif (is_string($entity)) { // class
 			if (!class_exists($entity)) {
-				throw new ServiceCreationException(
+				throw new ServiceCreationException(sprintf(
 					interface_exists($entity)
-					? "Interface $entity can not be used as 'factory', did you mean 'implement'?"
-					: "Class $entity not found."
-				);
+						? "Interface %s can not be used as 'factory', did you mean 'implement'?"
+						: "Class '%s' not found.",
+					$entity
+				));
 			}
 			return $entity;
 		}
@@ -187,7 +189,11 @@ class Resolver
 
 			case $entity === 'not':
 				if (count($arguments) > 1) {
-					throw new ServiceCreationException("Function $entity() expects at most 1 parameter, " . count($arguments) . ' given.');
+					throw new ServiceCreationException(sprintf(
+						'Function %s() expects at most 1 parameter, %s given.',
+						$entity,
+						count($arguments)
+					));
 				}
 				$entity = ['', '!'];
 				break;
@@ -197,7 +203,11 @@ class Resolver
 			case $entity === 'float':
 			case $entity === 'string':
 				if (count($arguments) > 1) {
-					throw new ServiceCreationException("Function $entity() expects at most 1 parameter, " . count($arguments) . ' given.');
+					throw new ServiceCreationException(sprintf(
+						'Function %s() expects at most 1 parameter, %s given.',
+						$entity,
+						count($arguments)
+					));
 				}
 				$arguments = [$arguments[0], $entity];
 				$entity = [Helpers::class, 'convertType'];
@@ -205,17 +215,19 @@ class Resolver
 
 			case is_string($entity): // create class
 				if (!class_exists($entity)) {
-					throw new ServiceCreationException("Class $entity not found.");
+					throw new ServiceCreationException(sprintf("Class '%s' not found.", $entity));
 				} elseif ((new ReflectionClass($entity))->isAbstract()) {
-					throw new ServiceCreationException("Class $entity is abstract.");
+					throw new ServiceCreationException(sprintf('Class %s is abstract.', $entity));
 				} elseif (($rm = (new ReflectionClass($entity))->getConstructor()) !== null && !$rm->isPublic()) {
-					$visibility = $rm->isProtected() ? 'protected' : 'private';
-					throw new ServiceCreationException("Class $entity has $visibility constructor.");
+					throw new ServiceCreationException(sprintf('Class %s has %s constructor.', $entity, $rm->isProtected() ? 'protected' : 'private'));
 				} elseif ($constructor = (new ReflectionClass($entity))->getConstructor()) {
 					$arguments = self::autowireArguments($constructor, $arguments, $getter);
 					$this->addDependency($constructor);
 				} elseif ($arguments) {
-					throw new ServiceCreationException("Unable to pass arguments, class $entity has no constructor.");
+					throw new ServiceCreationException(sprintf(
+						'Unable to pass arguments, class %s has no constructor.',
+						$entity
+					));
 				}
 				break;
 
@@ -225,15 +237,21 @@ class Resolver
 
 			case is_array($entity):
 				if (!preg_match('#^\$?(\\\\?' . PhpHelpers::PHP_IDENT . ')+(\[\])?$#D', $entity[1])) {
-					throw new ServiceCreationException("Expected function, method or property name, '$entity[1]' given.");
+					throw new ServiceCreationException(sprintf(
+						"Expected function, method or property name, '%s' given.",
+						$entity[1]
+					));
 				}
 
 				switch (true) {
 					case $entity[0] === '': // function call
 						if (!Nette\Utils\Arrays::isList($arguments)) {
-							throw new ServiceCreationException("Unable to pass specified arguments to $entity[0].");
+							throw new ServiceCreationException(sprintf(
+								'Unable to pass specified arguments to %s.',
+								$entity[0]
+							));
 						} elseif (!function_exists($entity[1])) {
-							throw new ServiceCreationException("Function $entity[1] doesn't exist.");
+							throw new ServiceCreationException(sprintf("Function %s doesn't exist.", $entity[1]));
 						}
 						$rf = new \ReflectionFunction($entity[1]);
 						$arguments = self::autowireArguments($rf, $arguments, $getter);
@@ -247,9 +265,9 @@ class Resolver
 					case is_string($entity[0]): // static method call
 					case $entity[0] instanceof Reference:
 						if ($entity[1][0] === '$') { // property getter, setter or appender
-							Validators::assert($arguments, 'list:0..1', "setup arguments for '" . Nette\Utils\Callback::toString($entity) . "'");
+							Validators::assert($arguments, 'list:0..1', "setup arguments for '" . Callback::toString($entity) . "'");
 							if (!$arguments && substr($entity[1], -2) === '[]') {
-								throw new ServiceCreationException("Missing argument for $entity[1].");
+								throw new ServiceCreationException(sprintf('Missing argument for %s.', $entity[1]));
 							}
 						} elseif (
 							$type = $entity[0] instanceof Reference
@@ -260,13 +278,13 @@ class Resolver
 							if ($rc->hasMethod($entity[1])) {
 								$rm = $rc->getMethod($entity[1]);
 								if (!$rm->isPublic()) {
-									throw new ServiceCreationException("$type::$entity[1]() is not callable.");
+									throw new ServiceCreationException(sprintf('%s::%s() is not callable.', $type, $entity[1]));
 								}
 								$arguments = self::autowireArguments($rm, $arguments, $getter);
 								$this->addDependency($rm);
 
 							} elseif (!Nette\Utils\Arrays::isList($arguments)) {
-								throw new ServiceCreationException("Unable to pass specified arguments to $type::$entity[1]().");
+								throw new ServiceCreationException(sprintf('Unable to pass specified arguments to %s::%s().', $type, $entity[1]));
 							}
 						}
 				}
@@ -328,7 +346,7 @@ class Resolver
 		if ($item instanceof Definition) {
 			$name = current(array_keys($this->builder->getDefinitions(), $item, true));
 			if ($name === false) {
-				throw new ServiceCreationException("Service '{$item->getName()}' not found in definitions.");
+				throw new ServiceCreationException(sprintf("Service '%s' not found in definitions.", $item->getName()));
 			}
 			$item = new Reference($name);
 		}
@@ -350,7 +368,7 @@ class Resolver
 			return $ref;
 		} elseif ($ref->isName()) {
 			if (!$this->builder->hasDefinition($service)) {
-				throw new ServiceCreationException("Reference to missing service '$service'.");
+				throw new ServiceCreationException(sprintf("Reference to missing service '%s'.", $service));
 			}
 			return $this->currentService && $service === $this->currentService->getName()
 				? new Reference(Reference::SELF)
@@ -428,7 +446,7 @@ class Resolver
 			$message = '';
 		}
 		$message .= $type
-			? str_replace("$type::", '', $e->getMessage())
+			? str_replace("$type::", preg_replace('~.*\\\\~', '', $type) . '::', $e->getMessage())
 			: $e->getMessage();
 
 		return $e instanceof ServiceCreationException
@@ -486,7 +504,7 @@ class Resolver
 
 	/**
 	 * Add missing arguments using autowiring.
-	 * @param  (callable(string $type, bool $single): object|object[]|null)  $getter
+	 * @param  (callable(string $type, bool $single): (object|object[]|null))  $getter
 	 * @throws ServiceCreationException
 	 */
 	public static function autowireArguments(
@@ -524,7 +542,10 @@ class Resolver
 			$optCount = 0;
 		}
 		if ($arguments) {
-			throw new ServiceCreationException('Unable to pass specified arguments to ' . Reflection::toString($method) . '.');
+			throw new ServiceCreationException(sprintf(
+				'Unable to pass specified arguments to %s.',
+				Reflection::toString($method)
+			));
 		} elseif ($optCount) {
 			$res = array_slice($res, 0, -$optCount);
 		}
@@ -535,36 +556,50 @@ class Resolver
 
 	/**
 	 * Resolves missing argument using autowiring.
-	 * @param  (callable(string $type, bool $single): object|object[]|null)  $getter
+	 * @param  (callable(string $type, bool $single): (object|object[]|null))  $getter
 	 * @throws ServiceCreationException
 	 * @return mixed
 	 */
 	private static function autowireArgument(\ReflectionParameter $parameter, callable $getter)
 	{
-		$types = array_diff(Reflection::getParameterTypes($parameter), ['null']);
-		$type = count($types) === 1 ? reset($types) : null;
 		$method = $parameter->getDeclaringFunction();
 		$desc = Reflection::toString($parameter);
+		$type = Nette\Utils\Type::fromReflection($parameter);
 
-		if ($type && !Reflection::isBuiltinType($type)) {
+		if ($parameter->getType() instanceof \ReflectionIntersectionType) {
+			throw new ServiceCreationException(sprintf(
+				'Parameter %s has intersection type, so its value must be specified.',
+				$desc
+			));
+
+		} elseif ($type && $type->isClass()) {
+			$class = $type->getSingleName();
 			try {
-				$res = $getter($type, true);
+				$res = $getter($class, true);
 			} catch (MissingServiceException $e) {
 				$res = null;
 			} catch (ServiceCreationException $e) {
-				throw new ServiceCreationException("{$e->getMessage()} (needed by $desc)", 0, $e);
+				throw new ServiceCreationException("{$e->getMessage()} (required by $desc)", 0, $e);
 			}
 			if ($res !== null || $parameter->allowsNull()) {
 				return $res;
-			} elseif (class_exists($type) || interface_exists($type)) {
-				throw new ServiceCreationException("Service of type $type needed by $desc not found. Did you add it to configuration file?");
+			} elseif (class_exists($class) || interface_exists($class)) {
+				throw new ServiceCreationException(sprintf(
+					'Service of type %s required by %s not found. Did you add it to configuration file?',
+					$class,
+					$desc
+				));
 			} else {
-				throw new ServiceCreationException("Class $type needed by $desc not found. Check type hint and 'use' statements.");
+				throw new ServiceCreationException(sprintf(
+					"Class '%s' required by %s not found. Check the parameter type and 'use' statements.",
+					$class,
+					$desc
+				));
 			}
 
 		} elseif (
 			$method instanceof \ReflectionMethod
-			&& $type === 'array'
+			&& $type && $type->getSingleName() === 'array'
 			&& preg_match('#@param[ \t]+([\w\\\\]+)\[\][ \t]+\$' . $parameter->name . '#', (string) $method->getDocComment(), $m)
 			&& ($itemType = Reflection::expandClassName($m[1], $method->getDeclaringClass()))
 			&& (class_exists($itemType) || interface_exists($itemType))
@@ -572,7 +607,7 @@ class Resolver
 			return $getter($itemType, false);
 
 		} elseif (
-			($types && $parameter->allowsNull())
+			($type && $parameter->allowsNull())
 			|| $parameter->isOptional()
 			|| $parameter->isDefaultValueAvailable()
 		) {
@@ -583,8 +618,11 @@ class Resolver
 				: null;
 
 		} else {
-			$tmp = count($types) > 1 ? 'union' : 'no class';
-			throw new ServiceCreationException("Parameter $desc has $tmp type hint and no default value, so its value must be specified.");
+			throw new ServiceCreationException(sprintf(
+				'Parameter %s has %s, so its value must be specified.',
+				$desc,
+				$type && $type->isUnion() ? 'union type and no default value' : 'no class type or default value'
+			));
 		}
 	}
 }

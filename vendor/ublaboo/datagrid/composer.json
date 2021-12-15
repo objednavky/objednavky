@@ -2,8 +2,17 @@
 	"name": "ublaboo/datagrid",
 	"type": "library",
 	"description": "DataGrid for Nette Framework: filtering, sorting, pagination, tree view, table view, translator, etc",
-	"keywords": ["datagrid", "grid", "nette", "contributte", "table", "data"],
-	"license": ["MIT"],
+	"keywords": [
+		"datagrid",
+		"grid",
+		"nette",
+		"contributte",
+		"table",
+		"data"
+	],
+	"license": [
+		"MIT"
+	],
 	"authors": [
 		{
 			"name": "Pavel Janda",
@@ -34,6 +43,7 @@
 	},
 	"require-dev": {
 		"dibi/dibi": "^3.0.0 || ^4.0.0",
+		"doctrine/cache": "^1.11",
 		"doctrine/orm": "^2.6.12",
 		"elasticsearch/elasticsearch": "^7.1",
 		"gamee/php-code-checker-rules": "^2.0.21",
@@ -54,7 +64,7 @@
 	},
 	"extra": {
 		"branch-alias": {
-			"dev-master": "6.7.x-dev"
+			"dev-master": "6.10.x-dev"
 		}
 	}
 }
