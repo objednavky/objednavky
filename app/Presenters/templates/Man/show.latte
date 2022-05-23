@@ -53,35 +53,35 @@
       </tr>
       <tr>
         <th class="p-3 mb-2 bg-light text-dark">Plánované</th>
-        <td>{$castka|number:0:',':' '} </td>
-        <td>{$sablonyplan|number:0:',':' '} </td>
+        <td>{$castka|number:0,',',' '} </td>
+        <td>{$sablonyplan|number:0,',',' '} </td>
         <td> </td>
         <td>neplánují se</td>
         </tr>
 
         <tr>
           <th  class="p-3 mb-2 bg-light text-dark">Již utracené</th>
-        <td>{($vlastni+$normativ)|number:0:',':' '} </td>
-        <td>{$sablony|number:0:',':' '} </td>
-        <td>{($objednanoV+$objednanoD)|number:0:',':' '}  </td>
-        <td>{$dotace|number:0:',':' '} </td>
+        <td>{($vlastni+$normativ)|number:0,',',' '} </td>
+        <td>{$sablony|number:0,',',' '} </td>
+        <td>{($objednanoV+$objednanoD)|number:0,',',' '}  </td>
+        <td>{$dotace|number:0,',',' '} </td>
 
          
         </tr>
         <tr>
           <th class="p-3 mb-2 bg-light text-dark" >V rozpočtu zbývá (včetně objednávek)</th>
             {if (($zbyvatab-$objednanoV) > 0) }
-          <td>{($zbyvatab-$objednanoV)|number:0:',':' '} </td>
+          <td>{($zbyvatab-$objednanoV)|number:0,',',' '} </td>
           {else}
-          <td class="table-danger"> {($zbyvatab-$objednanoV)|number:0:',':' '} </td>
+          <td class="table-danger"> {($zbyvatab-$objednanoV)|number:0,',',' '} </td>
           {/if}
 
 
 
           {if ($sablonyplan - $sablony-$objednanoD > 0) }
-          <td>{($sablonyplan - $sablony-$objednanoD)|number:0:',':' '} </td>
+          <td>{($sablonyplan - $sablony-$objednanoD)|number:0,',',' '} </td>
           {else}
-          <td class="table-danger"> {($sablonyplan - $sablony-$objednanoD)|number:0:',':' '} </td>
+          <td class="table-danger"> {($sablonyplan - $sablony-$objednanoD)|number:0,',',' '} </td>
           {/if}
          
           <td> </td>
