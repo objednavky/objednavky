@@ -25,6 +25,10 @@ abstract class ObjednavkyBasePresenter extends BasePresenter
         }
     }
 
+    protected function beforeRender(): void {
+        $this->zkontrolujRokAVerzi();
+    }
+
     public final function getSetup($id = 1)
     {
         //return $this->database->table('setup')->where('id',$id)->fetch();
@@ -81,6 +85,25 @@ abstract class ObjednavkyBasePresenter extends BasePresenter
                 return "<i class='fa fa-file-invoice-dollar stav-ikona btn-primary' data-toggle='tooltip' data-placement='right' title='".$item['stav']."'/>";
         }
 
+    }
+
+    protected final function zkontrolujRokAVerzi() {
+        $rokdb = $this->database->table('setup')->get(1)->rok; //TK: TODO toto předělat na novou funkcionalitu
+        $rok = $this->getSetup()->rok;
+        if ($rok != $rokdb) {
+            $this->flashMessage('POZOR! Jste přihlášeni v jiném hospodářském roce, než který je označen jako aktuálně platný (aktuálně platný rok '.($rokdb-1).'/'.$rokdb.', pracujete v roce '.($rok-1).'/'.$rok.')!','warning');
+            $verzemax = $this->database->table('rozpocet')->where('rok',$rok)->max('verze');
+            $verze = $this->getSetup()->verze;
+            if ($verze != $verzemax) {
+                $this->flashMessage('POZOR! Jste přihlášeni v jiné verzi rozpočtu, než která je v tomto neaktuálním hospodářském roce použita jako poslední (poslední verze '.$verzemax.', pracujete ve verzi '.$verze.')!','danger');
+            }
+            } else {
+            $verzedb = $this->database->table('setup')->get(1)->verze; //TK: TODO toto předělat na novou funkcionalitu
+            $verze = $this->getSetup()->verze;
+            if ($verze != $verzedb) {
+                $this->flashMessage('POZOR! Jste přihlášeni v jiné verzi rozpočtu, než která je v tomto roce označena jako aktuálně platná (aktuálně platná verze '.$verzedb.', pracujete ve verzi '.$verze.')!','danger');
+            }
+        }
     }
 
 }
