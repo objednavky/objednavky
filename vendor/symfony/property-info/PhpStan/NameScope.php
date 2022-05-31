@@ -22,14 +22,14 @@ namespace Symfony\Component\PropertyInfo\PhpStan;
  */
 final class NameScope
 {
-    private $className;
+    private $calledClassName;
     private $namespace;
     /** @var array<string, string> alias(string) => fullName(string) */
     private $uses;
 
-    public function __construct(string $className, string $namespace, array $uses = [])
+    public function __construct(string $calledClassName, string $namespace, array $uses = [])
     {
-        $this->className = $className;
+        $this->calledClassName = $calledClassName;
         $this->namespace = $namespace;
         $this->uses = $uses;
     }
@@ -41,13 +41,14 @@ final class NameScope
         }
 
         $nameParts = explode('\\', $name);
-        if (isset($this->uses[$nameParts[0]])) {
+        $firstNamePart = $nameParts[0];
+        if (isset($this->uses[$firstNamePart])) {
             if (1 === \count($nameParts)) {
-                return $this->uses[$nameParts[0]];
+                return $this->uses[$firstNamePart];
             }
             array_shift($nameParts);
 
-            return sprintf('%s\\%s', $this->uses[$nameParts[0]], implode('\\', $nameParts));
+            return sprintf('%s\\%s', $this->uses[$firstNamePart], implode('\\', $nameParts));
         }
 
         if (null !== $this->namespace) {
@@ -59,6 +60,6 @@ final class NameScope
 
     public function resolveRootClass(): string
     {
-        return $this->resolveStringName($this->className);
+        return $this->resolveStringName($this->calledClassName);
     }
 }

@@ -72,7 +72,7 @@ class MacroTokens extends TokenIterator
 	 * @param  string|array{string, int, int}  $val
 	 * @return static
 	 */
-	public function append($val, int $position = null)
+	public function append($val, ?int $position = null)
 	{
 		if ($val != null) { // intentionally @
 			array_splice(
@@ -82,6 +82,7 @@ class MacroTokens extends TokenIterator
 				is_array($val) ? [$val] : $this->parse($val)
 			);
 		}
+
 		return $this;
 	}
 
@@ -96,6 +97,7 @@ class MacroTokens extends TokenIterator
 		if ($val != null) { // intentionally @
 			array_splice($this->tokens, 0, 0, is_array($val) ? [$val] : $this->parse($val));
 		}
+
 		return $this;
 	}
 
@@ -117,6 +119,7 @@ class MacroTokens extends TokenIterator
 				$expr .= $this->joinUntilSameDepth(',');
 			}
 		}
+
 		$this->nextToken(',');
 		$this->nextAll(self::T_WHITESPACE, self::T_COMMENT);
 		return $expr === '' ? null : $expr;
@@ -136,6 +139,7 @@ class MacroTokens extends TokenIterator
 			&& (($dot = $this->nextValue('.')) || $this->isPrev('.'))) {
 			$words[0] .= $space . $dot . $this->joinUntil(',');
 		}
+
 		$this->nextToken(',');
 		$this->nextAll(self::T_WHITESPACE, self::T_COMMENT);
 		return $words === [''] ? [] : $words;
@@ -154,6 +158,7 @@ class MacroTokens extends TokenIterator
 			if ($this->depth === $depth) {
 				return $res;
 			}
+
 			$res .= $this->nextValue();
 		} while (true);
 	}
@@ -169,11 +174,12 @@ class MacroTokens extends TokenIterator
 		$pos = $this->position;
 		if (
 			($mod = $this->nextValue(...$modifiers))
-			&& $this->nextToken($this::T_WHITESPACE)
+			&& ($this->nextToken($this::T_WHITESPACE) || !ctype_alnum($mod))
 			&& ($name = $this->fetchWord())
 		) {
 			return [$name, $mod];
 		}
+
 		$this->position = $pos;
 		$name = $this->fetchWord();
 		return $name === null ? null : [$name, null];

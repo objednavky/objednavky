@@ -93,7 +93,7 @@
 							{/if}
 
 							<div class="datagrid-toolbar" n:if="$control->canHideColumns() || $inlineAdd || $exports || $toolbarButtons">
-								<span n:if="$toolbarButtons">
+								<span n:if="$toolbarButtons" n:snippet="toolbar">
 									{foreach $toolbarButtons as $toolbar_button}{$toolbar_button->renderButton()}{/foreach}
 								</span>
 
@@ -229,7 +229,7 @@
 				</thead>
 
 				{block tbody}
-				<tbody n:snippet="tbody" {if $control->isSortable()}data-sortable data-sortable-url="{plink $control->getSortableHandler()}" data-sortable-parent-path="{$control->getSortableParentPath()}"{/}>
+				<tbody n:snippet="tbody" {if $control->isSortable()}data-sortable data-sortable-url="{plink $control->getSortableHandler()}" data-sortable-parent-path="{$control->getSortableParentPath()}"{/if}>
 					{snippetArea items}
 						{if $inlineAdd && $inlineAdd->isPositionTop()}
 							{include inlineAddRow, columns => $columns}
@@ -244,7 +244,7 @@
 
 							{if !isset($toggle_detail)}
 								{if $inlineEdit && $inlineEdit->getItemId() == $row->getId()}
-									{php $inlineEdit->onSetDefaults($filter['inline_edit'], $item); }
+									{php $inlineEdit->onSetDefaults($filter['inline_edit'], $item) }
 
 									<tr data-id="{$row->getId()}" n:snippet="item-{$row->getId()}" n:attr="$row->getControl()->attrs">
 										<td n:if="$hasGroupActions" class="col-checkbox"></td>
@@ -413,7 +413,7 @@
 
 {define inlineAddRow}
 	{if $inlineAdd->shouldBeRendered()}
-		{php $inlineAdd->onSetDefaults($filter['inline_add']); }
+		{php $inlineAdd->onSetDefaults($filter['inline_add']) }
 
 		<tr class="datagrid-row-inline-add datagrid-row-inline-add-hidden">
 			<td n:if="$hasGroupActions" class="col-checkbox"></td>

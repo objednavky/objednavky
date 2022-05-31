@@ -1,0 +1,47 @@
+{
+	"name": "nette/nette",
+	"type": "library",
+	"description": "👪 Nette Framework - innovative framework for fast and easy development of secured web applications in PHP (metapackage)",
+	"keywords": ["framework", "mvc", "metapackage"],
+	"homepage": "https://nette.org",
+	"license": ["BSD-3-Clause", "GPL-2.0-only", "GPL-3.0-only"],
+	"authors": [
+		{
+			"name": "David Grudl",
+			"homepage": "https://davidgrudl.com"
+		},
+		{
+			"name": "Nette Community",
+			"homepage": "https://nette.org/contributors"
+		}
+	],
+	"require": {
+		"nette/application": "^3.1",
+		"nette/bootstrap": "^3.1",
+		"nette/caching": "^3.1",
+		"nette/database": "^3.1",
+		"nette/di": "^3.0",
+		"nette/finder": "^2.5",
+		"nette/forms": "^3.0",
+		"nette/http": "^3.1",
+		"nette/mail": "^3.1",
+		"nette/php-generator": "^3.5",
+		"nette/robot-loader": "^3.3",
+		"nette/safe-stream": "^2.4",
+		"nette/security": "^3.1",
+		"nette/tokenizer": "^3.0",
+		"nette/utils": "^3.2",
+		"latte/latte": "^2.9",
+		"tracy/tracy": "^2.8"
+
+	},
+	"autoload": {
+		"classmap": ["Nette/"]
+	},
+	"minimum-stability": "dev",
+	"extra": {
+		"branch-alias": {
+			"dev-master": "3.1-dev"
+		}
+	}
+}

@@ -103,7 +103,7 @@ class QueryHelper
 
 	public function orderBy(string $column, string $order): string
 	{
-		$this->query['ORDER'] = [[
+		$this->query['ORDER'][] = [
 			'expr_type' => 'colref',
 			'base_expr' => $column,
 			'no_quotes' => [
@@ -112,7 +112,7 @@ class QueryHelper
 			],
 			'subtree' => false,
 			'direction' => $order,
-		]];
+		];
 
 		return $this->sqlCreator->create($this->query);
 	}

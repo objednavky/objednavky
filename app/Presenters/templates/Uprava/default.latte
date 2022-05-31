@@ -15,29 +15,29 @@
         </ul>
       </div>
       <div class="row">
-         <div class="nova-objednavka-label col-2">{label popis}</div>
+         <div class="nova-objednavka-label col-2">{label popis /}</div>
         <div class="nova-objednavka-input col-10">{input id}{input popis}</div>
       </div>
     </div>
     <div class="nova-objednavka-polozka" n:multiplier="polozka">
       <div class="row">
-        <div class="nova-objednavka-label col-4 col-md-2">{label popis_radky}</div>
+        <div class="nova-objednavka-label col-4 col-md-2">{label popis_radky /}</div>
         <div class="nova-objednavka-input col-8 col-md-4">{input popis_radky disabled:disabled }<span n:ifcontent>{inputError popis_radky}</span></div>
-        <div class="nova-objednavka-label col-4 col-md-2">{label firma}</div>
+        <div class="nova-objednavka-label col-4 col-md-2">{label firma /}</div>
         <div class="nova-objednavka-input col-8 col-md-4">{input firma disabled:disabled}<span n:ifcontent>{inputError firma}</span></div>
       </div>
       <div class="row">
-        <div class="nova-objednavka-label col-4 col-md-2">{label strediskoVyber}</div>
+        <div class="nova-objednavka-label col-4 col-md-2">{label strediskoVyber /}</div>
         <div class="nova-objednavka-input col-8 col-md-4">{input strediskoVyber disabled:disabled}<span n:ifcontent>{inputError strediskoVyber}</span></div>
-        <div class="nova-objednavka-label col-4 col-md-2">{label cinnostVyber}</div>
+        <div class="nova-objednavka-label col-4 col-md-2">{label cinnostVyber /}</div>
         <div class="nova-objednavka-input col-8 col-md-4">{input cinnostVyber disabled:disabled}<span n:ifcontent>{inputError cinnostVyber}</span></div>
       </div>
       <div class="row">
       </div>
       <div class="row">
-        <div class="nova-objednavka-label col-4 col-md-2">{label zakazkaVyber}</div>
+        <div class="nova-objednavka-label col-4 col-md-2">{label zakazkaVyber /}</div>
         <div class="nova-objednavka-input col-8 col-md-4">{input zakazkaVyber disabled:disabled}<span n:ifcontent>{inputError zakazkaVyber}</span></div>
-        <div class="nova-objednavka-label col-4 col-md-2">{label castka}</div>
+        <div class="nova-objednavka-label col-4 col-md-2">{label castka /}</div>
         <div class="nova-objednavka-input col-8 col-md-4 input-right-align">{input castka disabled:disabled}<span n:ifcontent>{inputError castka}</span></div>
       </div>
       {dump $formContainer->components['stav_popis']->value}

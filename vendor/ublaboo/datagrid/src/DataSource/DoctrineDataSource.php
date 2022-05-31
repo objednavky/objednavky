@@ -12,6 +12,7 @@ use Nette\Utils\Strings;
 use Ublaboo\DataGrid\AggregationFunction\IAggregatable;
 use Ublaboo\DataGrid\AggregationFunction\IAggregationFunction;
 use Ublaboo\DataGrid\Exception\DataGridDateTimeHelperException;
+use Ublaboo\DataGrid\Exception\DataGridException;
 use Ublaboo\DataGrid\Filter\FilterDate;
 use Ublaboo\DataGrid\Filter\FilterDateRange;
 use Ublaboo\DataGrid\Filter\FilterMultiSelect;
@@ -47,7 +48,7 @@ class DoctrineDataSource extends FilterableDataSource implements IDataSource, IA
 	protected $primaryKey;
 
 	/**
-	 * @var string
+	 * @var string|null
 	 */
 	protected $rootAlias;
 
@@ -288,8 +289,10 @@ class DoctrineDataSource extends FilterableDataSource implements IDataSource, IA
 
 			foreach ($words as $word) {
 				$exprs[] = $this->dataSource->expr()->like(
-					$c,
-					$this->dataSource->expr()->literal("%$word%")
+					$this->dataSource->expr()->lower($c),
+					$this->dataSource->expr()->lower(
+						$this->dataSource->expr()->literal("%$word%")
+					)
 				);
 			}
 		}
@@ -341,11 +344,13 @@ class DoctrineDataSource extends FilterableDataSource implements IDataSource, IA
 		}
 
 		if (!isset($this->rootAlias)) {
-			$rootAlias = current($this->dataSource->getRootAliases());
+			$rootAlias = $this->dataSource->getRootAliases();
 
-			if ($rootAlias !== false) {
-				$this->rootAlias = $rootAlias;
+			if ($rootAlias === []) {
+				throw new DataGridException('No root alias given from datasource');
 			}
+
+			$this->rootAlias = current($rootAlias);
 		}
 
 		return $this->rootAlias . '.' . $column;
