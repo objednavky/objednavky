@@ -59,6 +59,7 @@ class VsechnyObjednavkyPresenter extends ObjednavkyBasePresenter
         $grid = new DataGrid($this, $name);
         $grid->setDataSource($source);
         $grid->addColumnNumber('id','Č. obj.')->setSortable()->setSortableResetPagination()->setFilterText();
+        $grid->addColumnText('rok','Rok')->setAlign('right')->setSortable()->setSortableResetPagination()->setFilterText();
         $grid->addColumnText('zadavatel','Zadavatel')->setSortable()->setSortableResetPagination()->setFilterText();
         $grid->addColumnDateTime('zalozil','Založeno')->setFormat('d.m.Y H:i:s')->setSortable()->setSortableResetPagination()->setFilterText();
         $grid->addColumnText('popis','Popis objednávky')->setSortable()->setSortableResetPagination()->setFilterText();

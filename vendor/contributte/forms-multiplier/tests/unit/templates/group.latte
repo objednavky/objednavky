@@ -1,7 +1,0 @@
-{form $name}
-    {foreach $form->getGroups() as $groupName => $group}
-        {foreach $group->getControls() as $_ => $input}
-            {input $input}
-        {/foreach}
-    {/foreach}
-{/form}

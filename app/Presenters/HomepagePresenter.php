@@ -71,9 +71,17 @@ class HomepagePresenter extends ObjednavkyBasePresenter
     {
         if (!empty($rok) && $this->database->table('rozpocet')->where('rok',$rok)->count()>0) {
             $this->getUser()->getIdentity()->rok = $rok;
-            $verze = $this->database->table('rozpocet')->where('rok',$rok)->max('verze');
+            $rokdb = $this->database->table('setup')->get(1)->rok; //TK: TODO toto předělat na novou funkcionalitu
+            if ($rok == $rokdb) {
+                // jsme v aktuálním roce = nastav verzi podle toho, co je v setupu
+                $verze = $this->database->table('setup')->get(1)->verze; //TK: TODO toto předělat na novou funkcionalitu
+                $this->flashMessage('Změnil se aktivní rok na aktuální ' . ($rok-1).'/'. $rok . ' a aktuálně nastavenou verzi č. ' . $verze, 'success');
+            } else {
+                // jsme mimo aktuální rok = nastav tu verzi, která byla poslední (nemáme kde vzít nastavenou verzi jiného než aktuálního roku)
+                $verze = $this->database->table('rozpocet')->where('rok',$rok)->max('verze');
+                $this->flashMessage('Změnil se aktivní rok na ' . ($rok-1).'/'. $rok . ' a poslední verzi č. ' . $verze.' - POZOR, rok není aktuální!', 'success');
+            }
             $this->getUser()->getIdentity()->verze = $verze;
-            $this->flashMessage('Změnil se aktivní rok na ' . ($rok-1).'/'. $rok . ' a poslední verzi č. ' . $verze, 'success');
         } else {
             //error - rok neexistuje
             $this->flashMessage('Nepovedlo se změnit rok - daný rok neexistuje.', 'danger');
@@ -141,12 +149,12 @@ class HomepagePresenter extends ObjednavkyBasePresenter
 
             $item->rozdilV = $item->castkaRozpocet - ( $item->mySumV );
 
-            $relevantniS = $this->database->table('zakazky')->select('zakazka')->where('sablony', 1); //    zakázky šablony, které se počítají
+            $relevantniS = $this->database->table('zakazky')->select('id')->where('sablony', 1); //    zakázky šablony, které se počítají
             $utracenoS = $this->database->table('denik')->where('rozpocet', $rozpocet->id)->where('petky', $argument)->where('zakazky',$relevantniS)
                                 ->sum('castka');
             $utracenoS = \round($utracenoS, 0);
             
-            $objednavkyS_suma = $this->database->table('objednavky')->where('cinnost', ':cinnost.id_rozpocet')->where('zakazka',$relevantniS)
+            $objednavkyS_suma = $this->database->table('objednavky')->where('cinnost', $pomoc)->where('zakazka',$relevantniS)
             ->where('stav ?', [0,1,3,4,9])->sum('castka');
             $objednavkyS_suma = \round($objednavkyS_suma, 0);     //    nezamítnuté šablony objednávky na rozpočet - celková částka
 

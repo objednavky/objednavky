@@ -262,6 +262,7 @@ class ObjednavkyManager
 				'zadavatel' => $prehled->ref('zakladatel') == null ? '' : $prehled->ref('zakladatel')->jmeno,
 				'zalozil' => $prehled->zalozil,
 				'popis' => $prehled->popis,
+				'rok' => $rok, //TK TODO tady musí být rok převzatý z tabulky, aby bylo možné listovat objednávky přes více let
 			];
 			$objednavky = $this->sumaObjednavekPodlePrehleduAStavu($prehled->id, $rok);
 			if (isset($objednavky)) {

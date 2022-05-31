@@ -1635,6 +1635,79 @@
             "time": "2021-01-05T15:22:22+00:00"
         },
         {
+            "name": "nette/nette",
+            "version": "v3.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/nette/nette.git",
+                "reference": "3fc1e40c59d216570da16ba1846cc855f64c7204"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/nette/nette/zipball/3fc1e40c59d216570da16ba1846cc855f64c7204",
+                "reference": "3fc1e40c59d216570da16ba1846cc855f64c7204",
+                "shasum": ""
+            },
+            "require": {
+                "latte/latte": "^2.9",
+                "nette/application": "^3.1",
+                "nette/bootstrap": "^3.1",
+                "nette/caching": "^3.1",
+                "nette/database": "^3.1",
+                "nette/di": "^3.0",
+                "nette/finder": "^2.5",
+                "nette/forms": "^3.0",
+                "nette/http": "^3.1",
+                "nette/mail": "^3.1",
+                "nette/php-generator": "^3.5",
+                "nette/robot-loader": "^3.3",
+                "nette/safe-stream": "^2.4",
+                "nette/security": "^3.1",
+                "nette/tokenizer": "^3.0",
+                "nette/utils": "^3.2",
+                "tracy/tracy": "^2.8"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "3.1-dev"
+                }
+            },
+            "autoload": {
+                "classmap": [
+                    "Nette/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause",
+                "GPL-2.0-only",
+                "GPL-3.0-only"
+            ],
+            "authors": [
+                {
+                    "name": "David Grudl",
+                    "homepage": "https://davidgrudl.com"
+                },
+                {
+                    "name": "Nette Community",
+                    "homepage": "https://nette.org/contributors"
+                }
+            ],
+            "description": "👪 Nette Framework - innovative framework for fast and easy development of secured web applications in PHP (metapackage)",
+            "homepage": "https://nette.org",
+            "keywords": [
+                "framework",
+                "metapackage",
+                "mvc"
+            ],
+            "support": {
+                "issues": "https://github.com/nette/nette/issues",
+                "source": "https://github.com/nette/nette/tree/v3.1.0"
+            },
+            "time": "2021-01-05T15:22:22+00:00"
+        },
+        {
             "name": "nette/php-generator",
             "version": "v3.6.7",
             "source": {
@@ -1830,6 +1903,71 @@
                 "source": "https://github.com/nette/routing/tree/v3.0.3"
             },
             "time": "2022-04-16T23:08:16+00:00"
+        },
+        {
+            "name": "nette/safe-stream",
+            "version": "v2.5.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/nette/safe-stream.git",
+                "reference": "8bbbeda8415b8352642d7566dfa18169d40c2e54"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/nette/safe-stream/zipball/8bbbeda8415b8352642d7566dfa18169d40c2e54",
+                "reference": "8bbbeda8415b8352642d7566dfa18169d40c2e54",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.1"
+            },
+            "require-dev": {
+                "nette/tester": "^2.0",
+                "phpstan/phpstan": "^0.12",
+                "tracy/tracy": "^2.3"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.5-dev"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "src/loader.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause",
+                "GPL-2.0-only",
+                "GPL-3.0-only"
+            ],
+            "authors": [
+                {
+                    "name": "David Grudl",
+                    "homepage": "https://davidgrudl.com"
+                },
+                {
+                    "name": "Nette Community",
+                    "homepage": "https://nette.org/contributors"
+                }
+            ],
+            "description": "Nette SafeStream: provides isolation for thread safe manipulation with files via native PHP functions.",
+            "homepage": "https://nette.org",
+            "keywords": [
+                "atomic",
+                "filesystem",
+                "isolation",
+                "nette",
+                "safe",
+                "thread safe"
+            ],
+            "support": {
+                "issues": "https://github.com/nette/safe-stream/issues",
+                "source": "https://github.com/nette/safe-stream/tree/v2.5.0"
+            },
+            "time": "2022-01-03T23:13:32+00:00"
         },
         {
             "name": "nette/safe-stream",
