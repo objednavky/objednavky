@@ -84,6 +84,7 @@ class ObjednavkyManager
             	'overil' => $objednavky->overil,
             	'nutno_overit' => $objednavky->nutno_overit,
             	'stav' => $objednavky->stav,
+            	'stavPopis' => $objednavky->ref('stav')->popis,
             	'firma' => $objednavky->firma,
             	'popis' => $objednavky->popis,
             	'cinnost' => $objednavky->ref('cinnost')->cinnost,

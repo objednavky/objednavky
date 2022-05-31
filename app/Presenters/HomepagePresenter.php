@@ -181,12 +181,14 @@ class HomepagePresenter extends ObjednavkyBasePresenter
             ->setRenderer(function($item):string { return (number_format($item['mySumV'],0,","," ") .' Kč'); });
         $grid->addColumnNumber('rozdilV', 'Rozpočet - zbývá')
             ->setRenderer(function($item):string { return (number_format($item['rozdilV'],0,","," ") .' Kč'); });
+        $grid->addColumnCallback('rozdilV', function($column, $item) { $item['rozdilV'] < 0 ? $column->getElementPrototype('td')->addAttributes(['class' => 'text-danger font-weight-bold',]) : $column->getElementPrototype('td')->removeAttributes(['class' => 'class',]); } );
         $grid->addColumnNumber('castkaSablony', 'Šablony - roční plán')->addCellAttributes(['class' => 'text-success'])
             ->setRenderer(function($item):string { return (number_format($item['castkaSablony'],0,","," ") .' Kč'); });
         $grid->addColumnNumber('mySumS', 'Šablony - čerpáno')
             ->setRenderer(function($item):string { return (number_format($item['mySumS'],0,","," ") .' Kč'); });
         $grid->addColumnNumber('rozdilS', 'Šablony - zbývá')
             ->setRenderer(function($item):string { return (number_format($item['rozdilS'],0,","," ") .' Kč'); });
+        $grid->addColumnCallback('rozdilS', function($column, $item) { $item['rozdilS'] < 0 ? $column->getElementPrototype('td')->addAttributes(['class' => 'text-danger font-weight-bold',]) : $column->getElementPrototype('td')->removeAttributes(['class' => 'class',]); } );
         // $grid->addExportCsvFiltered('Export do csv s filtrem', 'tabulka.csv', 'windows-1250')
         // ->setTitle('Export do csv s filtrem');
         $grid->addExportCsv('Export do csv', 'tabulka.csv', 'windows-1250')

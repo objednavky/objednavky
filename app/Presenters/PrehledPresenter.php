@@ -85,7 +85,7 @@ class PrehledPresenter extends ObjednavkyBasePresenter
     {
         $grid = new DataGrid($this, $name);
         $grid->setDataSource($source);
-        $grid->addColumnNumber('id_prehled','Č. obj.')->setSortable()->setSortableResetPagination();
+        $grid->addColumnNumber('id_prehled','Č. obj.')->setSortable()->setSortableResetPagination()->setFilterText();
         $grid->addColumnCallback('id_prehled', function($column, $item) {
             $column->setRenderer(function() use ($item) {
                 return $item['id_prehled'] . '/' .  $item['radka'];

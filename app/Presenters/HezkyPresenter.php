@@ -131,6 +131,7 @@ class HezkyPresenter extends ObjednavkyBasePresenter
         $grid->addColumnNumber('objednanoS', 'Objednávky šablony')->setAlign('right')->setRenderer(function($item):string { return ($item['objednanoS'] === null ? '' : number_format($item['objednanoS'],0,","," ") .' Kč'); })->getElementPrototype('td')->setClass('nowrap');
         $grid->addColumnNumber('objednanoD', 'Objednávky dotace (mimo rozpočet)')->setAlign('right')->setRenderer(function($item):string { return ($item['objednanoD'] === null ? '' : number_format($item['objednanoD'],0,","," ") .' Kč'); })->getElementPrototype('td')->setClass('nowrap');
         $grid->addColumnNumber('rozdil', 'Zbývá z rozpočtu')->setAlign('right')->setRenderer(function($item):string { return ($item['rozdil'] === null ? '' : number_format($item['rozdil'],0,","," ") .' Kč'); })->getElementPrototype('td')->setClass('nowrap');
+        $grid->addColumnCallback('rozdil', function($column, $item) { $item['rozdil'] < 0 ? $column->getElementPrototype('td')->addAttributes(['class' => 'text-danger font-weight-bold',]) : $column->getElementPrototype('td')->removeAttributes(['class' => 'class',]); } );
         $grid->setColumnsSummary(['castka','sablony','mySumV', 'mySumN', 'mySumS','mySumD', 'rozdil','objednanoV','objednanoS','objednanoD','soucetVNS','plan'])
                 ->setRenderer(function($sum, $column):string { return ($sum === null ? '' : number_format($sum,0,","," ") .' Kč'); });
         $grid->setPagination(false);

@@ -79,7 +79,8 @@ class SchvalenePresenter extends ObjednavkyBasePresenter
             $item->overovatel = $objednavky->ref('kdo2')->jmeno;
             $item->overil = $objednavky->overil;             
             $item->nutno_overit = $objednavky->nutno_overit;
-            $item->stav = $objednavky->ref('stav')->popis;
+            $item->stav = $objednavky->stav;
+            $item->stavPopis = $objednavky->ref('stav')->popis;
             $item->firma = $objednavky->firma;
             $item->popis = $objednavky->popis;
             $item->cinnost = $objednavky->ref('cinnost')->cinnost;
@@ -100,7 +101,7 @@ class SchvalenePresenter extends ObjednavkyBasePresenter
         $this->grids['mazaciGrid'] = $grid;
         $source = $this->mapRozpocet(1);
         $grid->setDataSource($source);
-        $grid->addColumnNumber('id_prehled','Č. obj.')->setSortable()->setSortableResetPagination();
+        $grid->addColumnNumber('id_prehled','Č. obj.')->setSortable()->setSortableResetPagination()->setFilterText();
         $grid->addColumnCallback('id_prehled', function($column, $item) {
             $column->setRenderer(function() use ($item) {
                 return $item['id_prehled'] . '/' .  $item['radka'];
@@ -109,7 +110,10 @@ class SchvalenePresenter extends ObjednavkyBasePresenter
 //        $grid->addColumnText('radka','Č. pol.');
         $grid->addColumnText('zadavatel','Zadavatel')->setSortable()->setSortableResetPagination()->setFilterText();
         $grid->addColumnDateTime('zalozil','Založeno')->setFormat('d.m.Y H:i:s')->setSortable()->setSortableResetPagination()->setFilterText();
-        $grid->addColumnText('stav','stav objednávky')->setSortable()->setSortableResetPagination()->setFilterText();
+        $grid->addColumnText('stav','Stav','stav')->setSortable()->setSortableResetPagination()->setTemplateEscaping(FALSE);
+        $grid->addColumnCallback('stav', function($column, $item) {
+            $column->setRenderer(function() use ($item):string { return $this->renderujIkonuStavu($item); });
+        });
         $grid->addColumnText('schvalovatel','Schvalovatel')->setSortable()->setSortableResetPagination()->setDefaultHide()->setFilterText();
         $grid->addColumnDateTime('schvalil','Schváleno')->setFormat('d.m.Y')->setSortable()->setSortableResetPagination();
         $grid->addColumnText('nutno_overit','Nutno ověřit')->setAlign('center')->setSortable()->setSortableResetPagination()->setFilterText();

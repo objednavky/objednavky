@@ -189,6 +189,7 @@ class DetailPresenter extends ObjednavkyBasePresenter
             ->setAlign('right')
             ->setRenderer(function($item):string { return ($item['rozdil'] === null ? '' : number_format($item['rozdil'],0,","," ") .' Kč'); })
             ->getElementPrototype('td')->setClass('nowrap');
+        $grid->addColumnCallback('rozdil', function($column, $item) { $item['rozdil'] < 0 ? $column->getElementPrototype('td')->addAttributes(['class' => 'text-danger font-weight-bold',]) : $column->getElementPrototype('td')->removeAttributes(['class' => 'class',]); } );
         $grid->setColumnsSummary(['castka','sablony','mySumV', 'mySumN', 'mySumS','mySumD', 'rozdil','objednanoV','objednanoS','objednanoD','soucetVNS','plan'])
             ->setRenderer(function($sum, $column):string { return ($sum === null ? '' : number_format($sum,0,","," ") .' Kč'); });
         $grid->setPagination(false);

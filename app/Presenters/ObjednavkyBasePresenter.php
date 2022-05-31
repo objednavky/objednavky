@@ -6,6 +6,7 @@ declare(strict_types=1);
 
 namespace App\Presenters;
 
+use Exception;
 use Nette;
 use Ublaboo\DataGrid\DataGrid;
 use Nette\Application\UI\Form;
@@ -62,27 +63,33 @@ abstract class ObjednavkyBasePresenter extends BasePresenter
     }
 
     protected final function renderujIkonuStavu($item) {
+        $stavPopis = $item['stav']; //fallback v pripade chyby
+        try {
+            $stavPopis = isset($item['stavPopis']) ? $item['stavPopis'] : $item->ref('stav')->popis;
+        } catch (Exception $e) {
+            $stavPopis =$e;
+        }
         switch ($item['stav']) {
             case 0: 
-               return "<i class='fa fa-user stav-ikona btn-warning' data-toggle='tooltip' data-placement='right' title='".$item['stav']."'/>";
+               return "<i class='fa fa-user stav-ikona btn-warning' data-toggle='tooltip' data-placement='right' title='".$stavPopis."'/>";
             case 1: 
-                return "<i class='fa fa-user-friends stav-ikona btn-warning' data-toggle='tooltip' data-placement='right' title='".$item['stav']."'/>";
+                return "<i class='fa fa-user-friends stav-ikona btn-warning' data-toggle='tooltip' data-placement='right' title='".$stavPopis."'/>";
             case 2: 
-                return "<i class='fa fa-user stav-ikona btn-danger' data-toggle='tooltip' data-placement='right' title='".$item['stav']."'/>";
+                return "<i class='fa fa-user stav-ikona btn-danger' data-toggle='tooltip' data-placement='right' title='".$stavPopis."'/>";
             case 3: 
-                return "<i class='fa fa-user stav-ikona btn-success' data-toggle='tooltip' data-placement='right' title='".$item['stav']."'/>";
+                return "<i class='fa fa-user stav-ikona btn-success' data-toggle='tooltip' data-placement='right' title='".$stavPopis."'/>";
             case 4: 
-                return "<i class='fa fa-user-friends stav-ikona btn-success' data-toggle='tooltip' data-placement='right' title='".$item['stav']."'/>";
+                return "<i class='fa fa-user-friends stav-ikona btn-success' data-toggle='tooltip' data-placement='right' title='".$stavPopis."'/>";
             case 5: 
-                return "<i class='fa fa-user-friends stav-ikona btn-danger' data-toggle='tooltip' data-placement='right' title='".$item['stav']."'/>";
+                return "<i class='fa fa-user-friends stav-ikona btn-danger' data-toggle='tooltip' data-placement='right' title='".$stavPopis."'/>";
             case 6: 
-                return "<i class='fa fa-file-invoice-dollar stav-ikona btn-secondary' data-toggle='tooltip' data-placement='right' title='".$item['stav']."'/>";
+                return "<i class='fa fa-file-invoice-dollar stav-ikona btn-secondary' data-toggle='tooltip' data-placement='right' title='".$stavPopis."'/>";
             case 7: 
-                return "<i class='fa fa-trash stav-ikona btn-light' data-toggle='tooltip' data-placement='right' title='".$item['stav']."'/>";
+                return "<i class='fa fa-trash stav-ikona btn-light' data-toggle='tooltip' data-placement='right' title='".$stavPopis."'/>";
             case 8: 
-                return "<i class='fa fa-file-invoice-dollar stav-ikona btn-danger' data-toggle='tooltip' data-placement='right' title='".$item['stav']."'/>";
+                return "<i class='fa fa-file-invoice-dollar stav-ikona btn-danger' data-toggle='tooltip' data-placement='right' title='".$stavPopis."'/>";
             case 9: 
-                return "<i class='fa fa-file-invoice-dollar stav-ikona btn-primary' data-toggle='tooltip' data-placement='right' title='".$item['stav']."'/>";
+                return "<i class='fa fa-file-invoice-dollar stav-ikona btn-primary' data-toggle='tooltip' data-placement='right' title='".$stavPopis."'/>";
         }
 
     }
