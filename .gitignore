@@ -3,3 +3,7 @@ www/.htaccess
 .debug
 .htaccess
 .vscode/launch.json
+vendor/**
+vendor/autoload.php
+!vendor/.htaccess
+
