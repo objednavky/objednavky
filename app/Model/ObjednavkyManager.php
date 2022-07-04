@@ -252,6 +252,59 @@ class ObjednavkyManager
 		return $novaVerze;
 	}
 
+	public function pridejLimitRozpoctu(array $limityRozpoctu, int $cinnostId, int $zakazkaId, ?int $castkaVlastni, ?int $castkaSablony): array {
+		
+		$cinnost = $this->database->table('cinnost')->where('id',$cinnostId)->fetch();
+		$zakazka = $this->database->table('zakazky')->where('id',$zakazkaId)->fetch();
+
+		$relevantniV = $this->database->table('zakazky')->where('vlastni', 1)->select('zakazka'); 
+        $relevantniS = $this->database->table('zakazky')->where('sablony', 1)->select('zakazka'); 
+
+		$castkaRozpoctuV = $cinnost->rozpocet->castka;
+		$castkaRozpoctuS = $cinnost->rozpocet->sablony;
+
+		if (!array_key_exists($cinnost->id_rozpocet, $limityRozpoctu)) {
+			$objednanoV = $this->database->table('objednavky')->where('cinnost.id_rozpocet', $cinnost->id_rozpocet)->where('zakazka.vlastni', 1)
+				->where('stav',[0,1,3,4,9])->sum('castka');
+			$denikV = $this->database->table('denik')->where('rozpocet', $cinnost->id_rozpocet)->where('zakazky',$relevantniV)
+				->where('petky',1)->sum('castka');
+			$maxCastkaV = round($castkaRozpoctuV - ($objednanoV + $denikV));
+
+			$objednanoS = $this->database->table('objednavky')->where('cinnost.id_rozpocet', $cinnost->id_rozpocet)->where('zakazka.sablony', 1)
+				->where('stav',[0,1,3,4,9])->sum('castka');
+			$denikS = $this->database->table('denik')->where('rozpocet', $cinnost->id_rozpocet)->where('zakazky',$relevantniS)
+				->where('petky',1)->sum('castka');
+			$maxCastkaS = round($castkaRozpoctuS - ($objednanoS + $denikS));
+
+			$limityRozpoctu[$cinnost->id_rozpocet] = [
+				'nazevRozpoctu' => $cinnost->rozpocet->rozpocet,
+				'castkaRozpoctuV' => $castkaRozpoctuV, 
+				'castkaRozpoctuS' => $castkaRozpoctuS, 
+				'objednanoV' => $objednanoV,
+				'objednanoS' => $objednanoS,
+				'denikV' => $denikV,
+				'denikS' => $denikS,
+				'limitV' => $maxCastkaV,
+				'limitS' => $maxCastkaS,
+				'pozadovanoVlastni' => $castkaVlastni,
+				'pozadovanoSablony' => $castkaSablony,
+				'pozadovanoCelkem' => $castkaVlastni+$castkaSablony,
+				'overeni' => $cinnost->rozpocet->overeni,
+				'kdoma' => $cinnost->rozpocet->hospodar,
+				'kdoma2'=> $cinnost->rozpocet->overovatel,
+			];
+		} else {
+			$limityRozpoctu[$cinnost->id_rozpocet]['pozadovanoVlastni'] += $castkaVlastni;
+			$limityRozpoctu[$cinnost->id_rozpocet]['pozadovanoSablony'] += $castkaSablony;
+			$limityRozpoctu[$cinnost->id_rozpocet]['pozadovanoCelkem'] += $castkaVlastni+$castkaSablony;
+		}
+		return $limityRozpoctu;
+	}
+
+
+
+
+
 	/**
 	 * z připraveného datasource naplní pole rozpočtů pro gridy v prezenteru
 	 */
@@ -331,5 +384,5 @@ class ObjednavkyManager
 				->group('id_prehled')->where('id_prehled',$prehledId)
 //				->where('cinnost.rozpocet.rok', $rok)   //TK: neni potreba, navic hazi chybu v testovaci DB kde se obcas objednavka odkazuje na cinnosti z jineho roku
 				->fetch();
-			}
+	}
 }

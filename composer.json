@@ -9,6 +9,7 @@
 		"nette/nette": "^3.1",
 		"ublaboo/datagrid": "^6.9",
 		"thenetworg/oauth2-azure": "^2.0",
+		"firebase/php-jwt": "^6.1",
 		"contributte/forms-multiplier": "^3.2",
 		"ublaboo/datagrid-nette-database-data-source": "^2.1"
 	},

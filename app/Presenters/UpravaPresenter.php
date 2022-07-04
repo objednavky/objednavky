@@ -67,6 +67,12 @@ class UpravaPresenter extends ObjednavkyBasePresenter
             $dohromady = $polozka->stredisko;
             $parametry['strediska'][$polozka->id] = $dohromady;
         }
+        $uzivatel = $this->database->table('uzivatel');
+        foreach ($uzivatel as $polozka) 
+        {
+            $dohromady = $polozka->jmeno;
+            $parametry['zakladatel'][$polozka->id] = $dohromady;
+        }
         $form = new Form;
         // $row = ['popis_radky' => '', 'cinnostVyber' => '', 'zakazkaVyber' => '','strediskoVyber' => '','castka' => ''];
         // $form->setDefaults($row);
@@ -90,8 +96,10 @@ class UpravaPresenter extends ObjednavkyBasePresenter
                 ->addConditionOn($polozkaContainer['ulozenaForm'], $form::EQUAL, false)->setRequired('Vyberte prosím zakázku');
             $polozkaContainer->addSelect('strediskoVyber', 'Středisko:',$parametry['strediska'] )->setPrompt(' ')
                 ->addConditionOn($polozkaContainer['ulozenaForm'], $form::EQUAL, false)->setRequired('Vyberte prosím středisko');
+            $polozkaContainer->addSelect('zakladatelVyber', 'Zakladatel:',$parametry['zakladatel'] )->setPrompt(' ')
+                ->addConditionOn($polozkaContainer['ulozenaForm'], $form::EQUAL, false)->setRequired('Vyberte prosím zakladatele objednávky');
             $polozkaContainer->addInteger('castka', 'Částka v Kč:' )
-                ->addConditionOn($polozkaContainer['ulozenaForm'], $form::EQUAL, false)->setRequired('Zadejte částku' )->addRule($form::RANGE,'Zadejte nejméně %d a nejvíce %d Kč' , [1, 2000000]);
+                ->addConditionOn($polozkaContainer['ulozenaForm'], $form::EQUAL, false)->setRequired('Zadejte částku' )->addRule($form::RANGE,'Zadejte nejméně %d a nejvíce %d Kč' , [1, 200000]);
             $polozkaContainer->addHidden('stav_popis');
 
             // skryte polozky na uchovani default hodnot
@@ -100,6 +108,7 @@ class UpravaPresenter extends ObjednavkyBasePresenter
             $polozkaContainer->addHidden('cinnostVyber_hidden');
             $polozkaContainer->addHidden('zakazkaVyber_hidden');
             $polozkaContainer->addHidden('strediskoVyber_hidden');
+            $polozkaContainer->addHidden('zakladatelVyber_hidden');
             $polozkaContainer->addHidden('castka_hidden');
             $polozkaContainer->addHidden('stav_hidden');
 
@@ -202,9 +211,6 @@ class UpravaPresenter extends ObjednavkyBasePresenter
         $limityRozpoctu = [];
         $polozky = [];
 
-        $relevantni = $this->database->table('zakazky')->where('vlastni', 1)->select('zakazka'); 
-        $relevantniId = $this->database->table('zakazky')->where('vlastni', 1)->select('id');
-
         foreach ($data->polozka as $id => $polozka) {
             
             // u ulozenych, ale needitovanych polozek vrat puvodni hodnoty (jsou disabled = neodeslaly se jejich hodnoty, pouzijeme zalohu z hidden)
@@ -214,60 +220,67 @@ class UpravaPresenter extends ObjednavkyBasePresenter
                 $polozka->cinnostVyber = $polozka->cinnostVyber_hidden;
                 $polozka->zakazkaVyber = $polozka->zakazkaVyber_hidden;
                 $polozka->strediskoVyber = $polozka->strediskoVyber_hidden;
+                $polozka->zakladatelVyber = $polozka->zakladatelVyber_hidden;
                 $polozka->castka =  $polozka->castka_hidden == '' ? null : intval($polozka->castka_hidden);
             }
             bdump($polozka);
+            
+            // pro kontrolu limitu musime zjistit, zda se polozka rusi, meni nebo nove pridava
+            if ($polozka->ulozenaForm) {
+                if ($polozka->smazanaForm) {
+                    // stavajici polozka bude smazana = nove nebude v rozpoctu
+                    $castkaNovePridana = 0;
+                    // ... a starou castku odecti, pokud mela vliv na rozpocet
+                    if (in_array($polozka->stav_hidden, [0,1,3,4,9])) {
+                        // pokud stavajici polozka bude smazana a zaroven se podle puvodniho stavu pocitala do limitu, odecti puvodni castku
+                        $castkaOdebrana = intval($polozka->castka_hidden);
+                    } else {
+                        // jinak odecet ignoruj
+                        $castkaOdebrana = 0;
+                    }
+                } elseif ($polozka->zmenenaForm) {
+                    // stavajici polozka bude editovana, nove ji pridej do limitu
+                    $castkaNovePridana = $polozka->castka;
+                    if (in_array($polozka->stav_hidden, [0,1,3,4,9])) {
+                        // ... a pokud se stavajici polozka podle puvodniho stavu pocitala do limitu, odecti puvodni castku
+                        $castkaOdebrana = intval($polozka->castka_hidden);
+                    } else {
+                        // ... jinak odecet ignoruj
+                        $castkaOdebrana = 0;
+                    } 
+                } else {
+                    // stavajici polozka bude ponechana
+                    if (in_array($polozka->stav_hidden, [0,1,3,4,9])) {
+                        // ... pokud stavajici polozka bude ponechana, odecti puvodni castku a zaroven ji nove pridej do limitu
+                        $castkaNovePridana = $polozka->castka;
+                        $castkaOdebrana = intval($polozka->castka_hidden);
+                    } else {
+                        // ... jinak odecet i pridani do limitu ignoruj
+                        $castkaNovePridana = 0;
+                        $castkaOdebrana = 0;
+                    } 
+                }
+            } else {
+                // nove pridanou polozku pridej do limitu a zaroven odecet ignoruj (nova polozka = neni co odecitat)
+                $castkaNovePridana = $polozka->castka;
+                $castkaOdebrana = 0;
+            }
 
             $cinnost = $this->database->table('cinnost')->where('vyber',1)->where('rok',$rok)->where('id',$polozka->cinnostVyber)->fetch();
             $zakazka = $this->database->table('zakazky')->where('vyber',1)->where('id',$polozka->zakazkaVyber)->fetch();
-
-            $castkaRozpoctu = $cinnost->rozpocet->castka;
-
-            // pro kontrolu limitu musime zjistit, zda se polozka rusi, meni nebo nove pridava
-            $castkaUpravena = $polozka->castka;
-            if ($polozka->ulozenaForm) {
-                if ($polozka->smazanaForm) {
-                    // stavajici polozka bude smazana = puvodni castku odecti
-                    $castkaUpravena = - $polozka->castka_hidden;
-                } elseif ($polozka->zmenenaForm) {
-                    if (in_array($polozka->stav_hidden, [0,1,3,4,9])) {
-                        // pokud stavajici polozka bude editovana a zaroven se podle puvodniho stavu pocitala do limitu, odecti puvodni castku
-                        $castkaUpravena -=  $polozka->castka_hidden;
-                    } 
-                } else {
-                    // stavajici polozka bude ponechana = od aktualni castky odecti puvodni
-                    $castkaUpravena -=  $polozka->castka_hidden;
-                }
-            }
+            $cinnost_hidden = $this->database->table('cinnost')->where('vyber',1)->where('rok',$rok)->where('id',$polozka->cinnostVyber_hidden)->fetch();
+            $zakazka_hidden = $this->database->table('zakazky')->where('vyber',1)->where('id',$polozka->zakazkaVyber_hidden)->fetch();
 
             if ($zakazka->vlastni == 1) {
-                $castkaVlastni = $castkaUpravena;
-            } else {
-                $castkaVlastni = 0;
+                $limityRozpoctu = $this->objednavkyManager->pridejLimitRozpoctu($limityRozpoctu, $polozka->cinnostVyber, $polozka->zakazkaVyber, $castkaNovePridana, 0);
+            } elseif ($zakazka->sablony == 1) {
+                $limityRozpoctu = $this->objednavkyManager->pridejLimitRozpoctu($limityRozpoctu, $polozka->cinnostVyber, $polozka->zakazkaVyber, 0, $castkaNovePridana);
             }
 
-            if (!array_key_exists($cinnost->id_rozpocet, $limityRozpoctu)) {
-                $objednanoV = $this->database->table('objednavky')->where('cinnost.id_rozpocet', $cinnost->id_rozpocet)->where('zakazka',$relevantniId)
-                    ->where('stav',[0,1,3,4,9])->sum('castka');
-                $denikV = $this->database->table('denik')->where('rozpocet', $cinnost->id_rozpocet)->where('zakazky',$relevantni)
-                    ->where('petky',1)->sum('castka');
-                $maxCastka = round($castkaRozpoctu - ($objednanoV + $denikV));
-                
-                $limityRozpoctu[$cinnost->id_rozpocet] = [
-                    'nazevRozpoctu' => $cinnost->rozpocet->rozpocet,
-                    'castkaRozpoctu' => $castkaRozpoctu, 
-                    'objednano' => $objednanoV,
-                    'denik' => $denikV,
-                    'limit' => $maxCastka,
-                    'pozadovanoVlastni' => $castkaVlastni,
-                    'pozadovanoCelkem' => $castkaUpravena,
-                    'overeni' => $cinnost->rozpocet->overeni,
-                    'kdoma' => $cinnost->rozpocet->hospodar,
-                    'kdoma2'=> $cinnost->rozpocet->overovatel,
-                ];
-            } else {
-                $limityRozpoctu[$cinnost->id_rozpocet]['pozadovanoVlastni'] += $castkaVlastni;
-                $limityRozpoctu[$cinnost->id_rozpocet]['pozadovanoCelkem'] += $castkaUpravena;
+            if ($zakazka_hidden->vlastni == 1) {
+                $limityRozpoctu = $this->objednavkyManager->pridejLimitRozpoctu($limityRozpoctu, $polozka->cinnostVyber_hidden, $polozka->zakazkaVyber_hidden, -$castkaOdebrana, 0);
+            } elseif ($zakazka_hidden->sablony == 1) {
+                $limityRozpoctu = $this->objednavkyManager->pridejLimitRozpoctu($limityRozpoctu, $polozka->cinnostVyber_hidden, $polozka->zakazkaVyber_hidden, 0, -$castkaOdebrana);
             }
         }
         bdump($limityRozpoctu);
@@ -276,8 +289,6 @@ class UpravaPresenter extends ObjednavkyBasePresenter
             $cinnost = $this->database->table('cinnost')->where('vyber',1)->where('rok',$rok)->where('id',$polozka->cinnostVyber)->fetch();
             $stredisko = $this->database->table('stredisko')->where('vyber',1)->where('id',$polozka->strediskoVyber)->fetch();
             $zakazka = $this->database->table('zakazky')->where('vyber',1)->where('id',$polozka->zakazkaVyber)->fetch();
-
-            $castkaRozpoctu = $cinnost->rozpocet->castka;            
 
             $polozka->popis_radky =  $polozka->popis_radky == null ? $data->popis : $polozka->popis_radky;
 
@@ -292,8 +303,8 @@ class UpravaPresenter extends ObjednavkyBasePresenter
             $stav = 0;        
             $schvalil = null;     
 
-            // pokud je zadavatel schvalovatelem, je objednavka rovnou schvalena
-            if  ($limityRozpoctu[$cinnost->id_rozpocet]['kdoma'] == $this->prihlasenyId()) {
+            // pokud je zadavatel prihlasenym uzivatelem a zaroven je i schvalovatelem, je objednavka rovnou schvalena
+            if  ($limityRozpoctu[$cinnost->id_rozpocet]['kdoma'] == $this->prihlasenyId() && $polozka->zakladatelVyber == $this->prihlasenyId()) {
                 $schvalil = new DateTime();
                 if ($nutnoOverit==1) {
                     $stav = 1;
@@ -327,7 +338,8 @@ class UpravaPresenter extends ObjednavkyBasePresenter
                 'zakazka' => $zakazka->id,
                 'kdo' => $limityRozpoctu[$cinnost->id_rozpocet]['kdoma'],
                 'kdo2' => $limityRozpoctu[$cinnost->id_rozpocet]['kdoma2'],
-                'zakladatel' => $this->prihlasenyId(),
+//                'zakladatel' => $this->prihlasenyId(),
+                'zakladatel' => $polozka->zakladatelVyber,
                 'nutno_overit' => $nutnoOverit,
                 'presne' => true,
                 'stav' => $stav,
@@ -338,11 +350,15 @@ class UpravaPresenter extends ObjednavkyBasePresenter
 
         // hromadna kontrola prekroceni rozpoctu
         foreach ($limityRozpoctu as $limitRozpoctu) {
-            bdump($limitRozpoctu);
-            if  (($limitRozpoctu['pozadovanoVlastni'] > 0) && ($limitRozpoctu['pozadovanoVlastni'] > $limitRozpoctu['limit'])) {
+            if  ( $limitRozpoctu['pozadovanoVlastni'] != 0 && $limitRozpoctu['pozadovanoVlastni'] > $limitRozpoctu['limitV']) {
                 $this->formHasErrors = true;
-                $form['popis']->addError('Objednávku pro rozpočet '.$limitRozpoctu['nazevRozpoctu'].' nelze zadat, byl by překročen rozpočet. Zbývá částka ' . $limitRozpoctu['limit'] .' Kč.' );
+                $form['popis']->addError('Objednávku pro rozpočet '.$limitRozpoctu['nazevRozpoctu'].' nelze zadat, byl by překročen VLASTNÍ rozpočet. Zbývá částka ' . $limitRozpoctu['limitV'] .' Kč.' );
             }
+            if  ( $limitRozpoctu['pozadovanoSablony'] != 0 && $limitRozpoctu['pozadovanoSablony'] > $limitRozpoctu['limitS']) {
+                $this->formHasErrors = true;
+                $form['popis']->addError('Objednávku pro rozpočet '.$limitRozpoctu['nazevRozpoctu'].' nelze zadat, byl by překročen rozpočet ŠABLON. Zbývá částka ' . $limitRozpoctu['limitS'] .' Kč.' );
+            }
+
         }
         return $polozky;
     } 
@@ -383,6 +399,7 @@ class UpravaPresenter extends ObjednavkyBasePresenter
             $item->cinnostVyber = $objednavka->cinnost;
             $item->zakazkaVyber = $objednavka->zakazka;
             $item->strediskoVyber = $objednavka->stredisko;
+            $item->zakladatelVyber = $objednavka->zakladatel;
             $item->castka =  $objednavka->castka;
             $item->stav_popis = $objednavka->ref('stav')->popis;
 
@@ -391,6 +408,7 @@ class UpravaPresenter extends ObjednavkyBasePresenter
             $item->cinnostVyber_hidden = $objednavka->cinnost;
             $item->zakazkaVyber_hidden = $objednavka->zakazka;
             $item->strediskoVyber_hidden = $objednavka->stredisko;
+            $item->zakladatelVyber_hidden = $objednavka->zakladatel;
             $item->castka_hidden =  $objednavka->castka;
             $item->stav_hidden = $objednavka->stav;
 

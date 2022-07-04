@@ -41,13 +41,17 @@
         <div class="nova-objednavka-input col-8 col-md-4 input-right-align">{input castka disabled:disabled}<span n:ifcontent>{inputError castka}</span></div>
       </div>
       {dump $formContainer->components['stav_popis']->value}
+      <div class="row">
+        <div class="nova-objednavka-label col-4 col-md-2">{label zakladatelVyber /}</div>
+        <div class="nova-objednavka-input col-8 col-md-4">{input zakladatelVyber disabled:disabled}<span n:ifcontent>{inputError zakladatelVyber}</span></div>
+      </div>
       <div class="multiplier-buttons row">
         {if end($this->global->formsStack)['ulozenaForm']->getValue()}
           {input zakazkaVyber_hidden}
           {input popis_radky_hidden}
           {input firma_hidden}
           {input cinnostVyber_hidden}
-          {input zakazkaVyber_hidden}
+          {input zakladatelVyber_hidden}
           {input strediskoVyber_hidden}
           {input castka_hidden}
           {input stav_hidden}
@@ -147,6 +151,7 @@ function disableForm(tag, disable) {
   tag.find('select[name$="][strediskoVyber]"]').prop("disabled", disable); 
   tag.find('select[name$="][cinnostVyber]"]').prop("disabled", disable); 
   tag.find('select[name$="][zakazkaVyber]"]').prop("disabled", disable); 
+  tag.find('select[name$="][zakladatelVyber]"]').prop("disabled", disable); 
   tag.find('input[name$="][castka]"]').prop("disabled", disable); 
 }
 

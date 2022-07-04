@@ -5,12 +5,12 @@
   <h1 class="display-4 mt-4">Založení nové objednávky</h1>
 
   {form objednavkyMultipleForm}
+    <div class="" n:if="$form->hasErrors()">
+      {foreach $form->errors as $error}
+        <div class="flash p-2 alert-danger">{$error}</div>
+      {/foreach}
+    </div>
     <div class="nova-objednavka-hlavicka">
-      <div class="row" n:if="$form->hasErrors()">
-        <ul class="nova-objednavka-error" n:if="$form->hasErrors()">
-          <li n:foreach="$form->errors as $error">{$error}</li>
-        </ul>
-      </div>
       <div class="row">
         <div class="nova-objednavka-label col-2">{label popis /}</div>
         <div class="nova-objednavka-input col-10">{input popis}</div>

@@ -119,10 +119,9 @@ class NovaObjednavkaPresenter extends ObjednavkyBasePresenter
 
     public function dataProMultiInsert(Form $form, $data) : array
     {
-        $rok=$this->getSetup(1)->rok; 
         //zjitim rok a verzi;
-        //$verze=$this->getSetup(1)->verze;
-        $verze = MujPomocnik::getSetupGlobal($this->database, 1);
+        $rok=$this->getSetup()->rok; 
+        $verze = $this->getSetup()->verze;
         
         $this->formHasErrors = false;
 
@@ -131,44 +130,20 @@ class NovaObjednavkaPresenter extends ObjednavkyBasePresenter
         $limityRozpoctu = [];
         $polozky = [];
 
-        $relevantni = $this->database->table('zakazky')->where('vlastni', 1)->select('zakazka'); 
-        $relevantniId = $this->database->table('zakazky')->where('vlastni', 1)->select('id');
+        $relevantniV = $this->database->table('zakazky')->where('vlastni', 1)->select('zakazka'); 
+        $relevantniVId = $this->database->table('zakazky')->where('vlastni', 1)->select('id');
+        $relevantniS = $this->database->table('zakazky')->where('sablony', 1)->select('zakazka'); 
+        $relevantniSId = $this->database->table('zakazky')->where('sablony', 1)->select('id');
 
         // prvni iterace - soucet castek pro kontrolu precerpani a pro overovani
         foreach ($data->polozka as $id => $polozka) {
             $cinnost = $this->database->table('cinnost')->where('vyber',1)->where('rok',$rok)->where('id',$polozka->cinnostVyber)->fetch();
             $zakazka = $this->database->table('zakazky')->where('vyber',1)->where('id',$polozka->zakazkaVyber)->fetch();
 
-            $castkaRozpoctu = $cinnost->rozpocet->castka;
-
             if ($zakazka->vlastni == 1) {
-                $castkaVlastni = $polozka->castka;
-            } else {
-                $castkaVlastni = 0;
-            }
-
-            if (!array_key_exists($cinnost->id_rozpocet, $limityRozpoctu)) {
-                $objednanoV = $this->database->table('objednavky')->where('cinnost.id_rozpocet', $cinnost->id_rozpocet)->where('zakazka',$relevantniId)
-                    ->where('stav',[0,1,3,4,9])->sum('castka');
-                $denikV = $this->database->table('denik')->where('rozpocet', $cinnost->id_rozpocet)->where('zakazky',$relevantni)
-                    ->where('petky',1)->sum('castka');
-                $maxCastka = round($castkaRozpoctu - ($objednanoV + $denikV));
-                
-                $limityRozpoctu[$cinnost->id_rozpocet] = [
-                    'nazevRozpoctu' => $cinnost->rozpocet->rozpocet,
-                    'castkaRozpoctu' => $castkaRozpoctu, 
-                    'objednano' => $objednanoV,
-                    'denik' => $denikV,
-                    'limit' => $maxCastka,
-                    'pozadovanoVlastni' => $castkaVlastni,
-                    'pozadovanoCelkem' => $polozka->castka,
-                    'overeni' => $cinnost->rozpocet->overeni,
-                    'kdoma' => $cinnost->rozpocet->hospodar,
-                    'kdoma2'=> $cinnost->rozpocet->overovatel,
-                ];
-            } else {
-                $limityRozpoctu[$cinnost->id_rozpocet]['pozadovanoVlastni'] += $castkaVlastni;
-                $limityRozpoctu[$cinnost->id_rozpocet]['pozadovanoCelkem'] += $polozka->castka;
+                $limityRozpoctu = $this->objednavkyManager->pridejLimitRozpoctu($limityRozpoctu, $polozka->cinnostVyber, $polozka->zakazkaVyber, $polozka->castka, 0);
+            } elseif ($zakazka->sablony == 1) {
+                $limityRozpoctu = $this->objednavkyManager->pridejLimitRozpoctu($limityRozpoctu, $polozka->cinnostVyber, $polozka->zakazkaVyber, 0, $polozka->castka);
             }
         }
         bdump($limityRozpoctu);
@@ -177,8 +152,6 @@ class NovaObjednavkaPresenter extends ObjednavkyBasePresenter
             $cinnost = $this->database->table('cinnost')->where('vyber',1)->where('rok',$rok)->where('id',$polozka->cinnostVyber)->fetch();
             $stredisko = $this->database->table('stredisko')->where('vyber',1)->where('id',$polozka->strediskoVyber)->fetch();
             $zakazka = $this->database->table('zakazky')->where('vyber',1)->where('id',$polozka->zakazkaVyber)->fetch();
-
-            $castkaRozpoctu = $cinnost->rozpocet->castka;
 
             $polozka->popis_radky =  $polozka->popis_radky == null ? $data->popis : $polozka->popis_radky;
 
@@ -226,10 +199,15 @@ class NovaObjednavkaPresenter extends ObjednavkyBasePresenter
 
         // hromadna kontrola prekroceni rozpoctu
         foreach ($limityRozpoctu as $limitRozpoctu) {
-            if  ( $limitRozpoctu['pozadovanoVlastni'] > $limitRozpoctu['limit']) {
+            if  ( $limitRozpoctu['pozadovanoVlastni'] > $limitRozpoctu['limitV']) {
                 $this->formHasErrors = true;
-                $form['popis']->addError('Objednávku pro rozpočet '.$limitRozpoctu['nazevRozpoctu'].' nelze zadat, byl by překročen rozpočet. Zbývá částka ' . $limitRozpoctu['limit'] .' Kč.' );
+                $form['popis']->addError('Objednávku pro rozpočet '.$limitRozpoctu['nazevRozpoctu'].' nelze zadat, byl by překročen VLASTNÍ rozpočet. Zbývá částka ' . $limitRozpoctu['limitV'] .' Kč.' );
             }
+            if  ( $limitRozpoctu['pozadovanoSablony'] > $limitRozpoctu['limitS']) {
+                $this->formHasErrors = true;
+                $form['popis']->addError('Objednávku pro rozpočet '.$limitRozpoctu['nazevRozpoctu'].' nelze zadat, byl by překročen rozpočet ŠABLON. Zbývá částka ' . $limitRozpoctu['limitS'] .' Kč.' );
+            }
+
         }
 
         return $polozky;
