@@ -132,7 +132,7 @@ class DetailPresenter extends ObjednavkyBasePresenter
         $grid = new DataGrid($this, $name);
         $grid->setDataSource($this->sessionSection->source);
 
-        $grid->addColumnLink('rozpocet', 'Rozpočet', 'Man:show', 'rozpocet', ['manId' => 'id']);
+        $grid->addColumnLink('rozpocet', 'Rozpočet', 'Man:show', 'rozpocet', ['manId' => 'id'])->setSortable()->setSortableResetPagination();
         // $grid->addColumnText('rozpocet', 'Rozpočet')->setAlign('left');
         $grid->addColumnNumber('castka', 'Plán vlastní')
             ->setAlign('right')
