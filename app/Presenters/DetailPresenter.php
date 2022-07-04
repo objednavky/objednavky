@@ -195,6 +195,8 @@ class DetailPresenter extends ObjednavkyBasePresenter
         $grid->setPagination(false);
         $grid->addExportCsv('Export do csv', 'tabulka.csv', 'windows-1250')
             ->setTitle('Export do csv');
+        $grid->setColumnsHideable();
+
 
         $translator = new \Ublaboo\DataGrid\Localization\SimpleTranslator([
             'ublaboo_datagrid.no_item_found_reset' => 'Žádné položky nenalezeny. Filtr můžete vynulovat',
