@@ -302,7 +302,7 @@ class ObjednavkyManager
 		} else {
 			$limityRozpoctu[$cinnost->id_rozpocet]['pozadovanoVlastni'] += $castkaVlastni;
 			$limityRozpoctu[$cinnost->id_rozpocet]['pozadovanoSablony'] += $castkaSablony;
-			$limityRozpoctu[$cinnost->id_rozpocet]['pozadovanoCelkem'] += $castkaVlastni+$castkaSablony;
+			$limityRozpoctu[$cinnost->id_rozpocet]['pozadovanoCelkem'] += $castkaCelkem;
 		}
 		return $limityRozpoctu;
 	}
