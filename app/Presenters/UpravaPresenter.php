@@ -275,12 +275,16 @@ class UpravaPresenter extends ObjednavkyBasePresenter
                 $limityRozpoctu = $this->objednavkyManager->pridejLimitRozpoctu($limityRozpoctu, $polozka->cinnostVyber, $polozka->zakazkaVyber, $castkaNovePridana, 0);
             } elseif ($zakazka->sablony == 1) {
                 $limityRozpoctu = $this->objednavkyManager->pridejLimitRozpoctu($limityRozpoctu, $polozka->cinnostVyber, $polozka->zakazkaVyber, 0, $castkaNovePridana);
+            } else {
+                $limityRozpoctu = $this->objednavkyManager->pridejLimitRozpoctu($limityRozpoctu, $polozka->cinnostVyber, $polozka->zakazkaVyber, 0, 0, $castkaNovePridana);
             }
 
             if ($zakazka_hidden->vlastni == 1) {
                 $limityRozpoctu = $this->objednavkyManager->pridejLimitRozpoctu($limityRozpoctu, $polozka->cinnostVyber_hidden, $polozka->zakazkaVyber_hidden, -$castkaOdebrana, 0);
             } elseif ($zakazka_hidden->sablony == 1) {
                 $limityRozpoctu = $this->objednavkyManager->pridejLimitRozpoctu($limityRozpoctu, $polozka->cinnostVyber_hidden, $polozka->zakazkaVyber_hidden, 0, -$castkaOdebrana);
+            } else {
+                $limityRozpoctu = $this->objednavkyManager->pridejLimitRozpoctu($limityRozpoctu, $polozka->cinnostVyber_hidden, $polozka->zakazkaVyber_hidden, 0, 0, -$castkaOdebrana);
             }
         }
         bdump($limityRozpoctu);

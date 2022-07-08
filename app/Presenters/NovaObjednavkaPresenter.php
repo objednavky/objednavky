@@ -144,6 +144,8 @@ class NovaObjednavkaPresenter extends ObjednavkyBasePresenter
                 $limityRozpoctu = $this->objednavkyManager->pridejLimitRozpoctu($limityRozpoctu, $polozka->cinnostVyber, $polozka->zakazkaVyber, $polozka->castka, 0);
             } elseif ($zakazka->sablony == 1) {
                 $limityRozpoctu = $this->objednavkyManager->pridejLimitRozpoctu($limityRozpoctu, $polozka->cinnostVyber, $polozka->zakazkaVyber, 0, $polozka->castka);
+            } else {
+                $limityRozpoctu = $this->objednavkyManager->pridejLimitRozpoctu($limityRozpoctu, $polozka->cinnostVyber, $polozka->zakazkaVyber, 0, 0, $polozka->castka);
             }
         }
         bdump($limityRozpoctu);

@@ -252,8 +252,14 @@ class ObjednavkyManager
 		return $novaVerze;
 	}
 
-	public function pridejLimitRozpoctu(array $limityRozpoctu, int $cinnostId, int $zakazkaId, ?int $castkaVlastni, ?int $castkaSablony): array {
+	/**
+	 * při zakladani nebo meneni objednavky zahrne dalsi polozku do celkovych limitu pro kontrolu kryti, schvalovani a overovani
+	 * 
+	 */
+	public function pridejLimitRozpoctu(array $limityRozpoctu, int $cinnostId, int $zakazkaId, ?int $castkaVlastni, ?int $castkaSablony, ?int $castkaCelkem = 0): array {
 		
+		if (!$castkaCelkem) $castkaCelkem = $castkaVlastni+$castkaSablony;
+
 		$cinnost = $this->database->table('cinnost')->where('id',$cinnostId)->fetch();
 		$zakazka = $this->database->table('zakazky')->where('id',$zakazkaId)->fetch();
 
@@ -288,7 +294,7 @@ class ObjednavkyManager
 				'limitS' => $maxCastkaS,
 				'pozadovanoVlastni' => $castkaVlastni,
 				'pozadovanoSablony' => $castkaSablony,
-				'pozadovanoCelkem' => $castkaVlastni+$castkaSablony,
+				'pozadovanoCelkem' => $castkaCelkem,
 				'overeni' => $cinnost->rozpocet->overeni,
 				'kdoma' => $cinnost->rozpocet->hospodar,
 				'kdoma2'=> $cinnost->rozpocet->overovatel,
