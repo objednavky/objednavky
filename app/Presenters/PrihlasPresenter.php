@@ -54,7 +54,7 @@ class PrihlasPresenter extends BasePresenter
         // Check given state against previously stored one to mitigate CSRF attack
         } elseif (empty($this->getHttpRequest()->getQuery('state')) || ($this->getHttpRequest()->getQuery('state') !== $this->getSession('oauth2')['oauth2state'])) {
             unset($this->getSession('oauth2')['oauth2state']);
-            exit('Chyba přihlášení (token '.$this->getHttpRequest()->getQuery('state').', měl by být '.$this->getSession('oauth2')['oauth2state'].', provider->getState() == '.$provider->getState().') Zkuste se přihlásit znovu: <a href="/prihlas/login">Přihlásit</a>');
+            exit('Chyba přihlášení (token '.$this->getHttpRequest()->getQuery('state').', měl by být '.$this->getSession('oauth2')['oauth2state'].', provider->getState() == '.$provider->getState().').<br /><br />Zřejmě jste použili starý odkaz, zkuste se přihlásit znovu: <a href="/prihlas/login">Přihlásit</a>');
         } else {
             // Try to get an access token (using the authorization code grant)
             $token = $provider->getAccessToken('authorization_code', [
