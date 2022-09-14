@@ -41,10 +41,10 @@ class DetailPresenter extends ObjednavkyBasePresenter
 
         if (($detailId > -1) && null !== $this->database->table('hezky')->get($detailId) ) {
             $this->template->hezkyRozpocetNazev = 'Podrobný rozpočet: '.$this->database->table('hezky')->where('id',$detailId)->fetch()->hezky_rozpocet;
-            $source = $this->mapDetailniRozpocet(1, $this->database->table('rozpocet')->where('rok',$setup->rok)->where('verze',$setup->verze)->where('hezky',  $detailId));
+            $source = $this->mapDetailniRozpocet(1, $this->database->table('rozpocet')->where('rok',$setup->rok)->where('verze',$setup->verze)->where('hezky',  $detailId))->order('rozpocet');
         } else {
             $this->template->hezkyRozpocetNazev = 'Podrobný rozpočet kompletní';
-            $source = $this->mapDetailniRozpocet(1, $this->database->table('rozpocet')->where('rok',$setup->rok)->where('verze',$setup->verze));
+            $source = $this->mapDetailniRozpocet(1, $this->database->table('rozpocet')->where('rok',$setup->rok)->where('verze',$setup->verze)->order('rozpocet'));
         }
         //uloz vysledek databazove query do session pro dalsi pouziti v createComponentXX (setrime databazi)
         $this->sessionSection->source = $source;
@@ -132,8 +132,10 @@ class DetailPresenter extends ObjednavkyBasePresenter
         $grid = new DataGrid($this, $name);
         $grid->setDataSource($this->sessionSection->source);
 
-        $grid->addColumnLink('rozpocet', 'Rozpočet', 'Man:show', 'rozpocet', ['manId' => 'id'])->setSortable()->setSortableResetPagination();
+        $grid->addColumnLink('rozpocet', 'Rozpočet', 'Man:show', 'rozpocet', ['manId' => 'id'])->setSortable()->setSortableResetPagination()->setFilterText();
         // $grid->addColumnText('rozpocet', 'Rozpočet')->setAlign('left');
+        $grid->addColumnText('hospodar', 'Hospodář', 'jmeno')->setSortable()->setSortableResetPagination()->setFilterText();
+        $grid->addColumnText('hospodar2', 'Zástupce', 'jmeno')->setSortable()->setSortableResetPagination()->setFilterText();
         $grid->addColumnNumber('castka', 'Plán vlastní')
             ->setAlign('right')
             ->setRenderer(function($item):string { return ($item['castka'] === null ? '' : number_format($item['castka'],0,","," ") .' Kč'); })
