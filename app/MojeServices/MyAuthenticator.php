@@ -5,6 +5,7 @@ namespace App\MojeServices;
 class MyAuthenticator implements \Nette\Security\IAuthenticator
 {
 	private $database;
+	private $passwords;
 
 	public function __construct(\Nette\Database\Context $database, \Nette\Security\Passwords $passwords)
 	{

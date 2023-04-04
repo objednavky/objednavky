@@ -89,10 +89,10 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
             $zakazkaV = $this->database->table('zakazky')->where('vlastni' , 1)->fetch();
             $item->vlastni = $this->database->table('denik')->where('cinnost_d', $jednacinnost->cinnost)
                              ->where('petky', $argument)->where('rozpocet',$zasejedenID)->where('zakazky', $zakazkaV->zakazka)->sum('castka');
-            $item->vlastni = \round($item->vlastni, 0);
+            $item->vlastni = is_null($item->vlastni) ? 0 : round($item->vlastni, 0);
             $item->vlastniObj = $this->database->table('objednavky')->where('cinnost',$jednacinnost)->where('stav',[0,1,3,4,9])
                 ->where('zakazka', $zakazkaV)->sum('castka');
-            $item->vlastniObj = \round($item->vlastniObj, 0);
+            $item->vlastniObj = is_null($item->vlastniObj) ? 0 : round($item->vlastniObj, 0);
             $item->rozpocetV = $kolikRade== 1 ? ($this->database->table('rozpocet')->where('id',$zasejedenID)->fetch())->castka : 0;
             // rozpočet se počítá jen pro první výskyt
             $item->celkemV = $item->vlastni + $item->vlastniObj ;
@@ -100,27 +100,27 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
             $zakazkaS = $this->database->table('zakazky')->where('sablony' , 1)->fetch();
             $item->sablony = $this->database->table('denik')->where('cinnost_d', $jednacinnost->cinnost)
                 ->where('petky', $argument)->where('rozpocet',$zasejedenID)->where('zakazky', $zakazkaS->zakazka)->sum('castka');
-            $item->sablony = \round($item->sablony, 0);
+            $item->sablony = is_null($item->sablony) ? 0 : round($item->sablony, 0);
             $item->sablonyObj = $this->database->table('objednavky')->where('cinnost',$jednacinnost)->where('stav',[0,1,3,4,9])
                 ->where('zakazka', $zakazkaS)->sum('castka');
-            $item->sablonyObj = \round($item->sablonyObj, 0);
+            $item->sablonyObj = is_null($item->sablonyObj) ? 0 : round($item->sablonyObj, 0);
             $item->rozpocetS = $kolikRade== 1 ? ($this->database->table('rozpocet')->where('id',$zasejedenID)->fetch())->sablony : 0;
             $item->celkemS = $item->sablony + $item->sablonyObj;
             $item->zbyvaS = $item->rozpocetS - ($item->sablony + $item->sablonyObj);
             $zakazkaD = $this->database->table('zakazky')->where('dotace' , 1)->fetch();
             $item->dotace = $this->database->table('denik')->where('cinnost_d', $jednacinnost->cinnost)
                 ->where('petky', $argument)->where('rozpocet',$zasejedenID)->where('zakazky', $zakazkaD->zakazka)->sum('castka');
-            $item->dotace = \round($item->dotace, 0);
+            $item->dotace = is_null($item->dotace) ? 0 : round($item->dotace, 0);
             $item->dotaceObj = $this->database->table('objednavky')->where('cinnost',$jednacinnost)->where('stav',[0,1,3,4,9])
                 ->where('zakazka', $zakazkaD)->sum('castka');
-            $item->dotaceObj = \round($item->dotaceObj, 0);
+            $item->dotaceObj = is_null($item->dotaceObj) ? 0 : round($item->dotaceObj, 0);
             // $zakazkaP = $this->database->table('zakazky')->where('preuctovani' , 1)->fetch();
             // $item->preuctovani = $this->database->table('denik')->where('cinnost_d',$jednacinnost)
             //                  ->where('petky', $argument)->where('rozpocet',$zasejedenID)->where('zakazky', $zakazkaP)->sum('castka');
-            // $item->preuctovani = \round($item->preuctovani, 0);
+            // $item->preuctovani = is_null($item->preuctovani) ? 0 ? 0 : round($item->preuctovani, 0);
             // $item->preuctovaniObj = $this->database->table('objednavky')->where('cinnost',$jednacinnost)->where('stav',[0,1,3,4,9])
             // ->where('zakazky', $zakazkaP)->sum('castka');
-            // $item->preuctovaniObj = \round($item->preuctovaniObj, 0);
+            // $item->preuctovaniObj = is_null($item->preuctovaniObj) ? ? 0 : round($item->preuctovaniObj, 0);
             $fetchedDeniky[] = json_decode(json_encode($item), true);
         }
         //$item->vlastni = $this->database->query('')
@@ -147,13 +147,13 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
             $item->cisloObjednavky = $denik->id_prehled;
             $relatedZakazka = $this->database->table('zakazky')->where('zakazka' , $denik->zakazky)->fetch();
             $item->vlastni = $relatedZakazka->vlastni == 1  ? $denik->castka : 0;      //vlastni 
-            $item->vlastni = \round($item->vlastni, 0);
+            $item->vlastni = is_null($item->vlastni) ? 0 : round($item->vlastni, 0);
             $item->sablony = $relatedZakazka->sablony == 1  ? $denik->castka : 0;      //sablony
-            $item->sablony = \round($item->sablony, 0);
+            $item->sablony = is_null($item->sablony) ? 0 : round($item->sablony, 0);
             $item->dotace = $relatedZakazka->dotace == 1 ? $denik->castka : 0;
-            $item->dotace = \round($item->dotace, 0);
+            $item->dotace = is_null($item->dotace) ? 0 : round($item->dotace, 0);
             $item->preuctovani = $relatedZakazka->preuctovani == 1 ? $denik->castka : 0;
-            $item->preuctovani = \round($item->preuctovani, 0);
+            $item->preuctovani = is_null($item->preuctovani) ? 0 : round($item->preuctovani, 0);
             $fetchedDeniky[] = json_decode(json_encode($item), true);
         }
         //$item->vlastni = $this->database->query('')

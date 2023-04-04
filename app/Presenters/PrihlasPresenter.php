@@ -45,6 +45,8 @@ class PrihlasPresenter extends BasePresenter
         ]);
         
         if (empty($this->getHttpRequest()->getQuery('code'))) {
+            bdump("code je empty");
+            bdump($this->getHttpRequest());
             // If we don't have an authorization code then get one
             // add prompt for account if user wants it
             $authUrl = $provider->getAuthorizationUrl() . ($wantToSelectAccount ? '&prompt=select_account' : '');
@@ -53,9 +55,11 @@ class PrihlasPresenter extends BasePresenter
 
         // Check given state against previously stored one to mitigate CSRF attack
         } elseif (empty($this->getHttpRequest()->getQuery('state')) || ($this->getHttpRequest()->getQuery('state') !== $this->getSession('oauth2')['oauth2state'])) {
+            bdump("code je vyplněn, ale state je empty nebo jiný než oauth2state");
             unset($this->getSession('oauth2')['oauth2state']);
             exit('Chyba přihlášení (token '.$this->getHttpRequest()->getQuery('state').', měl by být '.$this->getSession('oauth2')['oauth2state'].', provider->getState() == '.$provider->getState().').<br /><br />Zřejmě jste použili starý odkaz, zkuste se přihlásit znovu: <a href="/prihlas/login">Přihlásit</a>');
         } else {
+            bdump("code je vyplněn, state sedí");
             // Try to get an access token (using the authorization code grant)
             $token = $provider->getAccessToken('authorization_code', [
                 'code' => $this->getHttpRequest()->getQuery('code'),

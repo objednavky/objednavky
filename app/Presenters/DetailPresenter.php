@@ -41,7 +41,7 @@ class DetailPresenter extends ObjednavkyBasePresenter
 
         if (($detailId > -1) && null !== $this->database->table('hezky')->get($detailId) ) {
             $this->template->hezkyRozpocetNazev = 'Podrobný rozpočet: '.$this->database->table('hezky')->where('id',$detailId)->fetch()->hezky_rozpocet;
-            $source = $this->mapDetailniRozpocet(1, $this->database->table('rozpocet')->where('rok',$setup->rok)->where('verze',$setup->verze)->where('hezky',  $detailId))->order('rozpocet');
+            $source = $this->mapDetailniRozpocet(1, $this->database->table('rozpocet')->where('rok',$setup->rok)->where('verze',$setup->verze)->where('hezky',  $detailId)->order('rozpocet'));
         } else {
             $this->template->hezkyRozpocetNazev = 'Podrobný rozpočet kompletní';
             $source = $this->mapDetailniRozpocet(1, $this->database->table('rozpocet')->where('rok',$setup->rok)->where('verze',$setup->verze)->order('rozpocet'));
@@ -88,25 +88,25 @@ class DetailPresenter extends ObjednavkyBasePresenter
             $relevantni = $this->database->table('zakazky')->select('zakazka')->where('vlastni', 1)->where('normativ', 0);
             $item->mySumV = $this->database->table('denik')->where('rozpocet', $rozpocet->id)->where('petky', $argument)->where('zakazky',$relevantni)
                                 ->sum('castka');
-            $item->mySumV = \round($item->mySumV, 0);
+            $item->mySumV = is_null($item->mySumV) ? 0 : round($item->mySumV. 0);
 
             // denik vlastni v normativu
             $relevantniN = $this->database->table('zakazky')->select('zakazka')->where('normativ', 1);
             $item->mySumN = $this->database->table('denik')->where('rozpocet', $rozpocet->id)->where('petky', $argument)->where('zakazky',$relevantniN)
                                 ->sum('castka');
-            $item->mySumN = \round($item->mySumN, 0);
+            $item->mySumN = is_null($item->mySumN) ? 0 : round($item->mySumN, 0);
 
             // denik sablony
             $relevantniS = $this->database->table('zakazky')->select('zakazka')->where('sablony', 1);
             $item->mySumS = $this->database->table('denik')->where('rozpocet', $rozpocet->id)->where('petky', $argument)->where('zakazky',$relevantniS)
                                 ->sum('castka');
-            $item->mySumS = \round($item->mySumS, 0);            
+            $item->mySumS = is_null($item->mySumS) ? 0 : round($item->mySumS, 0);            
             
             // denik dotace
             $relevantni = $this->database->table('zakazky')->select('zakazka')->where('dotace', 1);
             $item->mySumD = $this->database->table('denik')->where('rozpocet', $rozpocet->id)->where('petky', $argument)
                         ->where('zakazky',$relevantni)->sum('castka');
-            $item->mySumD = \round($item->mySumD, 0);
+            $item->mySumD = is_null($item->mySumD) ? 0 : round($item->mySumD, 0);
 
             $item->soucetVNS =  $item->mySumV + $item->mySumN + $item->mySumS;
 

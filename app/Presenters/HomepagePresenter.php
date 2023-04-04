@@ -127,7 +127,7 @@ class HomepagePresenter extends ObjednavkyBasePresenter
             $relevantni = $this->database->table('zakazky')->select('zakazka')->where('vlastni', 1); //    vlastní zakázky, které se počítají
             $utracenoV = $this->database->table('denik')->where('rozpocet', $rozpocet->id)->where('petky', $argument)->where('zakazky',$relevantni)
                                 ->sum('castka');
-            $utracenoV = \round($utracenoV, 0);
+            $utracenoV = is_null($utracenoV) ? 0 : round($utracenoV, 0);
             
             // $objednavkyV_suma = $this->database->table('objednavky')->where('cinnost', ':cinnost.id_rozpocet')->where('zakazka',$relevantni)
             // ->where('stav ?', [0,1,3,4,9])->sum('castka');
@@ -142,7 +142,7 @@ class HomepagePresenter extends ObjednavkyBasePresenter
             
             
            
-            $objednavkyV_suma = \round($objednavkyV_suma, 0);     //    nezamítnuté vlastní objednávky na rozpočet - celková částka
+            $objednavkyV_suma = is_null($objednavkyV_suma) ? 0 : round($objednavkyV_suma, 0);     //    nezamítnuté vlastní objednávky na rozpočet - celková částka
             
             
             $item->mySumV = $utracenoV + $objednavkyV_suma;
@@ -152,11 +152,11 @@ class HomepagePresenter extends ObjednavkyBasePresenter
             $relevantniS = $this->database->table('zakazky')->select('id')->where('sablony', 1); //    zakázky šablony, které se počítají
             $utracenoS = $this->database->table('denik')->where('rozpocet', $rozpocet->id)->where('petky', $argument)->where('zakazky',$relevantniS)
                                 ->sum('castka');
-            $utracenoS = \round($utracenoS, 0);
+            $utracenoS = is_null($utracenoS) ? 0 : round($utracenoS, 0);
             
             $objednavkyS_suma = $this->database->table('objednavky')->where('cinnost', $pomoc)->where('zakazka',$relevantniS)
             ->where('stav ?', [0,1,3,4,9])->sum('castka');
-            $objednavkyS_suma = \round($objednavkyS_suma, 0);     //    nezamítnuté šablony objednávky na rozpočet - celková částka
+            $objednavkyS_suma = is_null($objednavkyS_suma) ? 0 : round($objednavkyS_suma, 0);     //    nezamítnuté šablony objednávky na rozpočet - celková částka
 
             $item->mySumS = $utracenoS + $objednavkyS_suma;
 

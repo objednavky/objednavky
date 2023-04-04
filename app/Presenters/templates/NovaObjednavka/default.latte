@@ -37,9 +37,9 @@
         <div class="nova-objednavka-label col-4 col-md-2">{label castka /}</div>
         <div class="nova-objednavka-input col-8 col-md-4 input-right-align">{input castka}<span n:ifcontent>{inputError castka}</span></div>
       </div>
-    {btnRemove polozka}
+      {multiplier:remove}
     </div>
-    {btnCreate polozka class:"btn btn-success"}
+    {multiplier:add polozka class:"btn btn-success"}
     {input hotovo class:"btn btn-primary"}
     <a class="btn btn-secondary" n:href="Homepage:default" role="button">← Zahodit tuto objednávku</a>
   </div>

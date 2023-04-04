@@ -1,20 +1,20 @@
 {
-	"name": "nette/web-project",
-	"description": "Nette: Standard Web Project",
-	"keywords": ["nette"],
+	"name": "objednavky/objednavky",
+	"description": "Nette: projekt Objednavky WS Dobromysl Plzen",
+	"keywords": ["nette", "objednavky"],
 	"type": "project",
 	"license": ["MIT", "BSD-3-Clause", "GPL-2.0", "GPL-3.0"],
 	"require": {
-		"php": ">= 7.4",
-		"nette/nette": "^3.1",
+		"php": "^8.2",
+		"nette/nette": "^3.2",
 		"ublaboo/datagrid": "^6.9",
 		"thenetworg/oauth2-azure": "^2.0",
-		"firebase/php-jwt": "^6.1",
-		"contributte/forms-multiplier": "^3.2",
+		"firebase/php-jwt": "^6.4",
+		"contributte/forms-multiplier": "^3.3",
 		"ublaboo/datagrid-nette-database-data-source": "^2.1"
 	},
 	"require-dev": {
-		"nette/tester": "^2.0"
+		"nette/tester": "^2.5"
 	},
 	"autoload": {
 		"psr-4": {
