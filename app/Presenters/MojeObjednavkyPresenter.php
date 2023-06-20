@@ -91,26 +91,26 @@ class MojeObjednavkyPresenter extends ObjednavkyBasePresenter
         $grid->addColumnNumber('id_prehled','Č. obj.')->setSortable()->setSortableResetPagination()
             ->setRenderer(function($item) {
                 return $item['id_prehled'] . '/' .  $item['radka'];
-        });
+        })->setFilterText();
         $grid->addColumnText('stav','Stav')->setSortable()->setSortableResetPagination()->setTemplateEscaping(FALSE)
             ->setFilterMultiSelect($this->database->table('lidsky_status')->fetchPairs('id', 'popis'))->setTranslateOptions();
         $grid->addColumnCallback('stav', function($column, $item) {
             $column->setRenderer(function() use ($item):string { return $this->renderujIkonuStavu($item); });
         });
-        $grid->addColumnText('zadavatel','Zadavatel')->setSortable()->setSortableResetPagination()->setDefaultHide();
-        $grid->addColumnDateTime('zalozil','Založeno')->setFormat('d.m.Y H:i:s')->setSortable()->setSortableResetPagination()->setDefaultHide();
-        $grid->addColumnText('schvalovatel','Schvalovatel')->setSortable()->setSortableResetPagination();
-        $grid->addColumnDateTime('schvalil','Schváleno')->setSortable()->setSortableResetPagination();
+        $grid->addColumnText('zadavatel','Zadavatel')->setSortable()->setSortableResetPagination()->setDefaultHide()->setFilterText();
+        $grid->addColumnDateTime('zalozil','Založeno')->setFormat('d.m.Y H:i:s')->setSortable()->setSortableResetPagination()->setDefaultHide()->setFilterText();
+        $grid->addColumnText('schvalovatel','Schvalovatel')->setSortable()->setSortableResetPagination()->setFilterText();
+        $grid->addColumnDateTime('schvalil','Schváleno')->setSortable()->setSortableResetPagination()->setFilterText();
         $grid->addColumnText('nutno_overit','Nutno ověřit')->setAlign('center')->setSortable()->setSortableResetPagination()
-            ->setRenderer(function($item) { return $item['nutno_overit'] == 1 ? "ANO" : "ne"; });
-        $grid->addColumnText('overovatel','Ověřovatel')->setSortable()->setSortableResetPagination();
-        $grid->addColumnDateTime('overil','Ověřeno')->setSortable()->setSortableResetPagination();
-        $grid->addColumnText('firma','firma')->setSortable()->setSortableResetPagination();
-        $grid->addColumnText('popis','popis')->setSortable()->setSortableResetPagination();
-        $grid->addColumnText('cinnost','Činnost')->setSortable()->setSortableResetPagination();
-        $grid->addColumnText('cinnostP','Popis činnosti')->setSortable()->setSortableResetPagination()->setDefaultHide();
-        $grid->addColumnText('zakazka','Zakázka')->setSortable()->setSortableResetPagination();
-        $grid->addColumnText('stredisko','Středisko')->setSortable()->setSortableResetPagination();
+            ->setRenderer(function($item) { return $item['nutno_overit'] == 1 ? "ANO" : "ne"; })->setFilterText();
+        $grid->addColumnText('overovatel','Ověřovatel')->setSortable()->setSortableResetPagination()->setFilterText();
+        $grid->addColumnDateTime('overil','Ověřeno')->setSortable()->setSortableResetPagination()->setFilterText();
+        $grid->addColumnText('firma','firma')->setSortable()->setSortableResetPagination()->setFilterText();
+        $grid->addColumnText('popis','popis')->setSortable()->setSortableResetPagination()->setFilterText();
+        $grid->addColumnText('cinnost','Činnost')->setSortable()->setSortableResetPagination()->setFilterText();
+        $grid->addColumnText('cinnostP','Popis činnosti')->setSortable()->setSortableResetPagination()->setDefaultHide()->setFilterText();
+        $grid->addColumnText('zakazka','Zakázka')->setSortable()->setSortableResetPagination()->setFilterText();
+        $grid->addColumnText('stredisko','Středisko')->setSortable()->setSortableResetPagination()->setFilterText();
         $grid->addColumnNumber('castka', 'Částka')->setSortable()->setSortableResetPagination()
             ->setRenderer(function($item):string { return (number_format($item['castka'],0,","," ") .' Kč'); });
         $grid->addFilterRange('castka', 'Částka od-do');
