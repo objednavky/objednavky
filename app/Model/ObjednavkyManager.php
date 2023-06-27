@@ -209,6 +209,7 @@ class ObjednavkyManager
 				foreach ($rozpocty as $rozpocet) {
 					// vytvor kopii rozpoctu
 					$novyRozpocet = $this->database->table('rozpocet')->insert([
+						'cinnost_hlavni' => $rozpocet->cinnost_hlavni,
 						'rozpocet' => $rozpocet->rozpocet,
 						'hospodar' => $rozpocet->hospodar,
 						'hospodar2' => $rozpocet->hospodar2,

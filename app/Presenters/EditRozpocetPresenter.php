@@ -133,6 +133,7 @@ class EditRozpocetPresenter extends ObjednavkyBasePresenter
 
 
         $grid->addColumnNumber('id', 'Id')->setSortable()->setSortableResetPagination();
+        $grid->addColumnText('cinnost_hlavni', 'Hl.činnost')->setSortable()->setSortableResetPagination();
         $grid->addColumnText('rozpocet', 'Rozpočet')->setSortable()->setSortableResetPagination();
         $grid->addColumnText('obsah', 'Popis')->setSortable()->setSortableResetPagination();
         $grid->addColumnNumber('castka', 'Plán vlastní Kč')->setAlign('right')->setSortable()->setSortableResetPagination();
@@ -147,6 +148,7 @@ class EditRozpocetPresenter extends ObjednavkyBasePresenter
 
         $grid->addInlineEdit()
         ->onControlAdd[] = function(Nette\Forms\Container $container): void {
+            $container->addText('cinnost_hlavni', '')->setRequired('Uveďte zkratku činnosti');
             $container->addText('rozpocet', '')->setRequired('Uveďte název rozpočtu');
             $container->addText('obsah', '')->setRequired('Uveďte popis rozpočtu.');
             $container->addInteger('castka', '')->setRequired('Zadejte částku rozpočtu pro vlastní' );
@@ -160,6 +162,7 @@ class EditRozpocetPresenter extends ObjednavkyBasePresenter
     
         $grid->getInlineEdit()->onSetDefaults[] = function(Nette\Forms\Container $container, $item): void {
             $container->setDefaults([
+                'cinnost_hlavni' => $item->cinnost_hlavni,
                 'rozpocet' => $item->rozpocet,
                 'obsah' => $item->obsah,
                 'castka' => $item->castka,
@@ -181,6 +184,7 @@ class EditRozpocetPresenter extends ObjednavkyBasePresenter
         
         $grid->addInlineAdd()
         ->onControlAdd[] = function(Nette\Forms\Container $container) use ($rok, $verze) : void {
+            $container->addText('cinnost_hlavni', '')->setRequired('Uveďte zkratku činnosti');
             $container->addText('rozpocet', '')->setRequired('Uveďte název rozpočtu');
             $container->addText('obsah', '')->setRequired('Uveďte popis rozpočtu.');
             $container->addInteger('castka', '')->setRequired('Zadejte částku rozpočtu pro vlastní' );
