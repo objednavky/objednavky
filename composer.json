@@ -6,12 +6,12 @@
 	"license": ["MIT", "BSD-3-Clause", "GPL-2.0", "GPL-3.0"],
 	"require": {
 		"php": "^8.2",
-		"nette/nette": "^3.2",
+		"nette/nette": "^3.1",
 		"ublaboo/datagrid": "^6.9",
 		"thenetworg/oauth2-azure": "^2.1",
-		"league/oauth2-server": "^8.5",
+		"league/oauth2-server": "^9.0",
 		"firebase/php-jwt": "^6.4",
-		"contributte/forms-multiplier": "^3.3",
+		"contributte/forms-multiplier": "^4.0",
 		"ublaboo/datagrid-nette-database-data-source": "^2.1"
 	},
 	"require-dev": {

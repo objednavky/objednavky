@@ -62,7 +62,7 @@ abstract class ObjednavkyBasePresenter extends BasePresenter
         return $this->database->table('rozpocet')->where('rok', $rok)->select('DISTINCT verze')->fetchPairs('verze','verze');
     }
 
-    protected final function renderujIkonuStavu($item) {
+    public final function renderujIkonuStavu($item) {
         $stavPopis = $item['stav']; //fallback v pripade chyby
         try {
             $stavPopis = isset($item['stavPopis']) ? $item['stavPopis'] : $item->ref('stav')->popis;
