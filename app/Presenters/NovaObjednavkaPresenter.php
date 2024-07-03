@@ -65,7 +65,7 @@ class NovaObjednavkaPresenter extends ObjednavkyBasePresenter
             $castkaObj = "  ";
             $form->addGroup($castkaObj);
             $polozkaContainer->addInteger('castka', 'Částka v Kč:' )
-                ->setRequired('Zadejte částku' )->addRule($form::RANGE,'Zadejte nejméně %d a nejvíce %d Kč' , [1, 2000000]);
+                ->setRequired('Zadejte částku' )->addRule($form::RANGE,'Zadejte nejméně %d a nejvíce %d Kč' , [1, 99000000]);
     /*
             $form->addRadioList('presne', 'Je částka přesná?   ',
                     ['  Ano, na faktuře bude přesně tato částka', '  Ne, částka může být v rozsahu +- 10 procent'])->setDefaultValue(0);
