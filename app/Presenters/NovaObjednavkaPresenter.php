@@ -31,10 +31,39 @@ class NovaObjednavkaPresenter extends ObjednavkyBasePresenter
         $parametry=[];
         
         $rok=$this->getSetup(1)->rok; 
-        $cinnost = $this->database->table('cinnost')->where('vyber',1)->where('rok',$rok);
-        foreach ($cinnost as $polozka) 
-        {
-            $dohromady = $polozka->cinnost . " ".$polozka->nazev_cinnosti;
+
+/*
+        $skupina = $this->database->table('skupiny')->where('uzivatel',$this->prihlasenyId())->select('rozpocet');   //vyberu nastavené skupiny 
+        $cinnost = $this->database->table('cinnost')->where('vyber',1)->where('rok',$rok)
+            ->select('id')
+            ->select('cinnost')
+            ->select('nazev_cinnosti')
+            ->select('id_rozpocet')
+            ->select(':skupiny(rozpocet).uzivatel')
+            ->order('cinnost ASC, nazev_cinnosti ASC');
+*/
+        $cinnost = $this->database->query('SELECT cinnost.id, cinnost, nazev_cinnosti, id_rozpocet, skupiny.uzivatel 
+            FROM cinnost
+            LEFT JOIN skupiny ON cinnost.id_rozpocet = skupiny.rozpocet AND skupiny.uzivatel = ?
+            WHERE vyber = 1 AND rok = ? 
+            ORDER BY skupiny.uzivatel DESC, cinnost ASC, nazev_cinnosti ASC
+        ', $this->prihlasenyId(), $rok)->fetchAll();
+        bdump($cinnost);
+        $zbyva_v_rozpoctech = [];
+        //vyber jako prvni cinnosti, ktere ma uzivatel predvybrane
+        foreach ($cinnost as $polozka)
+        {           
+            $id_rozpocet = $polozka->id_rozpocet;
+            if(!isset($jsou_to_moje_cinnosti)) {
+                 $jsou_to_moje_cinnosti = ($polozka->uzivatel == null ? false : true);
+            } elseif ($jsou_to_moje_cinnosti && $polozka->uzivatel == null) {
+                $jsou_to_moje_cinnosti = false;
+                $parametry['cinnosti'][null] = '------------------------';
+            }
+            if (!array_key_exists($id_rozpocet, $zbyva_v_rozpoctech)) {
+                $zbyva_v_rozpoctech[$id_rozpocet] = $this->objednavkyManager->spocitejZbyvajiciPenizeRozpoctu($id_rozpocet);
+            }
+            $dohromady = $polozka->cinnost.' '.$polozka->nazev_cinnosti.' ('.number_format($zbyva_v_rozpoctech[$id_rozpocet],0,","," ") .' Kč)';
             $parametry['cinnosti'][$polozka->id] = $dohromady;
         }
         $zakazka = $this->database->table('zakazky')->where('vyber',1);

@@ -31,14 +31,18 @@
 
 	 <br>
 <a class="btn btn-primary" n:href="Hezky:show" role="button">← zpět na Hezký rozpočet</a>
+{if !$kompletni}
 <a class="btn btn-secondary" n:href="Detail:show detailId:-1" role="button">Zobraz kompletní rozpočet</a>
+{/if}
   <br>
 
   {control simpleGrid} 
 			 
 	 <br>
 <a class="btn btn-primary" n:href="Hezky:show" role="button">← zpět na Hezký rozpočet</a>
-<a class="btn btn-secondary" n:href="Detail:show" role="button">Zobraz kompletní rozpočet</a>
+{if !$kompletni}
+<a class="btn btn-secondary" n:href="Detail:show detailId:-1" role="button">Zobraz kompletní rozpočet</a>
+{/if}
   <br>
     <br>	  
      

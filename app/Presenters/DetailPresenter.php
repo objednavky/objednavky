@@ -31,12 +31,16 @@ class DetailPresenter extends ObjednavkyBasePresenter
 	{
         $setup = $this->getSetup(1);
         
-        if (isset($detailId)) {
+        if (isset($detailId) ) {
             $this->sessionSection->detailId= $detailId;
-        } elseif (isset($this->sessionSection->detailId)) {
+            $this->template->kompletni = $detailId == -1 ? true : false;
+        } elseif (isset($this->sessionSection->detailId) ) {
             $detailId = $this->sessionSection->detailId;
+            $this->template->kompletni = $detailId == -1 ? true : false;
         } else {
             $detailId = -1;
+            $this->sessionSection->detailId = -1;
+            $this->template->kompletni = true;
         }
 
         if (($detailId > -1) && null !== $this->database->table('hezky')->get($detailId) ) {

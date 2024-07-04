@@ -38,32 +38,61 @@ class ManPresenter extends ObjednavkyBasePresenter
         $this->template->jeden = $jeden;
         $this->template->hospodar = $jeden->ref('hospodar')->jmeno;
         $this->template->hospodar2 = $jeden->ref('hospodar2')->jmeno;
-        $source = $this->mapRozpocet(1,$manId);
-        $this->template->vlastni = $this->sumColumn($source, 'vlastni');
-        $this->template->normativ = $this->sumColumn($source, 'normativ');
-        $this->template->dotace = $this->sumColumn($source, 'dotace');
-        $this->template->sablony = $this->sumColumn($source, 'sablony');
-        $nacti = $this->database->table('rozpocet')->where('id',$manId)->fetch();;
-        $this->template->castka = $jeden->castka;      //ziskam castku vlastni;
-        $this->template->sablonyplan = $nacti->sablony;    //ziskam castku sablony;
-        $this->template->zbyva = $this->template->castka - ($this->template->vlastni) ;
-        $this->template->zbyvatab = $this->template->castka - ($this->template->vlastni) - $this->template->normativ ;
-        $utraceno = ($this->template->vlastni) + ($this->template->sablony);
-        $plan = ($this->template->castka) + ($this->template->sablonyplan);
-        $this->template->percent = $utraceno == 0 ? 0: round(($utraceno / $plan ) * 100, 0);
-        //vypocet procent a kontrola deleni nulou
-        $relevantni =$this->database->table('cinnost')->select('id')->where('id_rozpocet',$manId);
-        $source = $this->database->table('objednavky')->where('cinnost', $relevantni)->where('zakazka.vlastni',1)->where('stav', [0,1,3,4,9]);
-        $source2 = $this->database->table('objednavky')->where('cinnost', $relevantni)->where('zakazka.dotace',1)->where('stav', [0,1,3,4,9]); 
-        $this->template->objednanoV = $this->sumColumn($source, 'castka');
-        $this->template->objednanoD =  $this->sumColumn($source2, 'castka'); 
+
+        $source = $this->mapDenik(1,$manId);
+        $this->template->denikVlastni = $this->sumColumn($source, 'vlastni');
+        $this->template->denikDotace = $this->sumColumn($source, 'dotace');
+        $this->template->denikSablony = $this->sumColumn($source, 'sablony');
+
+        //$nacti = $this->database->table('rozpocet')->where('id',$manId)->fetch();
+        $this->template->planVlastni = $jeden->castka;      //ziskam castku vlastni;
+        $this->template->planSablony = $jeden->sablony;    //ziskam castku sablony;
+        $this->template->planCelkem = $this->template->planVlastni + $this->template->planSablony;
+
+/*
+        $relevantniCinnost =$this->database->table('cinnost')->select('id')->where('id_rozpocet',$manId);
+        $source = $this->database->table('objednavky')->where('cinnost', $relevantniCinnost)->where('zakazka.vlastni',1)->where('stav', [0,1,3,4,9]);
+        $source2 = $this->database->table('objednavky')->where('cinnost', $relevantniCinnost)->where('zakazka.dotace',1)->where('stav', [0,1,3,4,9]); 
+*/
+        $this->template->objednanoVlastni = $this->sumColumn(
+            $this->database->table('objednavky')
+                ->where('cinnost.id_rozpocet', $manId)
+                ->whereOr(['zakazka.vlastni = 1', 'zakazka.normativ = 1'])
+                ->where('stav', [0,1,3,4,9]),
+            'castka');
+
+        $this->template->objednanoSablony = $this->sumColumn(
+            $this->database->table('objednavky')
+                ->where('cinnost.id_rozpocet', $manId)
+                ->where('zakazka.sablony', 1)
+                ->where('stav', [0,1,3,4,9]),
+            'castka');
+    
+        $this->template->objednanoDotace =  $this->sumColumn(
+            $this->database->table('objednavky')
+                ->where('cinnost.id_rozpocet', $manId)
+                ->where('zakazka.dotace',1)
+                ->where('stav', [0,1,3,4,9]),
+            'castka'); 
         
+        $this->template->utracenoVlastni = $this->template->denikVlastni + $this->template->objednanoVlastni;
+        $this->template->zbyvaVlastni = $this->template->planVlastni - $this->template->utracenoVlastni;
+
+        $this->template->utracenoSablony = $this->template->denikSablony + $this->template->objednanoSablony;
+        $this->template->zbyvaSablony = $this->template->planSablony - $this->template->utracenoSablony;
+
+        $this->template->utracenoCelkem = $this->template->utracenoVlastni + $this->template->utracenoSablony;
+        $this->template->zbyvaCelkem = $this->template->planCelkem - $this->template->utracenoCelkem;
+
+        $this->template->percent = $this->template->planCelkem == 0 ? 0: round(($this->template->utracenoCelkem / $this->template->planCelkem ) * 100, 0);
+        //vypocet procent a kontrola deleni nulou
+
         //zda sleduji tento rozpocet na uvodni strance
         $sleduji = $this->database->table('skupiny')->where('uzivatel', $this->prihlasenyId())->where('rozpocet', $manId)->count() > 0;
         $this->template->sleduji = $sleduji;
     } 
-    
-    private function mapRozpocet($argument,$zasejedenID)
+
+    private function mapDenik($argument,$zasejedenID)
     {
         $relevantni_zak = $this->database->table('zakazky')->select('zakazka')->where('NOT preuctovani', 1 );
         $rozpocets =$this->database->table('denik')->where('rozpocet',$zasejedenID)->where('petky', $argument)->where('zakazky', $relevantni_zak);
@@ -82,26 +111,20 @@ class ManPresenter extends ObjednavkyBasePresenter
             $item->cisloObjednavky = $denik->id_prehled;
             $relatedZakazka = $this->database->table('zakazky')->where('zakazka' , $denik->zakazky)->fetch();
             bdump($relatedZakazka);
-            $item->vlastni0 = $relatedZakazka->vlastni == 1  ? $denik->castka : 0;      //vlastni 
-            $item->vlastni0 = \round($item->vlastni0, 0);
-            $item->normativ = $relatedZakazka->normativ == 1  ? $denik->castka : 0;      //vlastni 
-            $item->normativ = \round($item->normativ, 0);
-            $item->vlastni = $item->vlastni0 - $item->normativ;
-            $item->sablony = $relatedZakazka->sablony == 1  ? $denik->castka : 0;      //sablony
-            $item->sablony = \round($item->sablony, 0);
-            $item->dotace = $relatedZakazka->dotace == 1 ? $denik->castka : 0;
-            $item->dotace = \round($item->dotace, 0);
+            $item->vlastni = \round(($relatedZakazka->vlastni == 1 || $relatedZakazka->normativ == 1) ? $denik->castka : 0, 0);       //vlastni (+ normativ)
+            $item->sablony = \round($relatedZakazka->sablony == 1  ? $denik->castka : 0, 0);          //sablony
+            $item->dotace = \round($relatedZakazka->dotace == 1 ? $denik->castka : 0, 0);             //dotace
             $fetchedRozpocets[] = json_decode(json_encode($item), true);
         }
         //$item->vlastni = $this->database->query('')
         return $fetchedRozpocets;
     }
 
-    public function createComponentSimpleGrid($name)
+    public function createComponentDenikGrid($name)
     {
         $grid = new DataGrid($this, $name);
         $zasejedenID = $this->sessionSection->manId;
-        $grid->setDataSource($this->mapRozpocet(1,$zasejedenID));
+        $grid->setDataSource($this->mapDenik(1,$zasejedenID));
         $grid->addColumnDateTime('datum', 'Datum');
         $grid->addColumnText('cinnost_d', 'Činnost');
         $grid->addColumnText('doklad', 'Doklad');
@@ -157,7 +180,7 @@ class ManPresenter extends ObjednavkyBasePresenter
 */
     }
 
-    public function createComponentSimpleGrid2($name)
+    public function createComponentObjednavkyGrid($name)
     {
         $zasejedenID = $this->sessionSection->manId;
         $grid = new DataGrid($this, $name);
@@ -196,7 +219,7 @@ class ManPresenter extends ObjednavkyBasePresenter
         $grid->setTranslator($this->getTranslator());        
     } 
 
-    public function createComponentSimpleGrid3($name)
+    public function createComponentObjednavkyNeschvaleneGrid($name)
     {
     $zasejedenID = $this->sessionSection->manId;
         $grid = new DataGrid($this, $name);

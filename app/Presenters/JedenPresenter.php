@@ -189,6 +189,7 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
         $grid->addColumnNumber('zbyvaV', 'Zbývá z rozpočtu')
             ->setRenderer(function($item) { return (number_format($item['zbyvaV'],0,","," ") .' Kč'); });
         $grid->addColumnCallback('zbyvaV', function($column, $item) { $item['zbyvaV'] < 0 ? $column->getElementPrototype('td')->addAttributes(['class' => 'text-danger font-weight-bold',]) : $column->getElementPrototype('td')->removeAttributes(['class' => 'class',]); } );
+/*
         $grid->addColumnNumber('rozpocetS', 'Plánované šablony')->addCellAttributes(['class' => 'text-success'])
             ->setRenderer(function($item) { return (' - '); });
         $grid->addColumnNumber('sablony', 'Utraceno šablony')
@@ -200,12 +201,13 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
         $grid->addColumnNumber('zbyvaS', 'Zbývá z šablon')
            ->setRenderer(function($item) { return (number_format($item['zbyvaS'],0,","," ") .' Kč'); });
         $grid->addColumnCallback('zbyvaS', function($column, $item) { $item['zbyvaS'] < 0 ? $column->getElementPrototype('td')->addAttributes(['class' => 'text-danger font-weight-bold',]) : $column->getElementPrototype('td')->removeAttributes(['class' => 'class',]); } );
+*/
         $grid->addColumnNumber('dotace', 'Utraceno účelové dotace')
             ->setRenderer(function($item) { return (number_format($item['dotace'],0,","," ") .' Kč'); });
         $grid->addColumnNumber('dotaceObj', 'Objednáno účelové dotace')
             ->setRenderer(function($item) { return (number_format($item['dotaceObj'],0,","," ") .' Kč'); });
-        $grid->setColumnsSummary(['rozpocetV','vlastni','vlastniObj','zbyvaV','celkemV','celkemS',
-            'rozpocetS','sablony','sablonyObj','dotace','zbyvaS','dotace','dotaceObj'])
+        $grid->setColumnsSummary(['rozpocetV','vlastni','vlastniObj','zbyvaV','celkemV',
+            /*'celkemS','rozpocetS','sablony','sablonyObj','zbyvaS',*/'dotace','dotaceObj'])
             ->setRenderer(function($sum, string $column) { return (number_format($sum,0,","," ") .' Kč'); });
         // $grid->addExportCsvFiltered('Export do csv s filtrem', 'tabulka.csv', 'windows-1250')
         // ->setTitle('Export do csv s filtrem');
@@ -216,7 +218,7 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
         $grid->setTranslator($this->getTranslator());
     } 
  
-    public function createComponentSimpleGrid($name)
+    public function createComponentDenikGrid($name)
     {
         $grid = new DataGrid($this, $name);
         $zasejedenID = $this->sessionSection->jedenId;
@@ -233,8 +235,10 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
         $grid->addColumnText('zakazky', 'Zakázka');
         $grid->addColumnNumber('vlastni', 'Vlastní Kč')
             ->setRenderer(function($item) { return (number_format($item['vlastni'],0,","," ") .' Kč'); });
+/*
         $grid->addColumnNumber('sablony', 'Šablony Kč')
             ->setRenderer(function($item) { return (number_format($item['sablony'],0,","," ") .' Kč'); });
+*/
         $grid->addColumnNumber('dotace', 'Účelové dotace Kč')
             ->setRenderer(function($item) { return (number_format($item['dotace'],0,","," ") .' Kč'); });
         $grid->addColumnNumber('preuctovani', 'Přeúčtování Kč')
@@ -242,7 +246,7 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
         $grid->addColumnNumber('cisloObjednavky', 'Číslo objednávky');
         $grid->setPagination(count($source)>10);
         $grid->setItemsPerPageList([10, 30, 100]);
-        $grid->setColumnsSummary(['vlastni','sablony','dotace', 'preuctovani'])
+        $grid->setColumnsSummary(['vlastni',/*'sablony',*/'dotace', 'preuctovani'])
             ->setRenderer(function($sum, string $column): string { return number_format($sum,0,","," ") . ' Kč'; });
         // $grid->addFilterRange('vlastni', 'Částka Kč');
         // $grid->addExportCsvFiltered('Export do csv s filtrem', 'tabulka.csv', 'windows-1250')
@@ -255,7 +259,7 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
     // $grid->addAggregationFunction('castka', new FunctionSum('castka'));
     } 
 
-    public function createComponentSimpleGrid2($name)
+    public function createComponentObjednavkySchvaleneGrid($name)
     {
         $zasejedenID = $this->sessionSection->jedenId;
         $relevantni =   $this->database->table('cinnost')->select('id')->where('id_rozpocet',  $zasejedenID );
@@ -269,20 +273,18 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
                 return $item['id_prehled'] . '/' .  $item['radka'];
             });
         });
-        //$grid->addColumnNumber('radka','Č. pol.');
-        $grid->addColumnText('zadavatel','Zadavatel')->setSortable()->setSortableResetPagination()->setFilterText();
-        $grid->addColumnDateTime('zalozil','Založeno')->setFormat('d.m.Y H:i:s')->setSortable()->setSortableResetPagination()->setDefaultHide()->setFilterDateRange();
         $grid->addColumnText('stav','Stav', 'stav')->setSortable()->setSortableResetPagination()->setTemplateEscaping(FALSE);
         $grid->addColumnCallback('stav', function($column, $item) {
             $column->setRenderer(function() use ($item):string { return $this->renderujIkonuStavu($item); });
         });
+        $grid->addColumnText('zadavatel','Zadavatel')->setSortable()->setSortableResetPagination()->setFilterText();
+        $grid->addColumnDateTime('zalozil','Založeno')->setFormat('d.m.Y H:i:s')->setSortable()->setSortableResetPagination()->setDefaultHide()->setFilterDateRange();
         $grid->addColumnText('schvalovatel','Schvalovatel')->setSortable()->setSortableResetPagination()->setFilterText();
         $grid->addColumnDateTime('schvalil','Schváleno')->setSortable()->setSortableResetPagination()->setFilterDateRange();
-        //$grid->addColumnText('nutno_overit','Nutno ověřit')->setAlign('center')->setSortable()->setSortableResetPagination()->setFilterSelect(['' => 'Vše', 1 => 'ANO', 0 => 'ne']);
-        $grid->addColumnText('nutno_overit','Nutno ověřit')->setAlign('center')->setSortable()->setSortableResetPagination()
+        $grid->addColumnText('nutno_overit','Nutno ověřit')->setAlign('center')->setSortable()->setDefaultHide()->setSortableResetPagination()
             ->setRenderer(function($item) { return $item['nutno_overit'] == 1 ? "ANO" : "ne"; })->setFilterSelect(['' => 'Vše', 1 => 'ANO', 0 => 'ne']);
         $grid->addColumnText('overovatel','Ověřovatel')->setSortable()->setSortableResetPagination()->setDefaultHide()->setFilterText();
-        $grid->addColumnDateTime('overil','Ověřeno')->setSortable()->setSortableResetPagination()->setFilterDateRange();
+        $grid->addColumnDateTime('overil','Ověřeno')->setSortable()->setSortableResetPagination()->setDefaultHide()->setFilterDateRange();
         $grid->addColumnText('firma','firma')->setSortable()->setSortableResetPagination()->setFilterText();
         $grid->addColumnText('popis','popis')->setSortable()->setSortableResetPagination()->setFilterText();
         $grid->addColumnText('cinnost','Činnost')->setSortable()->setSortableResetPagination()->setFilterText();
@@ -292,7 +294,7 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
         $grid->addColumnNumber('castka', 'Částka')->setSortable()->setSortableResetPagination()->setFilterRange();
         $grid->addColumnCallback('castka', function($column, $item) {
             $column->setRenderer(function() use ($item):string {
-                return ($item['castka'] .' Kč');   
+                return (number_format($item['castka'], 0, ',', ' ') .' Kč');   
             });
         });
         $grid->setRowCallback(function($item, $tr) {
@@ -307,7 +309,7 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
         $grid->setTranslator($this->getTranslator());
     } 
 
-    public function createComponentSimpleGrid3($name)
+    public function createComponentObjednavkyNeschvaleneGrid($name)
     {
         $zasejedenID = $this->sessionSection->jedenId;
         $relevantni =   $this->database->table('cinnost')->select('id')->where('id_rozpocet',  $zasejedenID );
@@ -321,20 +323,18 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
                 return $item['id_prehled'] . '/' .  $item['radka'];
             });
         });
-        //$grid->addColumnNumber('radka','Č. pol.');
-        $grid->addColumnText('zadavatel','Zadavatel')->setSortable()->setSortableResetPagination()->setFilterText();
-        $grid->addColumnDateTime('zalozil','Založeno')->setFormat('d.m.Y H:i:s')->setSortable()->setSortableResetPagination()->setDefaultHide()->setFilterText();
         $grid->addColumnText('stav','Stav')->setSortable()->setSortableResetPagination()->setTemplateEscaping(FALSE);
         $grid->addColumnCallback('stav', function($column, $item) {
             $column->setRenderer(function() use ($item):string { return $this->renderujIkonuStavu($item); });
         });
+        $grid->addColumnText('zadavatel','Zadavatel')->setSortable()->setSortableResetPagination()->setFilterText();
+        $grid->addColumnDateTime('zalozil','Založeno')->setFormat('d.m.Y H:i:s')->setSortable()->setSortableResetPagination()->setDefaultHide()->setFilterText();
         $grid->addColumnText('schvalovatel','Schvalovatel')->setSortable()->setSortableResetPagination()->setFilterText();
-        $grid->addColumnDateTime('schvalil','Schváleno')->setSortable()->setSortableResetPagination()->setFilterText();
-        //$grid->addColumnText('nutno_overit','Nutno ověřit')->setAlign('center')->setSortable()->setSortableResetPagination()->setFilterSelect(['' => 'Vše', 1 => 'ANO', 0 => 'ne']);
-        $grid->addColumnText('nutno_overit','Nutno ověřit')->setAlign('center')->setSortable()->setSortableResetPagination()
+        $grid->addColumnDateTime('schvalil','Schváleno')->setSortable()->setSortableResetPagination()->setFilterDateRange();
+        $grid->addColumnText('nutno_overit','Nutno ověřit')->setAlign('center')->setSortable()->setDefaultHide()->setSortableResetPagination()
             ->setRenderer(function($item) { return $item['nutno_overit'] == 1 ? "ANO" : "ne"; })->setFilterSelect(['' => 'Vše', 1 => 'ANO', 0 => 'ne']);
         $grid->addColumnText('overovatel','Ověřovatel')->setSortable()->setSortableResetPagination()->setDefaultHide()->setFilterText();
-        $grid->addColumnDateTime('overil','Ověřeno')->setSortable()->setSortableResetPagination()->setFilterText();
+        $grid->addColumnDateTime('overil','Ověřeno')->setSortable()->setSortableResetPagination()->setDefaultHide()->setFilterText();
         $grid->addColumnText('firma','firma')->setSortable()->setSortableResetPagination()->setFilterText();
         $grid->addColumnText('popis','popis')->setSortable()->setSortableResetPagination()->setFilterText();
         $grid->addColumnText('cinnost','Činnost')->setSortable()->setSortableResetPagination()->setFilterText();
@@ -344,7 +344,7 @@ class JedenPresenter extends ObjednavkyBasePresenter //změna
         $grid->addColumnNumber('castka', 'Částka')->setSortable()->setSortableResetPagination()->setFilterRange();
         $grid->addColumnCallback('castka', function($column, $item) {
             $column->setRenderer(function() use ($item):string {
-                return ($item['castka'] .' Kč');   
+                return (number_format($item['castka'], 0, ',', ' ') .' Kč');   
             });
         });
         $grid->setRowCallback(function($item, $tr) {

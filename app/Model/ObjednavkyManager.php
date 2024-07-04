@@ -253,6 +253,18 @@ class ObjednavkyManager
 		return $novaVerze;
 	}
 
+
+	public function spocitejZbyvajiciPenizeRozpoctu(int $id_rozpocet) {
+		$relevantniV = $this->database->table('zakazky')->where('vlastni', 1)->select('zakazka'); 
+		$castkaRozpoctuV = $this->database->table('rozpocet')->get($id_rozpocet)->castka;
+		$objednanoV = $this->database->table('objednavky')->where('cinnost.id_rozpocet', $id_rozpocet)->where('zakazka.vlastni', 1)
+			->where('stav',[0,1,3,4,9])->sum('castka');
+		$denikV = $this->database->table('denik')->where('rozpocet', $id_rozpocet)->where('zakazky',$relevantniV)
+			->where('petky',1)->sum('castka');
+		return round($castkaRozpoctuV - ($objednanoV + $denikV));
+
+	}
+
 	/**
 	 * při zakladani nebo meneni objednavky zahrne dalsi polozku do celkovych limitu pro kontrolu kryti, schvalovani a overovani
 	 * 

@@ -17,19 +17,9 @@
 
 
 
-
-  {if ($percent < 100) }
     <div class="progress" style="height: 10px;">
-      <div class="progress-bar" style="width: {$percent}%;" role="progressbar" aria-valuenow="{$vlastni}" aria-valuemin="0" aria-valuemax="{$castka}"></div>
+     <div class="progress-bar {if ($percent >= 100)}bg-danger{/if}"  style="width: {$percent}%;" role="progressbar" aria-valuenow="{$utracenoCelkem}" aria-valuemin="0" aria-valuemax="{$planCelkem}"></div>
     </div>
-
-  {else }
-    <div class="progress" style="height: 10px;">
-     <div class="progress-bar bg-danger"  style="width: {$percent}%;" role="progressbar" aria-valuenow="{$vlastni}" aria-valuemin="0" aria-valuemax="{$castka}"></div>
-    </div>
-
-
-  {/if }
 
 
   <br>
@@ -48,46 +38,38 @@
         <th  class="p-3 mb-2 bg-light text-dark">Hospodář: {$hospodar} <br>  Zástupce: {$hospodar2}</th>
         <th class="p-3 mb-2 bg-light text-dark" >Rozpočet na celý rok - vlastní  Kč</th>
         <th class="p-3 mb-2 bg-light text-dark">Šablony na celý rok  Kč</th>
-        <th class="p-3 mb-2 bg-light text-dark">Objednávky nespárované Kč</th>
         <th class="p-3 mb-2 bg-light text-dark">Jiné účelové dotace - nejsou součástí rozpočtu Kč</th>
       </tr>
-      <tr>
-        <th class="p-3 mb-2 bg-light text-dark">Plánované</th>
-        <td>{$castka|number:0,',',' '} </td>
-        <td>{$sablonyplan|number:0,',',' '} </td>
-        <td> </td>
-        <td>neplánují se</td>
-        </tr>
+      <tr class="text-right">
+        <th class="p-3 mb-2 bg-light text-dark">Plánovaný rozpočet</th>
+        <td>{$planVlastni|number:0,',',' '} </td>
+        <td>{$planSablony|number:0,',',' '} </td>
+        <td>(neplánují se)</td>
+      </tr>
 
-        <tr>
-          <th  class="p-3 mb-2 bg-light text-dark">Již utracené</th>
-        <td>{($vlastni+$normativ)|number:0,',',' '} </td>
-        <td>{$sablony|number:0,',',' '} </td>
-        <td>{($objednanoV+$objednanoD)|number:0,',',' '}  </td>
-        <td>{$dotace|number:0,',',' '} </td>
+      <tr class="text-right">
+        <th  class="p-3 mb-2 bg-light text-dark">Objednáno (nespárováno)</th>
+        <td>{-$objednanoVlastni|number:0,',',' '}  </td>
+        <td>{-$objednanoSablony|number:0,',',' '} </td>
+        <td>{-$objednanoDotace|number:0,',',' '} </td>
+      </tr>
 
-         
-        </tr>
-        <tr>
-          <th class="p-3 mb-2 bg-light text-dark" >V rozpočtu zbývá (včetně objednávek)</th>
-            {if (($zbyvatab-$objednanoV) > 0) }
-          <td>{($zbyvatab-$objednanoV)|number:0,',',' '} </td>
-          {else}
-          <td class="table-danger"> {($zbyvatab-$objednanoV)|number:0,',',' '} </td>
-          {/if}
+      <tr class="text-right">
+        <th  class="p-3 mb-2 bg-light text-dark">Vyúčtováno (spárováno)</th>
+        <td>{-$denikVlastni|number:0,',',' '}  </td>
+        <td>{-$denikSablony|number:0,',',' '} </td>
+        <td>{-$denikDotace|number:0,',',' '} </td>
+      </tr>
 
+      <tr class="text-right">
+        <th class="p-3 mb-2 bg-light text-dark" >V rozpočtu zbývá (včetně objednávek)</th>
+        <td {if (($zbyvaVlastni) <= 0) }class="table-danger"{/if}>
+          {($zbyvaVlastni)|number:0,',',' '}</td>
+        <td {if (($zbyvaSablony) <= 0) }class="table-danger"{/if}>
+          {($zbyvaSablony)|number:0,',',' '}</td>
+        <td></td>
+      </tr>
 
-
-          {if ($sablonyplan - $sablony-$objednanoD > 0) }
-          <td>{($sablonyplan - $sablony-$objednanoD)|number:0,',',' '} </td>
-          {else}
-          <td class="table-danger"> {($sablonyplan - $sablony-$objednanoD)|number:0,',',' '} </td>
-          {/if}
-         
-          <td> </td>
-          <td></td>
-  
-          </tr>
     </tbody>
   </table>
 
@@ -98,7 +80,7 @@
 
 </div>  
 
-{control simpleGrid} 
+{control denikGrid} 
 
 <div class="container-fluid"></div>
   <br>
@@ -107,7 +89,7 @@
   <br>
 
 <h4>Objednávky - dosud nespárované</h4>
-{control simpleGrid2} 
+{control objednavkyGrid} 
 <br>
 <br>
 

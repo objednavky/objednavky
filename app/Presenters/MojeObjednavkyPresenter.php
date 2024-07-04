@@ -101,10 +101,10 @@ class MojeObjednavkyPresenter extends ObjednavkyBasePresenter
         $grid->addColumnDateTime('zalozil','Založeno')->setFormat('d.m.Y H:i:s')->setSortable()->setSortableResetPagination()->setDefaultHide()->setFilterText();
         $grid->addColumnText('schvalovatel','Schvalovatel')->setSortable()->setSortableResetPagination()->setFilterText();
         $grid->addColumnDateTime('schvalil','Schváleno')->setSortable()->setSortableResetPagination()->setFilterText();
-        $grid->addColumnText('nutno_overit','Nutno ověřit')->setAlign('center')->setSortable()->setSortableResetPagination()
+        $grid->addColumnText('nutno_overit','Nutno ověřit')->setAlign('center')->setSortable()->setSortableResetPagination()->setDefaultHide()
             ->setRenderer(function($item) { return $item['nutno_overit'] == 1 ? "ANO" : "ne"; })->setFilterText();
-        $grid->addColumnText('overovatel','Ověřovatel')->setSortable()->setSortableResetPagination()->setFilterText();
-        $grid->addColumnDateTime('overil','Ověřeno')->setSortable()->setSortableResetPagination()->setFilterText();
+        $grid->addColumnText('overovatel','Ověřovatel')->setSortable()->setSortableResetPagination()->setDefaultHide()->setFilterText();
+        $grid->addColumnDateTime('overil','Ověřeno')->setSortable()->setSortableResetPagination()->setDefaultHide()->setFilterText();
         $grid->addColumnText('firma','firma')->setSortable()->setSortableResetPagination()->setFilterText();
         $grid->addColumnText('popis','popis')->setSortable()->setSortableResetPagination()->setFilterText();
         $grid->addColumnText('cinnost','Činnost')->setSortable()->setSortableResetPagination()->setFilterText();

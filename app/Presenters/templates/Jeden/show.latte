@@ -34,44 +34,39 @@
   <br>
   <p>{$jeden->obsah}</p>
   <br>
+  
   <a class="btn btn-primary" n:href="Homepage:default" role="button">← zpět na hlavní stránku</a>
-  <br>
-  <br>
+  
+  <br><br>
 
+</div>  
  
-  <h4>Přehled</h4>
+<h4>Přehled</h4>
  
 {control prehledGrid} 
   
-  <br>
-  <br>
-  <h4>Jednotlivé zaúčtované doklady</h4>
+<br><br>
 
-</div>  
+<h4>Jednotlivé zaúčtované doklady</h4>
 
-{control simpleGrid} 
+{control denikGrid} 
 
-<div class="container-fluid"></div>
-  <br>
-
-  <br>
-  <br>
+<br><br>
 
 <h4>Schválené a ověřené objednávky - dosud nezaúčtované</h4>
-{control simpleGrid2} 
-<br>
-<br>
-<br>
+
+{control objednavkySchvaleneGrid} 
+
+<br><br>
+
 <h4>Objednávky čekající na schválení nebo ověření</h4>
-{control simpleGrid3} 
 
-<br>
-<br>
-<br>
+{control objednavkyNeschvaleneGrid} 
+
+<br><br>
+
 <a class="btn btn-primary" n:href="Homepage:default" role="button">← zpět na hlavní stránku</a>
-<br>
-<br>
 
-</div>
+<br><br>
 
 {/block}
