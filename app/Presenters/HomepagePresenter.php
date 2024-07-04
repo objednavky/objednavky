@@ -39,8 +39,8 @@ class HomepagePresenter extends ObjednavkyBasePresenter
         $source = $this->mapRozpocet(1);
         $this->template->mySum = $this->sumColumn($source, 'mySumV') + $this->sumColumn($source, 'mySumS');
         $this->template->castkaSablony = $this->sumColumn($source, 'castkaRozpocet') + $this->sumColumn($source, 'castkaSablony');
-        $this->template->objed_ja_sch = $this->database->table('objednavky')->where('kdo', $uz)
-            ->where('stav ', 0)->count('id');    //    počet objednávek čekající na mé schválení
+        $this->template->objed_ja_sch = $this->database->table('objednavky')->whereOr(['cinnost.rozpocet.hospodar ?' => $uz,'cinnost.rozpocet.hospodar2 ?' => $uz])
+            ->where('stav ', 0)->count('objednavky.id');    //    počet objednávek čekající na mé schválení
         $this->template->objed_ja_ov = $this->database->table('objednavky')->where('kdo2', $uz)
             ->where('stav ', 1)->count('id');    //    počet objednávek čekající na mé ověření
         $this->template->objed_neschval_jiny_sch = $this->database->table('objednavky')->where('zakladatel', $uz)->where('stav ?', [0,1])
@@ -271,7 +271,7 @@ class HomepagePresenter extends ObjednavkyBasePresenter
 //        $grid->addColumnText('radka','Č. pol.');
         $grid->addColumnDateTime('zalozil','Založeno')->setFormat('d.m.Y')->setSortable()->setSortableResetPagination();
         $grid->addColumnText('zakladatel','Zadavatel','uzivatel.jmeno:zakladatel' )->setSortable()->setSortableResetPagination();
-        $grid->addColumnText('schvalovatel','Schvalovatel','kdo.jmeno')->setSortable()->setSortableResetPagination()->setFilterText();
+        $grid->addColumnText('schvalovatel','Schvalovatel','kdo.jmeno')->setSortable()->setSortableResetPagination();
         $grid->addColumnText('prehled_popis','Popis objednávky','prehled.popis:id_prehled')->setSortable()->setSortableResetPagination();
         $grid->addColumnText('firma','Firma')->setSortable()->setSortableResetPagination();
         $grid->addColumnText('popis','Popis položky')->setSortable()->setSortableResetPagination();
