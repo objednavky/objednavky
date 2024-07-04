@@ -126,7 +126,7 @@ class EditRozpocetPresenter extends ObjednavkyBasePresenter
         $grid = new DataGrid($this, $name);
         $rok = $this->sessionSection->rok;
         $verze = $this->sessionSection->verze;
-        $source = $this->database->table('rozpocet')->where('rok', $rok)->where('verze',$verze);
+        $source = $this->database->table('rozpocet')->where('rok', $rok)->where('verze',$verze)->order('rozpocet');
         //$this->sessionSection->source = $source;
         $grid->setDataSource($source);
         bdump($grid);
