@@ -118,17 +118,17 @@ class ObjednavkyManager
 	}
 	
 	
-    public function mapPrehledObjednavek(bool $smazane, int $rok) : array{
+    public function mapPrehledObjednavek(bool $smazane, int|null $rok) : array{
 		if (isset($rok)) {
 			$letosni = $this->database->table('objednavky')->select('MAX(id_prehled) AS pr')->where('cinnost.rok',$rok)->group('id_prehled')->fetchPairs('pr','pr');
 			$source = $this->database->table('prehled')
 							->where('id IN ?',$letosni)
 							->order('id DESC');
 		} else {
-			$source = $this->database->table('prehled')
+			$source = $this->database->table('prehled')	// TK TODO tohle funguje v přehledu, ale při pokusu o editaci staré objednávky to hází chybu
 							->order('id DESC');
 		}
-		return $this->mapPrehledObjednavekFromSource($source, $smazane, $rok);
+		return $this->mapPrehledObjednavekFromSource($source, $smazane);
     }
 
 	/** 
@@ -327,7 +327,7 @@ class ObjednavkyManager
 	/**
 	 * z připraveného datasource naplní pole rozpočtů pro gridy v prezenteru
 	 */
-    private function mapPrehledObjednavekFromSource($source, bool $smazane, int $rok) : array {
+    private function mapPrehledObjednavekFromSource($source, bool $smazane) : array {
         $fetchedPrehled = [];
         foreach ($source as $prehled) {
 			$item = [
@@ -335,9 +335,11 @@ class ObjednavkyManager
 				'zadavatel' => $prehled->ref('zakladatel') == null ? '' : $prehled->ref('zakladatel')->jmeno,
 				'zalozil' => $prehled->zalozil,
 				'popis' => $prehled->popis,
-				'rok' => $rok, //TK TODO tady musí být rok převzatý z tabulky, aby bylo možné listovat objednávky přes více let
+//				'rok' => $rok, //TK TODO tady musí být rok převzatý z tabulky, aby bylo možné listovat objednávky přes více let
+				'rok' => $this->database->table('objednavky')->limit(1)->where('id_prehled', $prehled->id)->fetch()->ref('cinnost','cinnost')->rok,
 			];
-			$objednavky = $this->sumaObjednavekPodlePrehleduAStavu($prehled->id, $rok);
+
+			$objednavky = $this->sumaObjednavekPodlePrehleduAStavu($prehled->id);
 			if (isset($objednavky)) {
 				$item = array_merge($item, $objednavky->toArray());
 			} else {
@@ -385,7 +387,7 @@ class ObjednavkyManager
 						->where('cinnost.id_rozpocet', $rozpocet_id);
 	}
 
-	private function sumaObjednavekPodlePrehleduAStavu(int $prehledId, int $rok) {
+	private function sumaObjednavekPodlePrehleduAStavu(int $prehledId) {
 		//$rok = $this->database->table('setup')->get(1)->rok;
 		return $this->database->table('objednavky')
 				->select("SUM(CASE WHEN stav IN (0,1,2,3,4,5,8,9) THEN objednavky.castka ELSE 0 END) AS castka_celkem, "

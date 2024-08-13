@@ -268,7 +268,7 @@ class HomepagePresenter extends ObjednavkyBasePresenter
         $grid->setDataSource($source);
         $grid->addColumnText('id_prehled','Č. obj.')->setSortable()->setSortableResetPagination()
             ->setRenderer(function($item) { return $item['id_prehled'] . '/' .  $item['radka']; });
-//        $grid->addColumnText('radka','Č. pol.');
+        $grid->addColumnText('rok','Rok','cinnost.rok')->setAlign('right')->setSortable()->setSortableResetPagination();
         $grid->addColumnDateTime('zalozil','Založeno')->setFormat('d.m.Y')->setSortable()->setSortableResetPagination();
         $grid->addColumnText('zakladatel','Zadavatel','uzivatel.jmeno:zakladatel' )->setSortable()->setSortableResetPagination();
         $grid->addColumnText('schvalovatel','Schvalovatel','kdo.jmeno')->setSortable()->setSortableResetPagination();
