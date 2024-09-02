@@ -137,7 +137,7 @@ class ObjednavkyManager
 	 * @param $verze zdrojova verze, jejiz kopie se vytvori; neni-li zadana, pouzije se posledni v danem roce
 	 * @return $novaVerze cislo nove vytvorene verze nebo 0 pokud nastane chyba
 	 */
-	public function vytvorNovouVerziRozpoctu(int $rok, int $verze = null): int {
+	public function vytvorNovouVerziRozpoctu(int|string $rok, int|string $verze = null): int {
 		$novaVerze = 0;
 		try {
 			if (empty($verze)) {
@@ -195,7 +195,7 @@ class ObjednavkyManager
 	 * @param $verze zdrojova verze, jejiz kopie se vytvori; neni-li zadana, pouzije se posledni v danem roce
 	 * @return $novaVerze cislo nove vytvorene verze nebo 0 pokud nastane chyba
 	 */
-	public function vytvorNovyRokRozpoctu(int $rok, int $verze = null): int {
+	public function vytvorNovyRokRozpoctu(int|string $rok, int|string $verze = null): int {
 		$novyRok = 0;
 		try {
 			if (empty($verze)) {
