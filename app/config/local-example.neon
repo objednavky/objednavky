@@ -3,11 +3,13 @@ parameters:
 		clientId: '<client-id MS Azure ověřovací aplikace>'
 		clientSecret: '<client secret MS Azure aplikace>'
 		redirectUri: 'https://<server s objednavkami>/prihlas/login'
+		tenant:
+
 	instance:
 		name: 'Naše objednávky'	# název, ktreý se zobrazí vlevo v menu jako odkaz na homepage
 		cssClass: 'test'		# CSS třídy, kterou dostane <body> tag každé stránky
 		testing: true 			# zatím nepoužito, bude sloužit k upozornění uživatele, že je na testovacím serveru
-
+		udrzba: false
 
 database:
 	dsn: 'mysql:host=<hostname>;port=3306;dbname=<database>'

@@ -18,7 +18,7 @@ extensions:
     - Contributte\FormMultiplier\DI\MultiplierExtension
 
 services:
-	router: App\Router\RouterFactory::createRouter
+	router: App\Router\RouterFactory::createRouter(%instance.udrzba%)
 	- App\MojeServices\MyAuthenticator
 	-
 		class: App\Presenters\PrihlasPresenter
@@ -26,6 +26,10 @@ services:
 			- setClientId(%oauth.clientId%)
 			- setClientSecret(%oauth.clientSecret%)
 			- setRedirectUri(%oauth.redirectUri%)
+			- setRedirectParams(%oauth.redirectParams%)
+			- setUrlApi(%oauth.urlApi%)
+			- setTenant(%oauth.tenant%)
+			- setScope(%oauth.scope%)
 	- App\Model\ObjednavkyManager
 	- App\MojeServices\ParovaniDenikuService
 
@@ -40,3 +44,17 @@ constants:
 	OBJ_DB_SMAZANI: 'obj_db_smazani'
 	OBJ_DB_IGNORUJ: 'obj_db_ignoruj'
 	OBJ_DB_NOVA: 'obj_db_nova'
+
+parameters:
+	oauth:
+        # configure your clients as described here: https://github.com/knpuniversity/oauth2-client-bundle#configuration
+		redirectParams: {}
+		urlApi: 'https://graph.microsoft.com/'
+		scope:
+			- 'Directory.Read.All'
+			- 'Directory.ReadWrite.All'
+			- 'Group.Read.All'
+			- 'Member.Read.Hidden'
+			- 'User.Read'
+			- 'User.Read.All'
+			- 'User.ReadBasic.All'
