@@ -16,6 +16,11 @@ class PrihlasPresenter extends BasePresenter
     private $clientId;
     private $clientSecret;
     private $redirectUri;
+    private $redirectParams;
+    private $urlApi;
+    private $tenant;
+    private $scope;
+    private $type;
     
     public function renderLogout()
     {
@@ -41,6 +46,9 @@ class PrihlasPresenter extends BasePresenter
             'clientSecret'      => $this->clientSecret,
             'redirectUri'       => $this->redirectUri,
             'state'             => 'objednavky',
+            'tenant'            => $this->tenant,
+            'type'              => $this->type,
+/*
             'scope'             => [ //'openid', 'profile', 'email', 'user.read', 'group.read.all'],
                                     'https://graph.windows.net/Directory.Read.All',
                                     'https://graph.windows.net/Directory.ReadWrite.All',
@@ -50,6 +58,10 @@ class PrihlasPresenter extends BasePresenter
                                     'https://graph.windows.net/User.Read.All',
                                     'https://graph.windows.net/User.ReadBasic.All',
             ],
+*/
+            'scope'             => $this->scope,
+            'urlApi'            => $this->urlApi,
+            'defaultEndPointVersion' => '2.0',
             'metadata'          => 'https://login.microsoftonline.com/waldorfplzen.onmicrosoft.com/v2.0/.well-known/openid-configuration',
         ]);
         
@@ -69,27 +81,29 @@ class PrihlasPresenter extends BasePresenter
             bdump("AUTH get access token " . date("Y-m-d h:i:s:a"));
             $token = $provider->getAccessToken('authorization_code', [
                 'code' => $this->getHttpRequest()->getQuery('code'),
-                'resource' => 'https://graph.windows.net',
+//                'resource' => 'https://graph.windows.net',
+//                'resource' => $this->urlApi,
             ]);
-        
+            bdump($token);
             // Optional: Now you have a token you can look up a users profile data
             try {
                 // We got an access token, let's now get the user's details
                 bdump("AUTH get user details " . date("Y-m-d h:i:s:a"));
-                $me = $provider->get('https://graph.windows.net/me?api-version=1.6', $token);
+//                $me = $provider->get('https://graph.windows.net/me?api-version=1.6', $token);
+                $me = $provider->get($this->urlApi.'/v1.0/me', $token);
                 \bdump($me);
                 bdump("AUTH get user's role assignments " . date("Y-m-d h:i:s:a"));
-                $appRoles = $provider->get('users/'.$me['objectId'].'/appRoleAssignments', $token);   //objectId
+                $appRoles = $provider->get($this->urlApi.'/v1.0/users/'.$me['id'].'/appRoleAssignments', $token);   //id
                 \bdump($appRoles);
 /*
-                $memberGroups = $provider->post('me/getMemberGroups', ['securityEnabledOnly' => 'false'], $token);   //objectId
+                $memberGroups = $provider->post('me/getMemberGroups', ['securityEnabledOnly' => 'false'], $token);   //id
                 \bdump($memberGroups);
-                $allGroups = $provider->get('groups', $token);   //objectId
+                $allGroups = $provider->get('/v1.0/groups', $token);   //id
                 \bdump($allGroups);
 */
                 bdump("AUTH set identity " . date("Y-m-d h:i:s:a"));
 
-                $identita = new \App\MojeServices\MojeIdentity(null, $me['objectId'], $me['userPrincipalName'], $me['mail'], $me['displayName'], [], $appRoles);
+                $identita = new \App\MojeServices\MojeIdentity(null, $me['id'], $me['userPrincipalName'], $me['mail'], $me['displayName'], [], $appRoles);
                 try {
                     bdump($this->getUser());
                     bdump($this->getUser()->getAuthenticator());
@@ -103,13 +117,13 @@ class PrihlasPresenter extends BasePresenter
                 }
                 bdump("AUTH done " . date("Y-m-d h:i:s:a"));
                 $this->flashMessage('Uživatel byl úspěšně přihlášen do aplikace do roku '.($identita->rok-1).'/'.$identita->rok.' a verze rozpočtu '.$identita->verze.'. Můžete začít pracovat.', 'success');
-                $this->redirect('Homepage:');
+                //$this->redirect('Homepage:');
             } catch (\Exception $e) {
                 // Failed to get user details
                 bdump($e);
 //                exit('Oh dear...');
                 $this->flashMessage($e->getMessage());
-                $this->redirect('Homepage:');
+                //$this->redirect('Homepage:');
             }
         }
     }
@@ -128,17 +142,69 @@ class PrihlasPresenter extends BasePresenter
 
     }
 
-    public function setClientId($clientId) {
+/* *************** settery a gettery ******************** */    
+
+     /**
+     * Set the value of clientId
+     */
+    public function setClientId($clientId): self {
         $this->clientId = $clientId;
+        return $this;
     }
-    public function setClientSecret($clientSecret){
+
+    /**
+     * Set the value of clientSecret
+     */
+    public function setClientSecret($clientSecret): self {
         $this->clientSecret = $clientSecret;
+        return $this;
     }
-    public function setRedirectUri($redirectUri) {
+
+    /**
+     * Set the value of redirectUri
+     */
+    public function setRedirectUri($redirectUri): self {
         $this->redirectUri = $redirectUri;
+        return $this;
     }
 
+    /**
+     * Set the value of redirectParams
+     */
+    public function setRedirectParams($redirectParams): self {
+        $this->redirectParams = $redirectParams;
+        return $this;
+    }
 
-         
-    
+    /**
+     * Set the value of urlApi
+     */
+    public function setUrlApi($urlApi): self {
+        $this->urlApi = $urlApi;
+        return $this;
+    }
+
+    /**
+     * Set the value of tenant
+     */
+    public function setTenant($tenant): self {
+        $this->tenant = $tenant;
+        return $this;
+    }
+
+    /**
+     * Set the value of scope
+     */
+    public function setScope($scope): self {
+        $this->scope = $scope;
+        return $this;
+    }
+
+    /**
+     * Set the value of type
+     */
+    public function setType($type): self {
+        $this->type = $type;
+        return $this;
+    }
 }

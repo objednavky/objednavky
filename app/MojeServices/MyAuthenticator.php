@@ -22,7 +22,7 @@ class MyAuthenticator implements \Nette\Security\IAuthenticator
 
 		foreach ($identita->getAppRoles() as $appRole) {
 			$role = $this->database->table('role')
-				->where('uuid', $appRole['id'])
+				->where('uuid', $appRole['appRoleId'])
 				->fetch();
 			if ($role) {
 				$roleUuids[$role->id] = $role->role;
@@ -89,7 +89,7 @@ class MyAuthenticator implements \Nette\Security\IAuthenticator
 			$identita->setRoles($roleUuids);
 
 		} else {
-			throw new Nette\Security\AuthenticationException('Uživatel nemá přidělenou žádnou roli.');
+			throw new \Nette\Security\AuthenticationException('Uživatel nemá přidělenou žádnou roli.');
 		}
 
 /* 		if (!$this->passwords->verify($password, $radkaVTabulceUzivatel->heslo)) {

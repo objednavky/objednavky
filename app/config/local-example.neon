@@ -9,7 +9,7 @@ parameters:
 		name: 'Naše objednávky'	# název, ktreý se zobrazí vlevo v menu jako odkaz na homepage
 		cssClass: 'test'		# CSS třídy, kterou dostane <body> tag každé stránky
 		testing: true 			# zatím nepoužito, bude sloužit k upozornění uživatele, že je na testovacím serveru
-		udrzba: false
+		udrzba: false			# pokud je true, nasměruje domácí stránku na UdrzbaPresenter místo HomepagePresenter
 
 database:
 	dsn: 'mysql:host=<hostname>;port=3306;dbname=<database>'
